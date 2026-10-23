@@ -59,10 +59,10 @@ function best<T>(options: T[], score: (x: T) => number, rng: Rng): T | undefined
 const pickNext = (menu: Recipe[], pool: Recipe[], pantry: IngredientId[], rng: Rng) =>
   best(pool.filter((r) => !menu.includes(r)), (r) => menuScore([...menu, r], pantry), rng)
 
-// 후보마다 첫 메뉴로 두고 점수를 가장 올리는 레시피를 하나씩 더한 뒤, 가장 좋은 조합을 고른다.
+// 후보마다 첫 메뉴로 두고 점수를 가장 올리는 레시피를 하나씩 더한 조합들.
 // ponytail: 탐욕 선택이라 최적 조합을 놓칠 수 있다. 전수 비교는 레시피 50개·5개 조합이면 약 200만 가지
-export function buildMenu(candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[] {
-  const combos = candidates.map((seed) => {
+export function greedyCombos(candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[][] {
+  return candidates.map((seed) => {
     const menu = [seed]
     while (menu.length < count) {
       const next = pickNext(menu, candidates, pantry, rng)
@@ -71,8 +71,14 @@ export function buildMenu(candidates: Recipe[], count: number, pantry: Ingredien
     }
     return menu
   })
-  return best(combos, (m) => menuScore(m, pantry), rng) ?? []
 }
+
+// 조합 중 점수가 가장 높은 것
+export const bestCombo = (combos: Recipe[][], pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[] =>
+  best(combos, (m) => menuScore(m, pantry), rng) ?? []
+
+export const buildMenu = (candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[] =>
+  bestCombo(greedyCombos(candidates, count, pantry, rng), pantry, rng)
 
 // B2 i번째 메뉴를 나머지와 가장 잘 겹치는 후보로 바꾼다. shown은 그 칸에서 이미 보여준 레시피 id로,
 // 다시 나오지 않게 하고 후보를 다 보면 비운다

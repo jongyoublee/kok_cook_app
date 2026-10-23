@@ -3,6 +3,7 @@ import { defaultConditions, loadConditions, saveConditions, type Conditions } fr
 import type { Recipe } from './data/recipes'
 import { toISO } from './lib/dates'
 import { filterCandidates, initialMenu, maxMenus } from './lib/menu'
+import { budgetVersion, buildMenuInBudget } from './lib/budget'
 import { servingsOf } from './lib/shopping'
 import { effectiveCookDate } from './lib/storagePlan'
 import { loadPlan, savePlan, type Plan } from './plan'
@@ -89,6 +90,12 @@ export default function App() {
         checked={plan.checked}
         onToggle={(id) => updatePlan({ ...plan, checked: toggle(plan.checked, id) })}
         onOpenRecipe={openRecipe('shopping')}
+        onBudgetChange={(budget) => save({ ...conditions, budget })}
+        onApplySwap={(next) => {
+          // U25 교체 제안 적용: 메뉴가 바뀌므로 구매 체크는 비운다
+          setMenu(next)
+          updatePlan({ ...plan, menu: next, checked: [] })
+        }}
         onBack={() => {
           setMenu(plan.menu)
           setScreen('menu')
@@ -103,7 +110,8 @@ export default function App() {
       onOpenShopping={plan ? () => setScreen('shopping') : undefined}
       onSubmit={(c) => {
         save(c)
-        setMenu(initialMenu(c))
+        // U11 버전 A면 예산 안 조합(U12), 아니면 재료 겹침만으로 구성
+        setMenu(budgetVersion() === 'A' ? buildMenuInBudget(c).menu : initialMenu(c))
         setScreen('menu')
       }}
     />

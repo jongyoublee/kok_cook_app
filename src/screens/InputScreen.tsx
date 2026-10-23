@@ -1,9 +1,10 @@
 // 이번 식단 조건 화면 (와이어프레임 1-1). 처음 설정 이후에는 이 화면에서 모든 조건을 바로 고친다:
 // A2·A3 먹을 날짜, A1 인원, A5·A6 식단, A8 단백질, A10 탄수화물, A9 양념.
-// A4 메뉴 개수는 메뉴 화면에서 추가·삭제로 조절하고, 예산 입력(A7)은 6단계에서 추가한다
+// A4 메뉴 개수는 메뉴 화면에서 추가·삭제로 조절한다. A7 예산은 버전 A일 때만 여기서 받는다
 import { useState, type ReactNode } from 'react'
 import CalendarSheet from '../components/CalendarSheet'
-import { CarbField, DietField, PantryField, PeopleField, ProteinField } from '../components/fields'
+import { BudgetField, CarbField, DietField, PantryField, PeopleField, ProteinField } from '../components/fields'
+import { budgetVersion } from '../lib/budget'
 import { mealCount, type Conditions } from '../conditions'
 import { cookDay, formatDay, nextWeek, type ISODate } from '../lib/dates'
 import { filterCandidates } from '../lib/menu'
@@ -89,6 +90,12 @@ export default function InputScreen({ today, initial, onOpenShopping, onSubmit }
       <Section title="집에 있는 양념">
         <PantryField c={c} set={set} />
       </Section>
+
+      {budgetVersion() === 'A' && (
+        <Section title="예산">
+          <BudgetField c={c} set={set} />
+        </Section>
+      )}
 
       <div className="sticky bottom-0 -mx-5 flex flex-col gap-2 border-t border-gray-100 bg-white px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p className="text-center text-sm text-gray-500">{missing || `조건에 맞는 메뉴 ${candidates}개`}</p>

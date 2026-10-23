@@ -1,5 +1,5 @@
 // B1~B3 추천 메뉴 화면 (와이어프레임 2). 메뉴는 App이 들고 있어 레시피 상세에 다녀와도 유지된다.
-// 예상 금액 막대와 예산 안 조합(F1)은 6단계에서 추가한다
+// 예상 금액 막대는 버전 A면 예산과 비교한다
 import { useMemo, useState } from 'react'
 import { config } from '../config'
 import { mealCount, type Conditions } from '../conditions'
@@ -7,6 +7,8 @@ import { ingredients } from '../data/ingredients'
 import { formatDay, fromISO, type ISODate } from '../lib/dates'
 import type { Recipe } from '../data/recipes'
 import { addMenu, assignDays, filterCandidates, maxMenus, sharedIngredients, swapMenu } from '../lib/menu'
+import { CostBar } from '../components/fields'
+import { budgetVersion, menuCost } from '../lib/budget'
 import { primaryButton } from '../ui'
 
 type Props = {
@@ -110,6 +112,9 @@ export default function MenuScreen({ conditions: c, menu, onChange: setMenu, onO
       >
         메뉴 추가 ({menu.length}/{config.menuCount.max})
       </button>
+
+      {/* D4, F1 예상 금액 */}
+      <CostBar cost={menuCost(menu, c)} budget={budgetVersion() === 'A' && !c.cheapest ? c.budget : undefined} />
 
       {shared.length > 0 && (
         <p className="text-sm text-gray-600">겹치는 재료: {shared.map((id) => ingredients[id].name).join(', ')}</p>

@@ -19,6 +19,8 @@ export type Conditions = {
   proteins: ProteinSource[] // A8 먹고 싶은 단백질 (1개 이상)
   carbs: CarbBase[] // A10 먹고 싶은 베이스 탄수화물 (1개 이상)
   pantry: IngredientId[] // A9 집에 있는 양념
+  budget: number // A7 예산(원)
+  cheapest: boolean // F1 예산과 상관없이 가장 싸게 구성
 }
 
 // A8 선택지. 두부·콩은 두 공급원을 함께 고른다
@@ -66,6 +68,8 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   proteins: [],
   carbs: [],
   pantry: [],
+  budget: config.budget.default,
+  cheapest: false,
 })
 
 const KEY = 'kokcook.conditions'
@@ -104,6 +108,9 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   c.proteins = proteins
   const carbs = Array.isArray(saved.carbs) ? saved.carbs.filter((v) => ALL_CARBS.includes(v)) : []
   c.carbs = carbs
+  const { min: bMin, max: bMax } = config.budget
+  if (Number.isInteger(saved.budget) && saved.budget! >= bMin && saved.budget! <= bMax) c.budget = saved.budget!
+  if (typeof saved.cheapest === 'boolean') c.cheapest = saved.cheapest
   if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
   return c
 }

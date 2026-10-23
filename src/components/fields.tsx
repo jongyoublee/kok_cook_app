@@ -1,6 +1,7 @@
 // 조건 입력 칸. 처음 설정(SetupScreen)과 이번 식단 조건(InputScreen)이 같은 칸을 쓴다.
 // 아이콘은 나중에 단색 아이콘으로 넣는다
 import { useState } from 'react'
+import { config } from '../config'
 import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions, type Diet } from '../conditions'
 import { ingredients, type IngredientId } from '../data/ingredients'
 import { toggle } from '../ui'
@@ -124,6 +125,68 @@ export function DietField({ c, set }: FieldProps) {
       {DIETS.map((d) => (
         <Tile key={d.value} on={c.diet === d.value} onClick={() => set({ diet: d.value })} label={d.label} desc={d.desc} />
       ))}
+    </div>
+  )
+}
+
+const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
+
+// A7 예산 슬라이더와 F1 "가장 싸게 구성". 버전 B는 cheapest 없이 슬라이더만 쓴다
+export function BudgetField({ c, set, showCheapest = true }: FieldProps & { showCheapest?: boolean }) {
+  const { min, max, step } = config.budget
+  const off = showCheapest && c.cheapest
+  return (
+    <div className="flex flex-col gap-3">
+      <div className={`rounded-xl border border-gray-200 px-4 py-3 ${off ? 'opacity-40' : ''}`}>
+        <p className="text-center text-2xl font-bold">{won(c.budget)}</p>
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={c.budget}
+          disabled={off}
+          onChange={(e) => set({ budget: Number(e.target.value) })}
+          aria-label="예산"
+          className="mt-2 w-full accent-black"
+        />
+        <div className="flex justify-between text-xs text-gray-400">
+          <span>{won(min)}</span>
+          <span>{won(max)}</span>
+        </div>
+      </div>
+      {showCheapest && (
+        <label className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3">
+          <span>
+            <span className="block font-medium">가장 싸게 구성</span>
+            <span className="block text-sm text-gray-500">예산과 상관없이 예상 금액이 가장 적은 메뉴로 골라요</span>
+          </span>
+          <input type="checkbox" checked={c.cheapest} onChange={(e) => set({ cheapest: e.target.checked })} className="h-5 w-5 shrink-0 accent-black" />
+        </label>
+      )}
+    </div>
+  )
+}
+
+// 예상 금액과 예산 비교 막대. budget이 없으면 금액만
+export function CostBar({ cost, budget }: { cost: number; budget?: number }) {
+  const over = budget !== undefined && cost > budget
+  return (
+    <div className="rounded-xl border border-gray-200 px-4 py-3">
+      <div className="flex items-baseline justify-between">
+        <span className="text-sm text-gray-500">예상 금액</span>
+        <span className="font-bold">약 {won(cost)}</span>
+      </div>
+      {budget !== undefined && (
+        <>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100" role="meter" aria-valuemin={0} aria-valuemax={budget} aria-valuenow={cost} aria-label="예산 대비 예상 금액">
+            <div className={`h-2 rounded-full ${over ? 'bg-black' : 'bg-gray-400'}`} style={{ width: `${Math.min(100, (cost / budget) * 100)}%` }} />
+          </div>
+          <p className={`mt-1 text-sm ${over ? 'font-semibold text-black' : 'text-gray-500'}`}>
+            예산 {won(budget)} {over ? `· ${won(cost - budget)} 넘어요` : `· ${won(budget - cost)} 남아요`}
+          </p>
+        </>
+      )}
     </div>
   )
 }

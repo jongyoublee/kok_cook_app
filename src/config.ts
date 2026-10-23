@@ -10,8 +10,10 @@ export const config = {
   maxSelectDays: 14,
   // A2 최대 기간 해석 (미결). span: 첫날~마지막 날 기간, count: 선택한 날짜 개수
   maxSelectMode: 'span' as 'span' | 'count',
-  // F3 예산 버전: A는 예산 먼저, B는 예산 마지막
+  // F3 예산 버전: A는 예산 먼저, B는 예산 마지막. 주소에 ?budget=A 또는 B를 붙여 바꿔 볼 수 있다
   budgetVersion: 'A' as 'A' | 'B',
+  // A7 예산 슬라이더 (원)
+  budget: { min: 50_000, max: 300_000, step: 5_000, default: 100_000 },
   // E1 냉장·냉동 분배 방식 (미결). byDate: 날짜 기준안, byMealCount: 끼니 수 기준 초안
   storageSplit: 'byDate' as 'byDate' | 'byMealCount',
   // E4 식품 안전 수치. 공식 기준 확인 전 임시값이므로 화면에 임시값 표시를 붙인다

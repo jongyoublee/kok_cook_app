@@ -1,11 +1,14 @@
-// D1~D6 장보기 목록 (와이어프레임 4)과 E1~E4 보관 방법 탭 (와이어프레임 6).
-// 쿠팡 링크와 수수료 고지(G1~G3)는 6단계에서 추가한다
+// D1~D6 장보기 목록 (와이어프레임 4), G1~G3 쿠팡 링크, F2 예산 확인 (버전 B, 와이어프레임 5)과
+// E1~E4 보관 방법 탭 (와이어프레임 6)
 import { useState } from 'react'
+import { BudgetField, CostBar } from '../components/fields'
 import StorageTab from '../components/StorageTab'
 import type { Conditions } from '../conditions'
 import { CORNERS, ingredients, type IngredientId } from '../data/ingredients'
 import { priceOf } from '../data/prices'
 import type { Recipe } from '../data/recipes'
+import { budgetVersion, suggestSwap } from '../lib/budget'
+import { COUPANG_NOTICE, coupangSearchUrl } from '../lib/coupang'
 import { formatDay, type ISODate } from '../lib/dates'
 import { buildShoppingList, servingsOf } from '../lib/shopping'
 
@@ -18,15 +21,21 @@ type Props = {
   checked: IngredientId[]
   onToggle: (id: IngredientId) => void
   onOpenRecipe: (r: Recipe) => void
+  onBudgetChange: (budget: number) => void
+  onApplySwap: (menu: Recipe[]) => void
   onBack: () => void
 }
 
 const num = (n: number) => n.toLocaleString('ko-KR')
 
-export default function ShoppingScreen({ today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBack }: Props) {
+export default function ShoppingScreen(props: Props) {
+  const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack } = props
   const [tab, setTab] = useState<'list' | 'storage'>('list')
+  const [keep, setKeep] = useState(false) // F2 "그대로 진행"을 누르면 교체 제안을 닫는다
   const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
   const left = list.items.filter((it) => !checked.includes(it.id)).length
+  const versionB = budgetVersion() === 'B'
+  const suggestion = versionB && !keep && list.total > c.budget ? suggestSwap(menu, c) : null
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-white px-5 pt-4">
@@ -79,6 +88,34 @@ export default function ShoppingScreen({ today, conditions: c, cookDate, onCookD
             </div>
           </section>
 
+          {/* U22~U25 버전 B: 구성 후 예산을 받고 넘으면 교체를 제안한다 */}
+          {versionB && (
+            <section className="flex flex-col gap-3">
+              <h2 className="font-semibold">예산</h2>
+              <BudgetField c={c} set={(p) => p.budget !== undefined && onBudgetChange(p.budget)} showCheapest={false} />
+              <CostBar cost={list.total} budget={c.budget} />
+              {!suggestion && list.total > c.budget && (
+                <p className="text-sm text-gray-500">메뉴를 바꿔서 줄일 수 있는 조합이 없어요. 메뉴 수를 줄이거나 집에 있는 양념을 확인해 보세요.</p>
+              )}
+              {suggestion && (
+                <div className="rounded-xl border border-black px-4 py-3">
+                  <p className="font-semibold">교체 제안</p>
+                  <p className="mt-1 text-sm">
+                    {suggestion.from.name} → {suggestion.to.name}로 바꾸면 약 {num(suggestion.saving)}원 줄어요.
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm font-medium">
+                    <button type="button" onClick={() => setKeep(true)} className="rounded-lg border border-gray-200 py-2">
+                      그대로 진행
+                    </button>
+                    <button type="button" onClick={() => onApplySwap(suggestion.menu)} className="rounded-lg bg-black py-2 text-white">
+                      교체 제안 적용
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
           {CORNERS.map((corner) => {
             const items = list.items.filter((it) => it.corner === corner)
             if (!items.length) return null
@@ -89,8 +126,8 @@ export default function ShoppingScreen({ today, conditions: c, cookDate, onCookD
                   {items.map((it) => {
                     const done = checked.includes(it.id)
                     return (
-                      <li key={it.id}>
-                        <label className="flex cursor-pointer items-start gap-3 px-4 py-3">
+                      <li key={it.id} className="flex items-start">
+                        <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3 py-3 pl-4">
                           <input type="checkbox" checked={done} onChange={() => onToggle(it.id)} className="mt-1 h-5 w-5 shrink-0 accent-black" />
                           <span className={`min-w-0 flex-1 ${done ? 'text-gray-400 line-through' : ''}`}>
                             <span className="flex justify-between gap-2">
@@ -106,6 +143,16 @@ export default function ShoppingScreen({ today, conditions: c, cookDate, onCookD
                             {it.usedBy.length > 1 && <span className="block text-sm text-gray-500">{it.usedBy.join(', ')}에 함께 써요</span>}
                           </span>
                         </label>
+                        {/* G1 재료별 쿠팡 검색. 체크 상자와 겹치지 않게 label 밖에 둔다 */}
+                        <a
+                          href={coupangSearchUrl(it.name)}
+                          target="_blank"
+                          rel="noopener noreferrer sponsored"
+                          aria-label={`${it.name} 쿠팡에서 찾기`}
+                          className="m-2 mt-2.5 shrink-0 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium"
+                        >
+                          쿠팡
+                        </a>
                       </li>
                     )
                   })}
@@ -128,8 +175,9 @@ export default function ShoppingScreen({ today, conditions: c, cookDate, onCookD
           <span className="font-semibold">예상 금액 합계</span>
           <span className="text-xl font-bold">약 {num(list.total)}원</span>
         </div>
-        {/* D4 참가격 연동 전 가짜 가격 */}
+        {/* D4 참가격 연동 전 가짜 가격, G2 수수료 고지 */}
         <p className="mt-1 text-xs text-gray-400">임시 가격 데이터로 계산한 추정치예요. 실제 가격과 다를 수 있어요.</p>
+        <p className="mt-1 text-xs text-gray-400">{COUPANG_NOTICE}</p>
       </div>
     </main>
   )

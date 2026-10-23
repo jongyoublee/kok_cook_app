@@ -4,6 +4,7 @@ import type { Conditions } from '../conditions'
 import { priceOf } from '../data/prices'
 import type { Recipe } from '../data/recipes'
 import { filterCandidates } from './menu'
+import { buildMenuOptions } from './options'
 import { buildShoppingList, servingsOf } from './shopping'
 
 // F3 설정값으로 고르고, 주소에 ?budget=A 또는 ?budget=B가 있으면 그걸 쓴다(비교 시험용)
@@ -29,4 +30,31 @@ export function suggestSwap(menu: Recipe[], c: Conditions): SwapSuggestion | nul
       if (saving > (found?.saving ?? 0)) found = { menu: next, from, to, saving }
     }
   return found
+}
+
+export type BudgetRange = { min: number; max: number; step: number }
+
+// 범위는 예산·'가장 싸게 구성'과 상관없는 조건으로만 정해진다. 화면이 다시 그려질 때마다 계산하지 않도록 기억해 둔다
+const rangeCache = new Map<string, BudgetRange>()
+const rangeKey = (c: Conditions) => JSON.stringify([c.dates, c.meals, c.people, c.menuCount, c.proteins, c.carbs, c.pantry])
+
+// A7 슬라이더 범위: 지금 조건에서 가장 싼 조합 금액부터 그 maxMultiplier배까지
+export function budgetRange(c: Conditions): BudgetRange {
+  const key = rangeKey(c)
+  const hit = rangeCache.get(key)
+  if (hit) return hit
+  const { step, maxMultiplier, fallbackMin, fallbackMax } = config.budget
+  const cheapest = buildMenuOptions({ ...c, cheapest: true }, undefined, () => 0).options[0]?.cost
+  const range = cheapest
+    ? { min: Math.max(step, Math.floor(cheapest / step) * step), max: Math.ceil((cheapest * maxMultiplier) / step) * step, step }
+    : { min: fallbackMin, max: fallbackMax, step }
+  if (rangeCache.size > 50) rangeCache.clear()
+  rangeCache.set(key, range)
+  return range
+}
+
+// 실제로 쓰는 예산: 정하지 않았으면 범위 중간, 정했으면 범위 안으로 맞춘 값
+export function budgetOf(c: Conditions, range: BudgetRange = budgetRange(c)): number {
+  if (c.budget === null) return Math.round((range.min + range.max) / 2 / range.step) * range.step
+  return Math.min(range.max, Math.max(range.min, c.budget))
 }

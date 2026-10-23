@@ -13,7 +13,7 @@ const ids = (menu: { id: string }[]) => menu.map((r) => r.id).sort().join()
 const greedyCosts = () => greedyCombos(filterCandidates(c), c.menuCount, c.pantry, first).map((m) => menuCost(m, c))
 
 describe('추천안 3개 (B1, A9)', () => {
-  const { options, overBudget } = buildMenuOptions(c, false, first)
+  const { options, overBudget } = buildMenuOptions(c, undefined, first)
 
   it('장보기 간단, 가장 저렴, 집 양념으로 순서로 서로 다른 조합 3개', () => {
     expect(overBudget).toBe(false)
@@ -44,26 +44,26 @@ describe('추천안 3개 (B1, A9)', () => {
 describe('예산 버전 A (F1)', () => {
   it('예산 안에 드는 조합만 추천한다', () => {
     const budget = Math.max(...greedyCosts())
-    const { options, overBudget } = buildMenuOptions({ ...c, budget }, true, first)
+    const { options, overBudget } = buildMenuOptions(c, budget, first)
     expect(overBudget).toBe(false)
     for (const o of options) expect(o.cost).toBeLessThanOrEqual(budget)
   })
 
   it('예산 안에 드는 조합이 없으면 가장 싼 조합 하나와 초과 표시', () => {
-    const { options, overBudget } = buildMenuOptions({ ...c, budget: 1 }, true, first)
+    const { options, overBudget } = buildMenuOptions(c, 1, first)
     expect(overBudget).toBe(true)
     expect(options).toHaveLength(1)
-    expect(options[0].cost).toBe(buildMenuOptions(c, false, first).options.find((o) => o.kind === 'cheap')!.cost)
+    expect(options[0].cost).toBe(buildMenuOptions(c, undefined, first).options.find((o) => o.kind === 'cheap')!.cost)
   })
 
   it('가장 싸게 구성이면 예산과 상관없이 가장 저렴이 첫 추천안', () => {
-    const { options } = buildMenuOptions({ ...c, cheapest: true, budget: 1 }, true, first)
+    const { options } = buildMenuOptions({ ...c, cheapest: true }, 1, first)
     expect(options[0].kind).toBe('cheap')
     expect(options.length).toBeGreaterThan(1)
   })
 
   it('예산 버전 B처럼 예산을 쓰지 않으면 예산을 보지 않는다', () => {
-    expect(buildMenuOptions({ ...c, budget: 1 }, false, first).overBudget).toBe(false)
+    expect(buildMenuOptions(c, undefined, first).overBudget).toBe(false)
   })
 })
 
@@ -74,7 +74,7 @@ describe('이 레시피는 어떤가요? (B3, D3)', () => {
   const porkOnly = { ...c, proteins: ['pork' as const] }
 
   it('단백질을 1개만 골랐으면 같은 단백질이면서 맛이 다른 메뉴를, 늘어나는 금액이 가장 적은 것으로 제안한다', () => {
-    const s = suggestAddition([pork], porkOnly, false)!
+    const s = suggestAddition([pork], porkOnly)!
     expect(s.recipe.proteinSource).toBe('pork')
     expect(s.recipe.flavor).not.toBe(pork.flavor)
     expect(s.extraCost).toBe(menuCost([pork, s.recipe], porkOnly) - menuCost([pork], porkOnly))
@@ -87,32 +87,32 @@ describe('이 레시피는 어떤가요? (B3, D3)', () => {
   it('남는 주재료를 쓰면 알려준다', () => {
     // 4끼면 앞다리살 480g이 필요해 1팩(600g)에서 120g이 남는다
     const fourDays = { ...porkOnly, dates: porkOnly.dates.slice(0, 4) }
-    const s = suggestAddition([pork], fourDays, false)!
+    const s = suggestAddition([pork], fourDays)!
     const names = s.recipe.ingredients.map((i) => i.id)
     for (const l of s.leftovers) expect(l.amount).toBeGreaterThan(0)
     if (names.includes('porkShoulder')) expect(s.leftovers).toContainEqual({ name: '돼지고기 앞다리살', amount: 120, unit: 'g' })
   })
 
   it('단백질을 여러 개 골랐으면 분산 규칙 안에서 제안한다 (B6)', () => {
-    const s = suggestAddition([pork], c, false)!
+    const s = suggestAddition([pork], c)!
     expect(fitsSpread([pork, s.recipe], menuSpread(c.proteins, 2))).toBe(true)
     expect(s.recipe.proteinSource).not.toBe('pork')
   })
 
   it('버전 A는 더한 뒤에도 예산 안이어야 하고, 안 되면 제안하지 않는다', () => {
-    expect(suggestAddition([pork], { ...c, budget: menuCost([pork], c) }, true)).toBeNull()
-    expect(suggestAddition([pork], { ...c, budget: menuCost([pork], c) }, false)).not.toBeNull()
+    expect(suggestAddition([pork], c, menuCost([pork], c))).toBeNull()
+    expect(suggestAddition([pork], c)).not.toBeNull()
   })
 
   it('메뉴가 끼니 수나 최대 개수만큼 차 있으면 제안하지 않는다', () => {
     const twoDays = { ...c, dates: c.dates.slice(0, 2) }
-    expect(suggestAddition(pool.slice(0, 2), twoDays, false)).toBeNull()
+    expect(suggestAddition(pool.slice(0, 2), twoDays)).toBeNull()
   })
 })
 
 describe('한 주 플렉스 (B1, F1)', () => {
   const budget = 150_000
-  const { options } = buildMenuOptions({ ...c, budget }, true, first)
+  const { options } = buildMenuOptions(c, budget, first)
   const flex = options.find((o) => o.kind === 'flex')!
   const premiumMeals = (menu: Recipe[]) => menu.filter((r) => r.ingredients.some((i) => (ingredients[i.id] as Ingredient).premium)).length
 
@@ -127,12 +127,12 @@ describe('한 주 플렉스 (B1, F1)', () => {
   })
 
   it('예산을 쓰지 않거나 가장 싸게 구성이면 없다', () => {
-    expect(buildMenuOptions({ ...c, budget }, false, first).options.map((o) => o.kind)).not.toContain('flex')
-    expect(buildMenuOptions({ ...c, budget, cheapest: true }, true, first).options.map((o) => o.kind)).not.toContain('flex')
+    expect(buildMenuOptions(c, undefined, first).options.map((o) => o.kind)).not.toContain('flex')
+    expect(buildMenuOptions({ ...c, cheapest: true }, budget, first).options.map((o) => o.kind)).not.toContain('flex')
   })
 
   it('고급 재료 메뉴를 고를 수 없으면 없다', () => {
-    const noPremium = { ...c, budget, proteins: ['pork' as const, 'egg' as const] }
-    expect(buildMenuOptions(noPremium, true, first).options.map((o) => o.kind)).not.toContain('flex')
+    const noPremium = { ...c, proteins: ['pork' as const, 'egg' as const] }
+    expect(buildMenuOptions(noPremium, budget, first).options.map((o) => o.kind)).not.toContain('flex')
   })
 })

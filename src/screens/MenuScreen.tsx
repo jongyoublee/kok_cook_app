@@ -8,7 +8,7 @@ import { formatDay, fromISO, type ISODate } from '../lib/dates'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
 import { addMenu, assignDays, filterCandidates, maxMenus, menuSpread, sharedIngredients, swapMenu } from '../lib/menu'
 import { CostBar, Tile } from '../components/fields'
-import { budgetVersion, menuCost } from '../lib/budget'
+import { budgetOf, budgetVersion, menuCost } from '../lib/budget'
 import { summarizeMenu } from '../lib/nutrition'
 import { OPTION_LABEL, suggestAddition, type MenuOption } from '../lib/options'
 import { servingsOf } from '../lib/shopping'
@@ -61,7 +61,8 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
   const shared = sharedIngredients(menu)
   // A6 1인 기준 칼로리 요약. 메뉴별 1인 끼니 수 = 만들 인분 ÷ 인원
   // B3, D3 확정 전 추가 제안. 버전 A면 예산 안에서만
-  const suggestion = suggestAddition(menu, c, budgetVersion() === 'A')
+  const budget = budgetVersion() === 'A' ? budgetOf(c) : undefined
+  const suggestion = suggestAddition(menu, c, budget)
   const suggestionKey = suggestion ? `${menu.map((r) => r.id).join()}+${suggestion.recipe.id}` : ''
   const kcal = summarizeMenu(menu, servingsOf(menu, c).map((n) => n / c.people))
 
@@ -157,7 +158,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
       </button>
 
       {/* D4, F1 예상 금액 */}
-      <CostBar cost={menuCost(menu, c)} budget={budgetVersion() === 'A' && !c.cheapest ? c.budget : undefined} />
+      <CostBar cost={menuCost(menu, c)} budget={c.cheapest ? undefined : budget} />
 
       {/* A6 칼로리 요약 (추정치) */}
       <section className="rounded-xl border border-gray-200 px-4 py-3">

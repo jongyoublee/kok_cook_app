@@ -1,7 +1,7 @@
 // 조건 입력 칸. 처음 설정(SetupScreen)과 이번 식단 조건(InputScreen)이 같은 칸을 쓴다.
 // 아이콘은 나중에 단색 아이콘으로 넣는다
 import { useState } from 'react'
-import { config } from '../config'
+import { budgetOf, budgetRange } from '../lib/budget'
 import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions } from '../conditions'
 import { ingredients, type IngredientId } from '../data/ingredients'
 import { toggle } from '../ui'
@@ -116,19 +116,22 @@ export function PantryField({ c, set }: FieldProps) {
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
 
 // A7 예산 슬라이더와 F1 "가장 싸게 구성". 버전 B는 cheapest 없이 슬라이더만 쓴다
+// 범위는 조건에 따라 바뀐다(budgetRange). 아직 정하지 않았으면 범위 중간을 보여준다
 export function BudgetField({ c, set, showCheapest = true }: FieldProps & { showCheapest?: boolean }) {
-  const { min, max, step } = config.budget
+  const range = budgetRange(c)
+  const { min, max, step } = range
+  const value = budgetOf(c, range)
   const off = showCheapest && c.cheapest
   return (
     <div className="flex flex-col gap-3">
       <div className={`rounded-xl border border-gray-200 px-4 py-3 ${off ? 'opacity-40' : ''}`}>
-        <p className="text-center text-2xl font-bold">{won(c.budget)}</p>
+        <p className="text-center text-2xl font-bold">{won(value)}</p>
         <input
           type="range"
           min={min}
           max={max}
           step={step}
-          value={c.budget}
+          value={value}
           disabled={off}
           onChange={(e) => set({ budget: Number(e.target.value) })}
           aria-label="예산"
@@ -138,6 +141,7 @@ export function BudgetField({ c, set, showCheapest = true }: FieldProps & { show
           <span>{won(min)}</span>
           <span>{won(max)}</span>
         </div>
+        <p className="mt-1 text-center text-xs text-gray-400">가장 싸게 구성한 금액부터 고를 수 있어요. 인원과 날짜에 따라 범위가 바뀌어요.</p>
       </div>
       {showCheapest && (
         <label className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3">

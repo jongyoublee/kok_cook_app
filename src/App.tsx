@@ -3,7 +3,7 @@ import { defaultConditions, loadConditions, saveConditions, type Conditions } fr
 import type { Recipe } from './data/recipes'
 import { toISO } from './lib/dates'
 import { filterCandidates, maxMenus } from './lib/menu'
-import { budgetVersion } from './lib/budget'
+import { budgetOf, budgetVersion } from './lib/budget'
 import { buildMenuOptions, type MenuOption } from './lib/options'
 import { servingsOf } from './lib/shopping'
 import { effectiveCookDate } from './lib/storagePlan'
@@ -114,7 +114,7 @@ export default function App() {
       onSubmit={(c) => {
         save(c)
         // U11 버전 A면 예산 안 조합(U12)으로, 아니면 예산 없이 추천안을 만들고 첫 추천안으로 시작한다
-        const { options } = buildMenuOptions(c, budgetVersion() === 'A')
+        const { options } = buildMenuOptions(c, budgetVersion() === 'A' ? budgetOf(c) : undefined)
         setOptions(options)
         setMenu(options[0]?.menu ?? [])
         setScreen('menu')

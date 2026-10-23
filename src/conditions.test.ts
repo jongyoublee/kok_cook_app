@@ -40,14 +40,14 @@ describe('입력 조건 (A1~A6, I2)', () => {
   })
 
   it('지난 날짜는 버리고, 모두 지났으면 기본 날짜, 잘못된 값은 기본값', () => {
-    const raw = JSON.stringify({ dates: ['2026-10-01', '2026-10-23'], people: 0, menuCount: 9, diet: 'x', proteins: ['pork', 'x'], pantry: ['soySauce', 'tofu', 'x'], budget: 10, cheapest: 'yes' })
+    const raw = JSON.stringify({ dates: ['2026-10-01', '2026-10-23'], people: 0, menuCount: 9, diet: 'x', proteins: ['pork', 'x'], pantry: ['soySauce', 'tofu', 'x'], budget: 0, cheapest: 'yes' })
     const c = loadConditions(today, fakeStorage(raw))!
     expect(c.dates).toEqual(['2026-10-23'])
     expect(c.people).toBe(1)
     expect(c.menuCount).toBe(config.menuCount.default)
     expect(c.proteins).toEqual(['pork'])
     expect(c.pantry).toEqual(['soySauce']) // 두부는 양념이 아니라 버린다
-    expect(c.budget).toBe(config.budget.default)
+    expect(c.budget).toBeNull() // 정하지 않은 예산
     expect(c.cheapest).toBe(false)
     const old = loadConditions(today, fakeStorage(JSON.stringify({ dates: ['2026-10-01'], proteins: ['x'] })))!
     expect(old.dates).toEqual(defaultConditions(today).dates)

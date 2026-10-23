@@ -7,7 +7,7 @@ import type { Conditions } from '../conditions'
 import { CORNERS, ingredients, type IngredientId } from '../data/ingredients'
 import { priceOf } from '../data/prices'
 import type { Recipe } from '../data/recipes'
-import { budgetVersion, suggestSwap } from '../lib/budget'
+import { budgetOf, budgetVersion, suggestSwap } from '../lib/budget'
 import { COUPANG_NOTICE, coupangSearchUrl } from '../lib/coupang'
 import { formatDay, type ISODate } from '../lib/dates'
 import { buildShoppingList, servingsOf } from '../lib/shopping'
@@ -35,7 +35,8 @@ export default function ShoppingScreen(props: Props) {
   const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
   const left = list.items.filter((it) => !checked.includes(it.id)).length
   const versionB = budgetVersion() === 'B'
-  const suggestion = versionB && !keep && list.total > c.budget ? suggestSwap(menu, c) : null
+  const budget = budgetOf(c)
+  const suggestion = versionB && !keep && list.total > budget ? suggestSwap(menu, c) : null
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-white px-5 pt-4">
@@ -92,9 +93,9 @@ export default function ShoppingScreen(props: Props) {
           {versionB && (
             <section className="flex flex-col gap-3">
               <h2 className="font-semibold">예산</h2>
-              <BudgetField c={c} set={(p) => p.budget !== undefined && onBudgetChange(p.budget)} showCheapest={false} />
-              <CostBar cost={list.total} budget={c.budget} />
-              {!suggestion && list.total > c.budget && (
+              <BudgetField c={c} set={(p) => typeof p.budget === 'number' && onBudgetChange(p.budget)} showCheapest={false} />
+              <CostBar cost={list.total} budget={budget} />
+              {!suggestion && list.total > budget && (
                 <p className="text-sm text-gray-500">메뉴를 바꿔서 줄일 수 있는 조합이 없어요. 메뉴 수를 줄이거나 집에 있는 양념을 확인해 보세요.</p>
               )}
               {suggestion && (

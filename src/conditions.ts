@@ -16,7 +16,7 @@ export type Conditions = {
   proteins: ProteinSource[] // A8 먹고 싶은 단백질 (1개 이상)
   carbs: CarbBase[] // A10 먹고 싶은 베이스 탄수화물 (1개 이상)
   pantry: IngredientId[] // A9 집에 있는 양념
-  budget: number // A7 예산(원)
+  budget: number | null // A7 예산(원). 사용자가 슬라이더를 움직이기 전에는 null(범위 중간을 쓴다, lib/budget.budgetOf)
   cheapest: boolean // F1 예산과 상관없이 가장 싸게 구성
 }
 
@@ -63,7 +63,7 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   proteins: [],
   carbs: [],
   pantry: [],
-  budget: config.budget.default,
+  budget: null,
   cheapest: false,
 })
 
@@ -103,8 +103,8 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   c.proteins = proteins
   const carbs = Array.isArray(saved.carbs) ? saved.carbs.filter((v) => ALL_CARBS.includes(v)) : []
   c.carbs = carbs
-  const { min: bMin, max: bMax } = config.budget
-  if (Number.isInteger(saved.budget) && saved.budget! >= bMin && saved.budget! <= bMax) c.budget = saved.budget!
+  // 범위는 조건마다 달라서 저장값은 양수인지만 보고, 쓸 때 범위 안으로 맞춘다
+  if (Number.isInteger(saved.budget) && saved.budget! > 0) c.budget = saved.budget!
   if (typeof saved.cheapest === 'boolean') c.cheapest = saved.cheapest
   if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
   return c

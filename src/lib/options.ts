@@ -91,8 +91,9 @@ function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng
   return []
 }
 
-// useBudget이면 예산 안 조합만 쓰고(F1), 하나도 없으면 가장 싼 조합 하나와 초과 표시를 돌려준다
-export function buildMenuOptions(c: Conditions, useBudget: boolean, rng: Rng = Math.random): { options: MenuOption[]; overBudget: boolean } {
+// budget이 있으면(버전 A) 예산 안 조합만 쓰고(F1), 하나도 없으면 가장 싼 조합 하나와 초과 표시를 돌려준다.
+// budget은 범위 안으로 맞춘 값(lib/budget.budgetOf)을 넘긴다
+export function buildMenuOptions(c: Conditions, budget?: number, rng: Rng = Math.random): { options: MenuOption[]; overBudget: boolean } {
   const candidates = filterCandidates(c)
   const count = Math.min(c.menuCount, maxMenus(c, candidates))
   if (!count) return { options: [], overBudget: false }
@@ -101,7 +102,8 @@ export function buildMenuOptions(c: Conditions, useBudget: boolean, rng: Rng = M
     .map((m) => ({ m, r: rng() }))
     .sort((a, b) => a.r - b.r)
     .map(({ m }) => evaluate(m, c))
-  const fit = useBudget && !c.cheapest ? pool.filter((x) => x.cost <= c.budget) : pool
+  const useBudget = budget !== undefined
+  const fit = useBudget && !c.cheapest ? pool.filter((x) => x.cost <= budget) : pool
   if (!fit.length) {
     const cheapest = [...pool].sort(ORDER.cheap)[0]
     return { options: [{ kind: 'cheap', menu: cheapest.menu, cost: cheapest.cost, items: cheapest.items, missing: cheapest.missing, premium: cheapest.premium }], overBudget: true }
@@ -134,8 +136,8 @@ const MAIN_CORNERS = new Set(['육류·달걀', '수산', '두부·콩'])
 // 메뉴를 더했다고 보고 장보기와 먹는 날짜를 다시 계산해 늘어나는 금액이 가장 적은 메뉴를 고른다.
 // 남는 재료를 쓰는 메뉴일수록 금액이 덜 늘어 앞에 온다. 단백질은 B6 분산 규칙을 따른다
 // (단백질을 1개만 골랐으면 같은 단백질, 여러 개면 규칙 안에서 다른 단백질도 나온다). 조리법 분산도 같다.
-// useBudget이면(버전 A) 더한 뒤에도 예산 안이어야 한다. 더할 수 없으면 null
-export function suggestAddition(menu: Recipe[], c: Conditions, useBudget: boolean): AddSuggestion | null {
+// budget이 있으면(버전 A) 더한 뒤에도 예산 안이어야 한다. 더할 수 없으면 null
+export function suggestAddition(menu: Recipe[], c: Conditions, budget?: number): AddSuggestion | null {
   const candidates = filterCandidates(c)
   if (!menu.length || menu.length >= maxMenus(c, candidates)) return null
   const now = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
@@ -149,7 +151,7 @@ export function suggestAddition(menu: Recipe[], c: Conditions, useBudget: boolea
       const cost = buildShoppingList(next, servingsOf(next, c), c.pantry, priceOf).total
       return { r, cost, extraCost: cost - now.total, overlap: overlapScore(next) }
     })
-    .filter((x) => !useBudget || c.cheapest || x.cost <= c.budget)
+    .filter((x) => budget === undefined || c.cheapest || x.cost <= budget)
     .sort((a, b) => a.extraCost - b.extraCost || b.overlap - a.overlap)
   const pick = scored[0]
   if (!pick) return null

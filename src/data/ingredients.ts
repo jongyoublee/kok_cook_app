@@ -48,6 +48,18 @@ export const ingredients = {
   oligosaccharide: { name: '올리고당', unit: 'g', corner: '양념', saleUnit: { amount: 700, label: '1병(700g)' } },
   oysterSauce: { name: '굴소스', unit: 'g', corner: '양념', saleUnit: { amount: 350, label: '1병(350g)' } },
   fishSauce: { name: '멸치액젓', unit: 'ml', corner: '양념', saleUnit: { amount: 500, label: '1병(500ml)' } },
+  plumSyrup: { name: '매실청', unit: 'ml', corner: '양념', saleUnit: { amount: 1000, label: '1병(1L)' } },
+  tunaSauce: { name: '참치액', unit: 'ml', corner: '양념', saleUnit: { amount: 500, label: '1병(500ml)' } },
+  butter: { name: '버터', unit: 'g', corner: '양념', saleUnit: { amount: 450, label: '1개(450g)' } },
+  ketchup: { name: '케첩', unit: 'g', corner: '양념', saleUnit: { amount: 500, label: '1통(500g)' } },
+  mayonnaise: { name: '마요네즈', unit: 'g', corner: '양념', saleUnit: { amount: 500, label: '1통(500g)' } },
+  mustard: { name: '머스터드', unit: 'g', corner: '양념', saleUnit: { amount: 200, label: '1병(200g)' } },
+  balsamic: { name: '발사믹 식초', unit: 'ml', corner: '양념', saleUnit: { amount: 250, label: '1병(250ml)' } },
+  honey: { name: '꿀', unit: 'g', corner: '양념', saleUnit: { amount: 500, label: '1병(500g)' } },
+  basil: { name: '바질(건조)', unit: 'g', corner: '양념', saleUnit: { amount: 10, label: '1병(10g)' } },
+  oregano: { name: '오레가노', unit: 'g', corner: '양념', saleUnit: { amount: 10, label: '1병(10g)' } },
+  paprikaPowder: { name: '파프리카 가루', unit: 'g', corner: '양념', saleUnit: { amount: 50, label: '1병(50g)' } },
+  chickenStock: { name: '치킨스톡', unit: 'g', corner: '양념', saleUnit: { amount: 100, label: '1통(100g)' } },
 } satisfies Record<string, Ingredient>
 
 export type IngredientId = keyof typeof ingredients

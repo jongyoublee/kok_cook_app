@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { config } from '../config'
-import { defaultConditions } from '../conditions'
+import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { recipes, type Recipe } from '../data/recipes'
 import { addMenu, assignDays, buildMenu, filterCandidates, maxMenus, missingSeasonings, overlapScore, sharedIngredients, swapMenu } from './menu'
 
 const today = '2026-10-22'
-const korean = defaultConditions(today)
+const korean = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }
 const highProtein = { ...korean, diet: 'highProtein' as const }
 const first = () => 0
 const byId = (id: string) => recipes.find((r) => r.id === id)!
@@ -45,7 +45,7 @@ describe('먹고 싶은 단백질 (A8)', () => {
     expect(c.map((r) => r.id).sort()).toEqual(['chicken-tomato-pasta', 'sweet-potato-chicken-bowl'])
   })
 
-  it('기본은 전부라 단백질·탄수화물로 거르지 않는다', () => {
+  it('전부 고르면 단백질·탄수화물로 거르지 않는다', () => {
     expect(filterCandidates(korean)).toEqual(recipes.filter((r) => r.korean && r.nutrition.kcal <= korean.maxKcal))
   })
 })

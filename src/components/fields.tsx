@@ -1,25 +1,25 @@
 // 조건 입력 칸. 처음 설정(SetupScreen)과 이번 식단 조건(InputScreen)이 같은 칸을 쓴다.
 // 아이콘은 나중에 단색 아이콘으로 넣는다
 import { useState } from 'react'
-import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_BASIC, PANTRY_OPTIONS, PROTEIN_OPTIONS, type Conditions, type Diet } from '../conditions'
-import { ingredients } from '../data/ingredients'
+import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions, type Diet } from '../conditions'
+import { ingredients, type IngredientId } from '../data/ingredients'
 import { toggle } from '../ui'
 
 export type FieldProps = { c: Conditions; set: (patch: Partial<Conditions>) => void }
 
-// 선택 칸. 고르면 검정 바탕
+// 선택 칸. 고르면 흰 바탕에 굵은 검정 테두리(ring으로 두께를 더해 크기가 변하지 않게)
 export function Tile({ on, onClick, label, desc }: { on: boolean; onClick: () => void; label: string; desc?: string }) {
   return (
     <button
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={`flex min-h-12 flex-col justify-center rounded-xl border px-4 py-3 text-left transition-colors ${
-        on ? 'border-black bg-black text-white' : 'border-gray-200 bg-white text-gray-900'
+      className={`flex min-h-12 flex-col justify-center rounded-xl border bg-white px-4 py-3 text-left text-gray-900 transition-colors ${
+        on ? 'border-black font-semibold ring-1 ring-black' : 'border-gray-200'
       }`}
     >
-      <span className="font-medium">{label}</span>
-      {desc && <span className={`mt-0.5 text-sm ${on ? 'text-gray-300' : 'text-gray-500'}`}>{desc}</span>}
+      <span>{label}</span>
+      {desc && <span className="mt-0.5 text-sm font-normal text-gray-500">{desc}</span>}
     </button>
   )
 }
@@ -81,22 +81,33 @@ export function CarbField({ c, set }: FieldProps) {
   )
 }
 
-// A9 기본 양념만 먼저 보여주고 나머지는 더보기. 더보기 쪽에서 고른 게 있으면 펼친 채로 시작
+// A9 기본 양념 10개만 먼저 보여주고, 한식·양식 양념은 아래 버튼으로 펼친다.
+// 펼친 쪽에서 고른 게 있으면 펼친 채로 시작
 export function PantryField({ c, set }: FieldProps) {
-  const extra = PANTRY_OPTIONS.filter((id) => !PANTRY_BASIC.includes(id))
-  const [more, setMore] = useState(() => extra.some((id) => c.pantry.includes(id)))
-  const shown = more ? [...PANTRY_BASIC, ...extra] : PANTRY_BASIC
+  const [basic, ...rest] = PANTRY_GROUPS
+  const restCount = rest.reduce((n, g) => n + g.ids.length, 0)
+  const [more, setMore] = useState(() => rest.some((g) => g.ids.some((id) => c.pantry.includes(id))))
+  const grid = (ids: IngredientId[]) => (
+    <div className="grid grid-cols-3 gap-2">
+      {ids.map((id) => (
+        <Tile key={id} on={c.pantry.includes(id)} onClick={() => set({ pantry: toggle(c.pantry, id) })} label={ingredients[id].name} />
+      ))}
+    </div>
+  )
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-3 gap-2">
-        {shown.map((id) => (
-          <Tile key={id} on={c.pantry.includes(id)} onClick={() => set({ pantry: toggle(c.pantry, id) })} label={ingredients[id].name} />
+      {grid(basic.ids)}
+      {more &&
+        rest.map((g) => (
+          <div key={g.title} className="mt-2 flex flex-col gap-2">
+            <h3 className="text-sm font-semibold text-gray-500">{g.title}</h3>
+            {grid(g.ids)}
+          </div>
         ))}
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{c.pantry.length}개 선택</span>
-        <TextButton onClick={() => setMore(!more)}>{more ? '접기' : `더보기 (${extra.length})`}</TextButton>
-      </div>
+      <p className="text-sm text-gray-500">{c.pantry.length}개 선택</p>
+      <button type="button" onClick={() => setMore(!more)} aria-expanded={more} className="w-full rounded-xl border border-gray-200 py-3 text-sm font-medium">
+        {more ? '접기' : `한식·양식 양념 더 보기 (${restCount})`}
+      </button>
     </div>
   )
 }

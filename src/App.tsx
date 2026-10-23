@@ -10,8 +10,7 @@ const today = toISO(new Date())
 const saved = loadConditions(today)
 
 export default function App() {
-  // 처음 설정은 단백질·탄수화물을 비운 채 시작해 직접 고르게 한다
-  const [conditions, setConditions] = useState(saved ?? { ...defaultConditions(today), proteins: [], carbs: [] })
+  const [conditions, setConditions] = useState(saved ?? defaultConditions(today))
   const [screen, setScreen] = useState<'setup' | 'input' | 'menu'>(saved ? 'input' : 'setup')
 
   const save = (c: Conditions) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { config } from './config'
-import { defaultConditions, loadConditions, mealCount, saveConditions } from './conditions'
+import { defaultConditions, loadConditions, mealCount, PANTRY_GROUPS, PANTRY_OPTIONS, saveConditions } from './conditions'
 
 const today = '2026-10-22'
 const fakeStorage = (init?: string) => {
@@ -44,6 +44,13 @@ describe('입력 조건 (A1~A6, I2)', () => {
     expect(c.pantry).toEqual(['soySauce']) // 두부는 양념이 아니라 버린다
     const old = loadConditions(today, fakeStorage(JSON.stringify({ dates: ['2026-10-01'], proteins: ['x'] })))!
     expect(old.dates).toEqual(defaultConditions(today).dates)
-    expect(old.proteins).toEqual(defaultConditions(today).proteins) // 남는 단백질이 없으면 전부
+    expect(old.proteins).toEqual([]) // 잘못된 값만 있으면 빈칸
+  })
+
+  it('양념 묶음(기본·한식·양식)이 양념 코너 재료를 빠짐없이 한 번씩 담는다', () => {
+    const all = PANTRY_GROUPS.flatMap((g) => g.ids)
+    expect(new Set(all).size).toBe(all.length)
+    expect([...all].sort()).toEqual([...PANTRY_OPTIONS].sort())
+    expect(PANTRY_GROUPS[0].ids).toHaveLength(10)
   })
 })

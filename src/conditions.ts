@@ -44,9 +44,13 @@ export const CARB_OPTIONS: { label: string; value: CarbBase }[] = [
 
 export const ALL_CARBS = CARB_OPTIONS.map((o) => o.value)
 
-// A9 집에 있는지 묻는 재료: 양념 코너. 기본 양념을 먼저 보여주고 나머지는 더보기로
+// A9 집에 있는지 묻는 재료: 양념 코너. 기본 10개를 먼저 보여주고 나머지는 더보기로
 export const PANTRY_OPTIONS = (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === '양념')
-export const PANTRY_BASIC: IngredientId[] = ['soySauce', 'gochujang', 'doenjang', 'chiliPowder', 'sugar', 'salt', 'blackPepper', 'cookingOil', 'sesameOil', 'vinegar']
+export const PANTRY_GROUPS: { title: string; ids: IngredientId[] }[] = [
+  { title: '기본 양념', ids: ['soySauce', 'gochujang', 'doenjang', 'chiliPowder', 'sugar', 'salt', 'blackPepper', 'cookingOil', 'sesameOil', 'vinegar'] },
+  { title: '한식 양념', ids: ['perillaOil', 'sesameSeeds', 'mirin', 'oligosaccharide', 'fishSauce', 'tunaSauce', 'plumSyrup', 'oysterSauce'] },
+  { title: '양식 양념', ids: ['oliveOil', 'butter', 'ketchup', 'mayonnaise', 'mustard', 'balsamic', 'honey', 'basil', 'oregano', 'paprikaPowder', 'chickenStock'] },
+]
 
 // A3 끼니 수는 선택한 날짜로 자동 계산
 export const mealCount = (c: Conditions) => c.dates.length * c.meals.length
@@ -58,8 +62,9 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   menuCount: config.menuCount.default,
   diet: 'korean',
   maxKcal: config.maxKcalPerMeal,
-  proteins: ALL_PROTEINS,
-  carbs: ALL_CARBS,
+  // 재료 선택 칸은 빈칸으로 시작한다
+  proteins: [],
+  carbs: [],
   pantry: [],
 })
 
@@ -96,9 +101,9 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   if (Number.isInteger(saved.menuCount) && saved.menuCount! >= min && saved.menuCount! <= max) c.menuCount = saved.menuCount!
   if (saved.diet === 'korean' || saved.diet === 'highProtein') c.diet = saved.diet
   const proteins = Array.isArray(saved.proteins) ? saved.proteins.filter((p) => ALL_PROTEINS.includes(p)) : []
-  if (proteins.length) c.proteins = proteins
+  c.proteins = proteins
   const carbs = Array.isArray(saved.carbs) ? saved.carbs.filter((v) => ALL_CARBS.includes(v)) : []
-  if (carbs.length) c.carbs = carbs
+  c.carbs = carbs
   if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
   return c
 }

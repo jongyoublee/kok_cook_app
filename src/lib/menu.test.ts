@@ -3,7 +3,7 @@ import { config } from '../config'
 import { defaultConditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { recipes, type Recipe } from '../data/recipes'
-import { addMenu, assignDays, buildMenu, filterCandidates, maxMenus, overlapScore, sharedIngredients, swapMenu } from './menu'
+import { addMenu, assignDays, buildMenu, filterCandidates, maxMenus, missingSeasonings, overlapScore, sharedIngredients, swapMenu } from './menu'
 
 const today = '2026-10-22'
 const korean = defaultConditions(today)
@@ -34,6 +34,22 @@ describe('후보 필터 (B4)', () => {
   })
 })
 
+describe('안 먹는 단백질 (A8)', () => {
+  it('주재료가 그 단백질이면 뺀다', () => {
+    const ids = filterCandidates({ ...korean, excludeProteins: ['pork', 'beef'] }).map((r) => r.id)
+    expect(ids).not.toContain('spicy-pork')
+    expect(ids).not.toContain('beef-bulgogi')
+    expect(ids).toContain('soy-chicken')
+  })
+
+  it('주재료가 아니어도 재료에 들어 있으면 뺀다', () => {
+    const withEgg = filterCandidates(korean).filter((r) => r.ingredients.some((i) => i.id === 'egg'))
+    const noEgg = filterCandidates({ ...korean, excludeProteins: ['egg'] })
+    expect(withEgg.length).toBeGreaterThan(0)
+    for (const r of withEgg) expect(noEgg).not.toContain(r)
+  })
+})
+
 describe('재료 겹침 점수 (B1)', () => {
   const pork = byId('spicy-pork')
   const bulgogi = byId('beef-bulgogi')
@@ -49,7 +65,7 @@ describe('재료 겹침 점수 (B1)', () => {
     for (const cond of [korean, highProtein]) {
       const pool = filterCandidates(cond)
       const top = Math.max(...combos(pool, k).map(overlapScore))
-      const menu = buildMenu(pool, k, first)
+      const menu = buildMenu(pool, k, [], first)
       expect(menu).toHaveLength(k)
       expect(new Set(menu).size).toBe(k)
       expect(overlapScore(menu)).toBe(top)
@@ -57,29 +73,41 @@ describe('재료 겹침 점수 (B1)', () => {
   })
 })
 
+describe('집에 있는 양념 (A9)', () => {
+  it('겹침 점수가 같으면 새로 살 양념이 적은 조합을 고른다', () => {
+    const pool = filterCandidates(korean)
+    const pantry = ['soySauce', 'sugar', 'sesameOil'] as const
+    const menu = buildMenu(pool, 2, [...pantry], first)
+    const top = Math.max(...combos(pool, 2).map(overlapScore))
+    const fewest = Math.min(...combos(pool, 2).filter((c) => overlapScore(c) === top).map((c) => missingSeasonings(c, [...pantry])))
+    expect(overlapScore(menu)).toBe(top)
+    expect(missingSeasonings(menu, [...pantry])).toBe(fewest)
+  })
+})
+
 describe('교체와 추가 (B2, B3)', () => {
   const pool = filterCandidates(korean)
 
   it('교체하면 중복 없이 바뀌고, 그 칸에서 본 메뉴는 후보를 다 볼 때까지 다시 안 나온다', () => {
-    let menu = buildMenu(pool, 2, first)
+    let menu = buildMenu(pool, 2, [], first)
     let shown: string[] = []
     const seen = [menu[0].id]
     for (let n = 0; n < pool.length - 2; n++) {
-      ;({ menu, shown } = swapMenu(menu, 0, pool, shown, first))
+      ;({ menu, shown } = swapMenu(menu, 0, pool, shown, [], first))
       expect(new Set(menu).size).toBe(2)
       expect(seen).not.toContain(menu[0].id)
       seen.push(menu[0].id)
     }
     // 다 보면 다시 처음부터
-    ;({ menu, shown } = swapMenu(menu, 0, pool, shown, first))
+    ;({ menu, shown } = swapMenu(menu, 0, pool, shown, [], first))
     expect(menu[0].id).not.toBe(seen.at(-1))
     expect(menu[0].id).not.toBe(menu[1].id)
   })
 
   it('추가는 후보가 남아 있을 때만', () => {
-    const all = pool.reduce<Recipe[]>((m) => addMenu(m, pool, first), [])
+    const all = pool.reduce<Recipe[]>((m) => addMenu(m, pool, [], first), [])
     expect(all).toHaveLength(pool.length)
-    expect(addMenu(all, pool, first)).toBe(all)
+    expect(addMenu(all, pool, [], first)).toBe(all)
   })
 
   it('메뉴 수 상한은 설정, 후보 수, 끼니 수 중 가장 작은 값', () => {

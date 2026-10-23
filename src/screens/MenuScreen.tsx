@@ -20,7 +20,7 @@ function dayLabel(days: ISODate[], all: ISODate[]) {
 export default function MenuScreen({ conditions: c, onBack }: Props) {
   const candidates = useMemo(() => filterCandidates(c), [c])
   const limit = maxMenus(c, candidates)
-  const [menu, setMenu] = useState(() => buildMenu(candidates, Math.min(c.menuCount, limit)))
+  const [menu, setMenu] = useState(() => buildMenu(candidates, Math.min(c.menuCount, limit), c.pantry))
   const [shown, setShown] = useState<string[][]>([])
   const [confirmed, setConfirmed] = useState(false)
 
@@ -36,7 +36,7 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
   const shared = sharedIngredients(menu)
 
   const swap = (i: number) => {
-    const r = swapMenu(menu, i, candidates, shown[i] ?? [])
+    const r = swapMenu(menu, i, candidates, shown[i] ?? [], c.pantry)
     setMenu(r.menu)
     setShown((s) => Object.assign([...s], { [i]: r.shown }))
   }
@@ -56,6 +56,9 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
       <p className="-mt-2 text-sm text-gray-500">
         저녁 {mealCount(c)}끼, {c.people}명
       </p>
+      {limit < c.menuCount && (
+        <p className="text-sm text-orange-600">조건에 맞게 만들 수 있는 메뉴가 {limit}개라 {limit}개로 구성했어요.</p>
+      )}
 
       <ul className="flex flex-col gap-3">
         {menu.map((r, i) => (
@@ -94,7 +97,7 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
 
       <button
         type="button"
-        onClick={() => setMenu(addMenu(menu, candidates))}
+        onClick={() => setMenu(addMenu(menu, candidates, c.pantry))}
         disabled={menu.length >= limit}
         className="rounded-xl border border-dashed py-3 text-sm disabled:opacity-40"
       >

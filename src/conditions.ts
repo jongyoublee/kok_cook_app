@@ -1,5 +1,8 @@
-// A1~A6 입력 조건과 I2 기기 저장
+// A1~A6, A8, A9 입력 조건과 I2 기기 저장.
+// 내 설정(인원, 식단, 안 먹는 단백질, 집에 있는 양념)은 처음 한 번 묻고, 날짜·메뉴 개수는 매주 묻는다
 import { config } from './config'
+import { ingredients, type IngredientId } from './data/ingredients'
+import type { ProteinSource } from './data/recipes'
 import { nextWeek, type ISODate } from './lib/dates'
 
 export type Diet = 'korean' | 'highProtein'
@@ -13,7 +16,23 @@ export type Conditions = {
   menuCount: number
   diet: Diet
   maxKcal: number
+  excludeProteins: ProteinSource[] // A8 안 먹는 단백질
+  pantry: IngredientId[] // A9 집에 있는 양념
 }
+
+// A8 선택지. 두부·콩은 두 공급원을 함께 뺀다
+export const PROTEIN_OPTIONS: { label: string; sources: ProteinSource[] }[] = [
+  { label: '돼지고기', sources: ['pork'] },
+  { label: '소고기', sources: ['beef'] },
+  { label: '닭고기', sources: ['chicken'] },
+  { label: '생선', sources: ['fish'] },
+  { label: '해산물', sources: ['seafood'] },
+  { label: '두부·콩', sources: ['tofu', 'legume'] },
+  { label: '달걀', sources: ['egg'] },
+]
+
+// A9 집에 있는지 묻는 재료: 양념 코너
+export const PANTRY_OPTIONS = (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === '양념')
 
 // A3 끼니 수는 선택한 날짜로 자동 계산
 export const mealCount = (c: Conditions) => c.dates.length * c.meals.length
@@ -25,6 +44,8 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   menuCount: config.menuCount.default,
   diet: 'korean',
   maxKcal: config.maxKcalPerMeal,
+  excludeProteins: [],
+  pantry: [],
 })
 
 const KEY = 'kokcook.conditions'
@@ -59,6 +80,9 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   if (Number.isInteger(saved.people) && saved.people! >= 1) c.people = saved.people!
   if (Number.isInteger(saved.menuCount) && saved.menuCount! >= min && saved.menuCount! <= max) c.menuCount = saved.menuCount!
   if (saved.diet === 'korean' || saved.diet === 'highProtein') c.diet = saved.diet
+  const proteins = PROTEIN_OPTIONS.flatMap((o) => o.sources)
+  if (Array.isArray(saved.excludeProteins)) c.excludeProteins = saved.excludeProteins.filter((p) => proteins.includes(p))
+  if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
   return c
 }
 

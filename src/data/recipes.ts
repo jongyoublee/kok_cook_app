@@ -3,7 +3,7 @@
 import type { IngredientId } from './ingredients'
 
 // B6 단백질 공급원 분산용
-export type ProteinSource = 'redMeat' | 'chicken' | 'fish' | 'tofu' | 'egg' | 'legume'
+export type ProteinSource = 'pork' | 'beef' | 'chicken' | 'fish' | 'seafood' | 'tofu' | 'egg' | 'legume'
 
 export type Recipe = {
   id: string
@@ -34,7 +34,7 @@ export const recipes: Recipe[] = [
     id: 'spicy-pork',
     name: '돼지고기 고추장볶음',
     korean: true,
-    proteinSource: 'redMeat',
+    proteinSource: 'pork',
     ingredients: [
       { id: 'porkShoulder', amount: 150 },
       { id: 'onion', amount: 50 },
@@ -62,7 +62,7 @@ export const recipes: Recipe[] = [
     id: 'beef-bulgogi',
     name: '소고기 불고기',
     korean: true,
-    proteinSource: 'redMeat',
+    proteinSource: 'beef',
     ingredients: [
       { id: 'beefBulgogi', amount: 150 },
       { id: 'onion', amount: 50 },
@@ -214,7 +214,7 @@ export const recipes: Recipe[] = [
     id: 'beef-broccoli',
     name: '소고기 브로콜리볶음',
     korean: false,
-    proteinSource: 'redMeat',
+    proteinSource: 'beef',
     ingredients: [
       { id: 'beefBulgogi', amount: 150 },
       { id: 'broccoli', amount: 100 },

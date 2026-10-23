@@ -9,6 +9,8 @@ import type { Recipe } from '../data/recipes'
 import { addMenu, assignDays, filterCandidates, maxMenus, sharedIngredients, swapMenu } from '../lib/menu'
 import { CostBar } from '../components/fields'
 import { budgetVersion, menuCost } from '../lib/budget'
+import { summarizeMenu } from '../lib/nutrition'
+import { servingsOf } from '../lib/shopping'
 import { primaryButton } from '../ui'
 
 type Props = {
@@ -41,6 +43,8 @@ export default function MenuScreen({ conditions: c, menu, onChange: setMenu, onO
 
   const days = assignDays(menu, c.dates)
   const shared = sharedIngredients(menu)
+  // A6 1인 기준 칼로리 요약. 메뉴별 1인 끼니 수 = 만들 인분 ÷ 인원
+  const kcal = summarizeMenu(menu, servingsOf(menu, c).map((n) => n / c.people))
 
   const swap = (i: number) => {
     const r = swapMenu(menu, i, candidates, shown[i] ?? [], c.pantry)
@@ -115,6 +119,17 @@ export default function MenuScreen({ conditions: c, menu, onChange: setMenu, onO
 
       {/* D4, F1 예상 금액 */}
       <CostBar cost={menuCost(menu, c)} budget={budgetVersion() === 'A' && !c.cheapest ? c.budget : undefined} />
+
+      {/* A6 칼로리 요약 (추정치) */}
+      <section className="rounded-xl border border-gray-200 px-4 py-3">
+        <p className="font-semibold">
+          저녁 {kcal.meals}끼 · 한 끼 평균 약 {kcal.avgKcal.toLocaleString('ko-KR')}kcal · 단백질 {kcal.avgProteinG}g
+        </p>
+        <p className="mt-1 text-sm text-gray-500">
+          {kcal.meals}끼 합계 약 {kcal.totalKcal.toLocaleString('ko-KR')}kcal · 1인 기준 추정치
+        </p>
+        <p className="mt-1 text-xs text-gray-400">모든 메뉴는 밥을 포함해 한 끼 {config.maxKcalPerMeal}kcal 이하 기준으로 만들었어요.</p>
+      </section>
 
       {shared.length > 0 && (
         <p className="text-sm text-gray-600">겹치는 재료: {shared.map((id) => ingredients[id].name).join(', ')}</p>

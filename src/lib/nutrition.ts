@@ -26,3 +26,19 @@ export function computeNutrition(r: { ingredients: { id: IngredientId; amount: n
     sodiumMg: Math.round(total.sodiumMg / 10) * 10,
   }
 }
+
+export type MenuNutritionSummary = { meals: number; avgKcal: number; avgProteinG: number; totalKcal: number }
+
+// A6 추천 메뉴 화면의 칼로리 요약. mealsPerMenu는 메뉴별로 1인이 먹는 끼니 수라서 끼니 수로 가중 평균한다.
+// 평균·합계 칼로리는 10kcal 단위로 반올림한다(추정치)
+export function summarizeMenu(menu: { nutrition: NutritionFacts }[], mealsPerMenu: number[]): MenuNutritionSummary {
+  const meals = mealsPerMenu.reduce((a, b) => a + b, 0)
+  const sum = (k: 'kcal' | 'proteinG') => menu.reduce((s, r, i) => s + r.nutrition[k] * mealsPerMenu[i], 0)
+  if (!meals) return { meals: 0, avgKcal: 0, avgProteinG: 0, totalKcal: 0 }
+  return {
+    meals,
+    avgKcal: Math.round(sum('kcal') / meals / 10) * 10,
+    avgProteinG: Math.round(sum('proteinG') / meals),
+    totalKcal: Math.round(sum('kcal') / 10) * 10,
+  }
+}

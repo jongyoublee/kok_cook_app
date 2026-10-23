@@ -10,10 +10,13 @@ type Props = {
   menu: Recipe[]
   cookDate: ISODate
   onCookDateChange: (d: ISODate) => void
+  skipped: ISODate[] // B9 안 먹는 날
+  onToggleSkip: (d: ISODate) => void
 }
 
-export default function StorageTab({ today, dates, menu, cookDate, onCookDateChange }: Props) {
-  const slots = schedule(menu, dates, cookDate)
+export default function StorageTab({ today, dates, menu, cookDate, onCookDateChange, skipped, onToggleSkip }: Props) {
+  const slots = schedule(menu, dates, cookDate, config.storageSplit, skipped)
+  const skippedDays = dates.filter((d) => skipped.includes(d))
   const options = cookDateOptions(today, dates)
   const { fridgeMaxC, freezerMaxC, provisional } = config.foodSafety
   const tooLong = slots.filter((s) => s.tooLong)
@@ -54,6 +57,10 @@ export default function StorageTab({ today, dates, menu, cookDate, onCookDateCha
                   {s.place === 'freezer' ? '냉동' : '냉장'}
                 </span>
                 <span className="min-w-0 flex-1 truncate">{s.recipe.name}</span>
+                {/* B9 외식 등으로 안 먹는 날. 남은 끼니가 하나면 뺄 수 없다 */}
+                <button type="button" onClick={() => onToggleSkip(s.date)} disabled={slots.length <= 1} className="shrink-0 text-xs text-gray-400 underline underline-offset-2 disabled:no-underline disabled:opacity-40">
+                  안 먹어요
+                </button>
               </div>
               {/* E3 해동 할 일 */}
               {s.place === 'freezer' && (
@@ -64,6 +71,16 @@ export default function StorageTab({ today, dates, menu, cookDate, onCookDateCha
             </li>
           ))}
         </ul>
+        {skippedDays.length > 0 && (
+          <p className="mt-2 text-sm text-gray-500">
+            안 먹는 날:{' '}
+            {skippedDays.map((d) => (
+              <button key={d} type="button" onClick={() => onToggleSkip(d)} className="mr-2 underline underline-offset-2">
+                {formatDay(d)} 되돌리기
+              </button>
+            ))}
+          </p>
+        )}
         <p className="mt-2 text-sm text-gray-500">해동한 음식은 속까지 충분히 데워 먹고, 다시 얼리지 마세요.</p>
       </section>
 

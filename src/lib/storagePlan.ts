@@ -16,10 +16,12 @@ export const fridgeLimit = (r: Recipe) => Math.min(config.foodSafety.fridgeDays,
 
 // E1 두 안을 모두 두고 설정(config.storageSplit)으로 고른다.
 // byDate: 조리일부터 냉장 일수 안이면 냉장, 넘으면 냉동.
-// byMealCount: 7끼 미만은 전부 냉장, 이상이면 앞 절반 냉장 뒤 절반 냉동
-export function schedule(menu: Recipe[], dates: ISODate[], cook: ISODate, mode = config.storageSplit): Slot[] {
+// byMealCount: 7끼 미만은 전부 냉장, 이상이면 앞 절반 냉장 뒤 절반 냉동. B9 안 먹는 날(skipped) 끼니는 뺀다
+export function schedule(menu: Recipe[], dates: ISODate[], cook: ISODate, mode = config.storageSplit, skipped: ISODate[] = []): Slot[] {
   const days = assignDays(menu, dates)
-  const meals = menu.flatMap((recipe, i) => days[i].map((date) => ({ date, recipe }))).sort((a, b) => a.date.localeCompare(b.date))
+  const meals = menu
+    .flatMap((recipe, i) => days[i].filter((date) => !skipped.includes(date)).map((date) => ({ date, recipe })))
+    .sort((a, b) => a.date.localeCompare(b.date))
   return meals.map(({ date, recipe }, k) => {
     const fridge = mode === 'byDate' ? daysBetween(cook, date) <= fridgeLimit(recipe) : meals.length < 7 || k < Math.ceil(meals.length / 2)
     if (fridge) return { date, recipe, place: 'fridge', tooLong: false }

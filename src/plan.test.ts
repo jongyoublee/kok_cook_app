@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions, loadConditions, saveConditions } from './conditions'
 import { recipes } from './data/recipes'
 import { nextWeek } from './lib/dates'
+import { servingsOf } from './lib/shopping'
 import { schedule } from './lib/storagePlan'
-import { clearSavedData, confirmPlan, loadPlan, planConditions, planCookDate, savePlan } from './plan'
+import { clearSavedData, confirmPlan, droppedChecks, loadPlan, planConditions, planCookDate, savePlan } from './plan'
 
 const fakeStorage = (init?: string) => {
   const m = new Map<string, string>(init ? [['kokcook.plan', init]] : [])
@@ -19,7 +20,7 @@ const [a, b] = recipes
 describe('확정 메뉴와 구매 체크 저장 (I2, D6)', () => {
   it('저장 후 불러오면 같다', () => {
     const s = fakeStorage()
-    const plan = { ...basis, menu: [a, b], checked: ['onion' as const], cookDate: '2026-10-24' }
+    const plan = { ...basis, menu: [a, b], checked: ['onion' as const], cookDate: '2026-10-24', skipped: ['2026-10-27'] }
     savePlan(plan, s)
     expect(loadPlan(basis, s)).toEqual(plan)
   })
@@ -72,12 +73,24 @@ describe('메뉴 확정 (U16)', () => {
     expect(next.cookDate).toBe('2026-10-24')
   })
 
-  it('메뉴나 날짜·인원이 바뀌면 구매 체크와 조리일을 비운다', () => {
-    expect(confirmPlan(prev, [a], c).checked).toEqual([])
-    const nextWeekPlan = confirmPlan(prev, [a, b], { ...c, dates: nextWeek('2026-10-29', true) })
+  it('메뉴만 바뀌면 새 메뉴가 쓰는 재료의 구매 체크만 남기고, 쓸 곳이 없어지는 재료를 알려준다 (B8)', () => {
+    const noOnion = recipes.find((r) => !r.ingredients.some((i) => i.id === 'onion'))!
+    const withOnion = recipes.find((r) => r !== noOnion && r.ingredients.some((i) => i.id === 'onion'))!
+    expect(confirmPlan(prev, [withOnion], c).checked).toEqual(['onion'])
+    expect(confirmPlan(prev, [noOnion], c).checked).toEqual([])
+    expect(droppedChecks(prev, [noOnion], c)).toEqual(['onion'])
+    expect(droppedChecks(prev, [withOnion], c)).toEqual([])
+    expect(confirmPlan(prev, [noOnion], c).cookDate).toBe('2026-10-24')
+  })
+
+  it('날짜·인원이 바뀌면 구매 체크, 조리일, 안 먹는 날을 비우고 경고하지 않는다', () => {
+    const withSkip = { ...prev, skipped: ['2026-10-27'] }
+    const nextWeekPlan = confirmPlan(withSkip, [a, b], { ...c, dates: nextWeek('2026-10-29', true) })
     expect(nextWeekPlan.checked).toEqual([])
     expect(nextWeekPlan.cookDate).toBeUndefined()
+    expect(nextWeekPlan.skipped).toEqual([])
     expect(confirmPlan(prev, [a, b], { ...c, people: 2 }).checked).toEqual([])
+    expect(droppedChecks(prev, [a], { ...c, people: 2 })).toEqual([])
   })
 
   it('확정할 때의 날짜·인원·끼니를 계획에 담는다', () => {
@@ -97,5 +110,20 @@ describe('내 데이터 지우기 (I6)', () => {
     ])
     clearSavedData({ removeItem: (k: string) => void m.delete(k) })
     expect([...m.keys()]).toEqual(['other'])
+  })
+})
+
+describe('안 먹는 날 (B9)', () => {
+  it('요일 배정은 그대로 두고 그 끼니만 장보기와 보관에서 뺀다', () => {
+    const plan = { ...confirmPlan(null, [a, b], c), skipped: ['2026-10-28'] }
+    const pc = planConditions(plan, c)
+    const full = servingsOf(plan.menu, c)
+    const less = servingsOf(plan.menu, pc)
+    expect(less.reduce((x, y) => x + y)).toBe(full.reduce((x, y) => x + y) - 1)
+    const slots = schedule(plan.menu, pc.dates, planCookDate(plan), 'byDate', plan.skipped)
+    expect(slots.map((s) => s.date)).toEqual(weekdays.filter((d) => d !== '2026-10-28'))
+    // 다른 날의 메뉴는 바뀌지 않는다
+    const before = schedule(plan.menu, pc.dates, planCookDate(plan))
+    for (const s of slots) expect(s.recipe).toBe(before.find((x) => x.date === s.date)!.recipe)
   })
 })

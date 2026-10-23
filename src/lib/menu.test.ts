@@ -241,3 +241,11 @@ describe('좁은 필터 안내 (A11)', () => {
     expect(widenHints(all)).toEqual([])
   })
 })
+
+describe('다시 안 보기 후보 제외 (B10)', () => {
+  it('뺀 메뉴는 후보에 나오지 않는다', () => {
+    expect(filterCandidates({ ...all, hidden: ['spicy-pork'] }).map((r) => r.id)).not.toContain('spicy-pork')
+    expect(filterCandidates(all).map((r) => r.id)).toContain('spicy-pork')
+  })
+})
+

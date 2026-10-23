@@ -95,6 +95,16 @@ export default function InputScreen({ today, initial, onOpenShopping, onSubmit, 
         </Section>
       )}
 
+      {/* B10 다시 안 보기로 뺀 메뉴 되돌리기 */}
+      {c.hidden.length > 0 && (
+        <p className="text-center text-sm text-gray-500">
+          다시 안 보기로 뺀 메뉴 {c.hidden.length}개 ·{' '}
+          <button type="button" onClick={() => set({ hidden: [] })} className="underline underline-offset-4">
+            모두 되돌리기
+          </button>
+        </p>
+      )}
+
       {/* I6 */}
       <button
         type="button"

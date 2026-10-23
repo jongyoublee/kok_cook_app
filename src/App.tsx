@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { defaultConditions, loadConditions, saveConditions, type Conditions } from './conditions'
+import { addHidden, defaultConditions, loadConditions, saveConditions, type Conditions } from './conditions'
 import type { Recipe } from './data/recipes'
 import { followingPeriod, toISO } from './lib/dates'
 import { filterCandidates, maxMenus } from './lib/menu'
 import { budgetOf, budgetVersion } from './lib/budget'
 import { buildMenuOptions, type MenuOption } from './lib/options'
 import { servingsOf } from './lib/shopping'
-import { clearSavedData, confirmPlan, loadPlan, planConditions, planCookDate, savePlan, type Plan } from './plan'
+import { ingredients } from './data/ingredients'
+import { clearSavedData, confirmPlan, droppedChecks, loadPlan, planConditions, planCookDate, savePlan, type Plan } from './plan'
 import InputScreen from './screens/InputScreen'
 import MenuScreen from './screens/MenuScreen'
 import RecipeScreen from './screens/RecipeScreen'
@@ -51,6 +52,11 @@ export default function App() {
     savePlan(p)
     setPlan(p)
   }
+  // B8 이미 산 재료를 쓸 곳이 없어지면 확인을 받는다
+  const okToDrop = (next: Recipe[], c: Conditions) => {
+    const dropped = droppedChecks(plan, next, c)
+    return !dropped.length || window.confirm(`이미 산 ${dropped.map((id) => ingredients[id].name).join(', ')}를 쓸 곳이 없어요. 그래도 메뉴를 바꿀까요?`)
+  }
   const openRecipe = (back: 'menu' | 'shopping') => (r: Recipe) => {
     setRecipe({ r, back })
     setScreen('recipe')
@@ -84,11 +90,13 @@ export default function App() {
         onChange={setMenu}
         onOpenRecipe={openRecipe('menu')}
         onBack={() => setScreen('input')}
+        onHide={(id) => save({ ...conditions, hidden: addHidden(conditions.hidden, id) })}
         onConfirm={() => {
+          if (!okToDrop(menu, conditions)) return
           // A4 사용자가 추가·삭제로 개수를 바꿨을 때만 다음에 그 개수로 시작한다(끼니 수 상한으로 줄어든 경우 제외)
           const start = Math.min(conditions.menuCount, maxMenus(conditions, filterCandidates(conditions)))
           if (menu.length !== start) save({ ...conditions, menuCount: menu.length })
-          // 메뉴와 날짜·인원이 그대로면 구매 체크와 조리일을 이어 쓰고, 바뀌었으면 비운다
+          // 날짜·인원이 그대로면 조리일과 새 메뉴가 쓰는 재료의 구매 체크를 이어 쓰고, 바뀌었으면 비운다
           updatePlan(confirmPlan(plan, menu, conditions))
           setScreen('shopping')
         }}
@@ -108,10 +116,13 @@ export default function App() {
         onOpenRecipe={openRecipe('shopping')}
         onBudgetChange={(budget) => save({ ...conditions, budget })}
         onApplySwap={(next) => {
-          // U25 교체 제안 적용: 메뉴가 바뀌므로 구매 체크는 비운다
+          // U25 교체 제안 적용: 새 메뉴가 쓰지 않는 재료의 구매 체크만 지운다(B8)
+          const pc = planConditions(plan, conditions)
+          if (!okToDrop(next, pc)) return
           setMenu(next)
-          updatePlan({ ...plan, menu: next, checked: [] })
+          updatePlan(confirmPlan(plan, next, pc))
         }}
+        onToggleSkip={(d) => updatePlan({ ...plan, skipped: toggle(plan.skipped, d) })}
         onBack={() => {
           setMenu(plan.menu)
           setScreen('menu')

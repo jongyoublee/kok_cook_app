@@ -11,6 +11,8 @@ export const config = {
   menuSearch: { maxCombos: 1_000_000, keep: 300, missingSeasoningPenalty: 0.01 },
   // 같은 조리법(볶음, 조림 등)은 메뉴 수의 이 비율(올림)까지. 0.5면 메뉴 2개는 서로 다르게, 3~4개는 2개까지
   maxSameMethodRatio: 0.5,
+  // B10 '다시 안 보기'로 뺄 수 있는 메뉴 수. 넘으면 오래된 것부터 되돌린다(후보가 모자라지 않게)
+  hiddenMax: 10,
   // A4 메뉴 개수
   menuCount: { min: 1, default: 2, max: 5 },
   // A2 식사 날짜 최대 선택 기간 (제안 단계)

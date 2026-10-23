@@ -20,6 +20,7 @@ type Props = {
   menu: Recipe[]
   options: MenuOption[] // B1 추천안. 고른 뒤에도 교체·추가·삭제로 고칠 수 있다
   onChange: (menu: Recipe[]) => void
+  onHide: (id: string) => void // B10 다시 안 보기
   onOpenRecipe: (r: Recipe) => void
   onConfirm: () => void
   onBack: () => void
@@ -43,7 +44,7 @@ function dayLabel(days: ISODate[], all: ISODate[]) {
   return days.map((d) => (oneWeek ? '일월화수목금토'[fromISO(d).getDay()] : formatDay(d))).join(', ')
 }
 
-export default function MenuScreen({ conditions: c, menu, options, onChange: setMenu, onOpenRecipe, onConfirm, onBack }: Props) {
+export default function MenuScreen({ conditions: c, menu, options, onChange: setMenu, onHide, onOpenRecipe, onConfirm, onBack }: Props) {
   const candidates = useMemo(() => filterCandidates(c), [c])
   const limit = maxMenus(c, candidates)
   const [shown, setShown] = useState<string[][]>([])
@@ -58,6 +59,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
     )
 
   const days = assignDays(menu, c.dates)
+  const visibleOptions = options.filter((o) => o.menu.every((r) => !c.hidden.includes(r.id)))
   const shared = sharedIngredients(menu)
   // A6 1인 기준 칼로리 요약. 메뉴별 1인 끼니 수 = 만들 인분 ÷ 인원
   // B3, D3 확정 전 추가 제안. 버전 A면 예산 안에서만
@@ -70,6 +72,16 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
     const r = swapMenu(menu, i, candidates, shown[i] ?? [], c.pantry, Math.random, menuSpread(c.proteins, menu.length))
     setMenu(r.menu)
     setShown((s) => Object.assign([...s], { [i]: r.shown }))
+  }
+
+  // B10 다시 안 보기: 그 칸을 다른 메뉴로 바꾸고(없으면 빼고) 다음부터 추천하지 않는다
+  const hide = (i: number) => {
+    const r = menu[i]
+    const rest = candidates.filter((x) => x !== r)
+    const next = swapMenu(menu, i, rest, shown[i] ?? [], c.pantry, Math.random, menuSpread(c.proteins, menu.length))
+    if (next.menu !== menu) setMenu(next.menu)
+    else if (menu.length > config.menuCount.min) remove(i)
+    onHide(r.id)
   }
 
   // B3 메뉴 삭제. 최소 개수 아래로는 줄이지 않는다
@@ -91,9 +103,9 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
         <p className="text-sm font-medium text-black">조건에 맞게 만들 수 있는 메뉴가 {limit}개라 {limit}개로 구성했어요.</p>
       )}
 
-      {options.length > 1 && (
-        <div className={`grid gap-2 ${options.length === 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          {options.map((o) => (
+      {visibleOptions.length > 1 && (
+        <div className={`grid gap-2 ${visibleOptions.length === 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {visibleOptions.map((o) => (
             <Tile
               key={o.kind}
               on={sameMenu(o.menu, menu)}
@@ -126,14 +138,20 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
                 </p>
               </div>
             </button>
-            <button
-              type="button"
-              onClick={() => swap(i)}
-              disabled={candidates.length <= menu.length}
-              className="self-center rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:opacity-30"
-            >
-              교체
-            </button>
+            <div className="flex shrink-0 flex-col items-center justify-center gap-1">
+              <button
+                type="button"
+                onClick={() => swap(i)}
+                disabled={candidates.length <= menu.length}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:opacity-30"
+              >
+                교체
+              </button>
+              {/* B10 */}
+              <button type="button" onClick={() => hide(i)} className="text-xs text-gray-400 underline underline-offset-2">
+                다시 안 보기
+              </button>
+            </div>
             {menu.length > config.menuCount.min && (
               <button
                 type="button"

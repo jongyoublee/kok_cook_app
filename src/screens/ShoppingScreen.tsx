@@ -26,11 +26,12 @@ type Props = {
   onApplySwap: (menu: Recipe[]) => void
   onBack: () => void
   onPlanNext: () => void // U33 다음 주 계획하기
+  onToggleSkip: (d: ISODate) => void // B9 안 먹는 날
 }
 
 
 export default function ShoppingScreen(props: Props) {
-  const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack, onPlanNext } = props
+  const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack, onPlanNext, onToggleSkip } = props
   const [tab, setTab] = useState<'list' | 'storage'>('list')
   const [keep, setKeep] = useState(false) // F2 "그대로 진행"을 누르면 교체 제안을 닫는다
   const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
@@ -74,7 +75,7 @@ export default function ShoppingScreen(props: Props) {
       </div>
 
       {tab === 'storage' ? (
-        <StorageTab today={today} dates={c.dates} menu={menu} cookDate={cookDate} onCookDateChange={onCookDateChange} />
+        <StorageTab today={today} dates={c.dates} menu={menu} cookDate={cookDate} onCookDateChange={onCookDateChange} skipped={c.skipped ?? []} onToggleSkip={onToggleSkip} />
       ) : (
         <>
           <section>

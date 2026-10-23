@@ -2,7 +2,7 @@
 // 내 설정(인원, 식단, 먹고 싶은 단백질·탄수화물, 집에 있는 양념)은 처음 한 번 묻고, 날짜·메뉴 개수는 매주 묻는다
 import { config } from './config'
 import { ingredients, type IngredientId } from './data/ingredients'
-import type { CarbBase, ProteinSource } from './data/recipes'
+import { recipes, type CarbBase, type ProteinSource } from './data/recipes'
 import { nextWeek, type ISODate } from './lib/dates'
 
 // MVP는 저녁만. 점심을 더해 하루 2끼까지 담을 수 있게 배열로 둔다
@@ -18,6 +18,8 @@ export type Conditions = {
   pantry: IngredientId[] // A9 집에 있는 양념
   budget: number | null // A7 예산(원). 사용자가 슬라이더를 움직이기 전에는 null(범위 중간을 쓴다, lib/budget.budgetOf)
   cheapest: boolean // F1 예산과 상관없이 가장 싸게 구성
+  hidden: string[] // B10 '다시 안 보기'로 뺀 레시피 id (오래된 것부터)
+  skipped?: ISODate[] // B9 안 먹는 날. 확정한 계획을 보여줄 때만 채운다(plan.planConditions)
 }
 
 // A8 선택지. 두부·콩은 두 공급원을 함께 고른다
@@ -65,6 +67,7 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   pantry: [],
   budget: null,
   cheapest: false,
+  hidden: [],
 })
 
 export const CONDITIONS_KEY = 'kokcook.conditions'
@@ -107,14 +110,20 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   // 범위는 조건마다 달라서 저장값은 양수인지만 보고, 쓸 때 범위 안으로 맞춘다
   if (Number.isInteger(saved.budget) && saved.budget! > 0) c.budget = saved.budget!
   if (typeof saved.cheapest === 'boolean') c.cheapest = saved.cheapest
+  if (Array.isArray(saved.hidden)) c.hidden = saved.hidden.filter((id) => recipes.some((r) => r.id === id)).slice(-config.hiddenMax)
   if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
   return c
 }
 
 export function saveConditions(c: Conditions, storage = storageOrNull()) {
   try {
-    storage?.setItem(KEY, JSON.stringify(c))
+    // 안 먹는 날은 계획에 저장한다
+    const { skipped: _skipped, ...rest } = c
+    storage?.setItem(KEY, JSON.stringify(rest))
   } catch {
     // 저장 공간이 막힌 환경(사생활 보호 모드 등)에서는 저장 없이 진행한다
   }
 }
+
+// B10 다시 안 보기에 더한다. 상한을 넘으면 가장 오래된 것부터 되돌린다
+export const addHidden = (hidden: string[], id: string) => [...hidden.filter((x) => x !== id), id].slice(-config.hiddenMax)

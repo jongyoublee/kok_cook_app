@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { config } from './config'
-import { defaultConditions, loadConditions, mealCount, PANTRY_GROUPS, PANTRY_OPTIONS, saveConditions } from './conditions'
+import { addHidden, defaultConditions, loadConditions, mealCount, PANTRY_GROUPS, PANTRY_OPTIONS, saveConditions } from './conditions'
 
 const today = '2026-10-22'
 const fakeStorage = (init?: string) => {
@@ -61,3 +61,20 @@ describe('입력 조건 (A1~A6, I2)', () => {
     expect(PANTRY_GROUPS[0].ids).toHaveLength(10)
   })
 })
+
+describe('다시 안 보기 (B10)', () => {
+  it('상한을 넘으면 오래된 것부터 되돌리고, 같은 메뉴는 한 번만 담는다', () => {
+    let hidden: string[] = []
+    for (let i = 0; i < config.hiddenMax + 2; i++) hidden = addHidden(hidden, `r${i}`)
+    expect(hidden).toHaveLength(config.hiddenMax)
+    expect(hidden[0]).toBe('r2')
+    expect(addHidden(['a', 'b'], 'a')).toEqual(['b', 'a'])
+  })
+
+  it('저장값의 없는 레시피는 버린다', () => {
+    const m = new Map([['kokcook.conditions', JSON.stringify({ hidden: ['x', 'spicy-pork'] })]])
+    const c = loadConditions('2026-10-22', { getItem: (k) => m.get(k) ?? null, setItem: () => {} })!
+    expect(c.hidden).toEqual(['spicy-pork'])
+  })
+})
+

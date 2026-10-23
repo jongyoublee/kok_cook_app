@@ -5,9 +5,9 @@ import type { PriceSource } from '../data/prices'
 import type { Recipe } from '../data/recipes'
 import { assignDays } from './menu'
 
-// C3 메뉴별 만들 인분 = 그 메뉴를 먹는 끼니 수 × 인원
+// C3 메뉴별 만들 인분 = 그 메뉴를 먹는 끼니 수 × 인원. B9 안 먹는 날은 요일 배정은 그대로 두고 그 끼니만 뺀다
 export const servingsOf = (menu: Recipe[], c: Conditions): number[] =>
-  assignDays(menu, c.dates).map((days) => days.length * (mealCount(c) / c.dates.length) * c.people)
+  assignDays(menu, c.dates).map((days) => days.filter((d) => !c.skipped?.includes(d)).length * (mealCount(c) / c.dates.length) * c.people)
 
 export type ShoppingItem = {
   id: IngredientId

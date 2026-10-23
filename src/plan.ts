@@ -7,7 +7,8 @@ import { recipes, type Recipe } from './data/recipes'
 import { cookDay, type ISODate } from './lib/dates'
 
 export type PlanBasis = Pick<Conditions, 'dates' | 'people' | 'meals'>
-export type Plan = PlanBasis & { menu: Recipe[]; checked: IngredientId[]; cookDate?: ISODate }
+// skipped: B9 안 먹는 날
+export type Plan = PlanBasis & { menu: Recipe[]; checked: IngredientId[]; cookDate?: ISODate; skipped: ISODate[] }
 
 const KEY = 'kokcook.plan'
 const isDate = (d: unknown): d is ISODate => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)
@@ -25,11 +26,13 @@ export function loadPlan(fallback: PlanBasis, storage = storageOrNull()): Plan |
     const cookDate = isDate(saved?.cookDate) ? saved.cookDate : undefined
     const dates = Array.isArray(saved?.dates) ? saved.dates.filter(isDate).sort() : []
     const meals = Array.isArray(saved?.meals) ? saved.meals.filter((m: unknown) => MEALS.includes(m as Meal)) : []
+    const skipped = Array.isArray(saved?.skipped) ? saved.skipped.filter(isDate) : []
     if (!menu.length) return null
     return {
       menu,
       checked,
       cookDate,
+      skipped,
       dates: dates.length ? dates : fallback.dates,
       people: Number.isInteger(saved?.people) && saved.people >= 1 ? saved.people : fallback.people,
       meals: meals.length ? meals : fallback.meals,
@@ -41,8 +44,8 @@ export function loadPlan(fallback: PlanBasis, storage = storageOrNull()): Plan |
 
 export function savePlan(plan: Plan, storage = storageOrNull()) {
   try {
-    const { menu, checked, cookDate, dates, people, meals } = plan
-    storage?.setItem(KEY, JSON.stringify({ recipeIds: menu.map((r) => r.id), checked, cookDate, dates, people, meals }))
+    const { menu, checked, cookDate, dates, people, meals, skipped } = plan
+    storage?.setItem(KEY, JSON.stringify({ recipeIds: menu.map((r) => r.id), checked, cookDate, dates, people, meals, skipped }))
   } catch {
     // 저장 공간이 막힌 환경에서는 저장 없이 진행한다
   }
@@ -50,20 +53,33 @@ export function savePlan(plan: Plan, storage = storageOrNull()) {
 
 const sameList = <T,>(a: T[], b: T[]) => a.length === b.length && [...a].sort().join() === [...b].sort().join()
 
-// U16 메뉴 확정. 메뉴(순서는 상관없음)와 날짜·인원·끼니가 그대로면 구매 체크와 조리일을 이어 쓰고, 바뀌었으면 비운다
+const sameBasis = (prev: Plan, b: PlanBasis) => sameList(prev.dates, b.dates) && prev.people === b.people && sameList(prev.meals, b.meals)
+const usedBy = (menu: Recipe[]) => new Set(menu.flatMap((r) => r.ingredients.map((i) => i.id)))
+
+// U16 메뉴 확정. 날짜·인원·끼니가 그대로면 조리일과 안 먹는 날을 이어 쓰고, 구매 체크는 새 메뉴가 쓰는 재료만 남긴다(B8).
+// 날짜·인원이 바뀌었으면(다음 주 계획 등) 모두 비운다
 export function confirmPlan(prev: Plan | null, menu: Recipe[], c: Conditions): Plan {
   const basis: PlanBasis = { dates: [...c.dates], people: c.people, meals: [...c.meals] }
-  const same =
-    prev !== null &&
-    sameList(prev.menu.map((r) => r.id), menu.map((r) => r.id)) &&
-    sameList(prev.dates, basis.dates) &&
-    prev.people === basis.people &&
-    sameList(prev.meals, basis.meals)
-  return { menu, ...basis, checked: same ? prev.checked : [], cookDate: same ? prev.cookDate : undefined }
+  if (!prev || !sameBasis(prev, basis)) return { menu, ...basis, checked: [], skipped: [] }
+  const used = usedBy(menu)
+  return { menu, ...basis, checked: prev.checked.filter((id) => used.has(id)), cookDate: prev.cookDate, skipped: prev.skipped }
+}
+
+// B8 메뉴를 이렇게 바꾸면 쓸 곳이 없어지는 이미 산(구매 체크한) 재료
+export function droppedChecks(prev: Plan | null, menu: Recipe[], c: Conditions): IngredientId[] {
+  if (!prev || !sameBasis(prev, { dates: c.dates, people: c.people, meals: c.meals })) return []
+  const used = usedBy(menu)
+  return prev.checked.filter((id) => !used.has(id))
 }
 
 // 확정한 계획을 보여줄 때 쓰는 조건: 날짜·인원·끼니는 계획을 짤 때 값, 양념·예산은 지금 값
-export const planConditions = (plan: Plan, c: Conditions): Conditions => ({ ...c, dates: plan.dates, people: plan.people, meals: plan.meals })
+export const planConditions = (plan: Plan, c: Conditions): Conditions => ({
+  ...c,
+  dates: plan.dates,
+  people: plan.people,
+  meals: plan.meals,
+  skipped: plan.skipped,
+})
 
 // E1 조리일: 바꿔 둔 날이 있으면 그날, 없으면 첫 식사일 전날. 오늘이 지나도 바뀌지 않는다
 export const planCookDate = (plan: Plan): ISODate => plan.cookDate ?? cookDay(plan.dates)!

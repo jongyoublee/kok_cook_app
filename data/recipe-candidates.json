@@ -1,0 +1,1228 @@
+{
+  "about": "레시피 후보 원본 데이터. 웹 레시피의 재료 구성만 모았다(조리 단계·사진 없음). 앱 레시피(src/data/recipes.ts)로 옮길 때 조리 단계를 새로 쓰고 1인분 분량·영양정보를 채운다. 사람이 읽는 정리는 docs/recipe-candidates.md.",
+  "coupang": {
+    "O": "로켓배송",
+    "F": "로켓프레시(와우 회원·지역 조건)",
+    "X": "구하기 어려움, substitute가 있으면 대체 재료"
+  },
+  "updated": "2026-10-23",
+  "candidates": [
+    {
+      "id": "cand-01",
+      "batch": 1,
+      "name": "닭가슴살 카레 우동",
+      "source": "https://www.10000recipe.com/recipe/6951040",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "chicken",
+      "carb": "noodle",
+      "ingredients": [
+        {
+          "name": "수비드 닭가슴살",
+          "coupang": "O"
+        },
+        {
+          "name": "우동 면사리",
+          "coupang": "O"
+        },
+        {
+          "name": "버터",
+          "coupang": "O"
+        },
+        {
+          "name": "통후추",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "고형 카레",
+          "coupang": "O"
+        },
+        {
+          "name": "애호박",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "감자",
+          "coupang": "F"
+        },
+        {
+          "name": "홍피망",
+          "coupang": "F"
+        },
+        {
+          "name": "대파",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "11/11",
+      "coupangRatio": 1.0,
+      "mealPrep": "면이 불어 소스와 면을 따로 담기",
+      "note": ""
+    },
+    {
+      "id": "cand-02",
+      "batch": 1,
+      "name": "두부 스테이크",
+      "source": "https://www.10000recipe.com/recipe/7020429",
+      "sourceServings": 2,
+      "korean": true,
+      "protein": "tofu",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "부침가루",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "진간장",
+          "coupang": "O"
+        },
+        {
+          "name": "맛술",
+          "coupang": "O"
+        },
+        {
+          "name": "케첩",
+          "coupang": "O"
+        },
+        {
+          "name": "올리고당",
+          "coupang": "O"
+        },
+        {
+          "name": "굴소스",
+          "coupang": "O"
+        },
+        {
+          "name": "두부",
+          "coupang": "F"
+        },
+        {
+          "name": "양송이버섯",
+          "coupang": "F"
+        },
+        {
+          "name": "당근",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "대파",
+          "coupang": "F"
+        },
+        {
+          "name": "달걀",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "14/14",
+      "coupangRatio": 1.0,
+      "mealPrep": "냉동 가능, 소스 따로",
+      "note": ""
+    },
+    {
+      "id": "cand-03",
+      "batch": 1,
+      "name": "연어 데리야끼 덮밥",
+      "source": "https://www.10000recipe.com/recipe/406057",
+      "sourceServings": 2,
+      "korean": false,
+      "protein": "fish",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "레몬즙",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "맛술",
+          "coupang": "O"
+        },
+        {
+          "name": "간장",
+          "coupang": "O"
+        },
+        {
+          "name": "청주",
+          "coupang": "O"
+        },
+        {
+          "name": "설탕",
+          "coupang": "O"
+        },
+        {
+          "name": "연어 필렛",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "10/10",
+      "coupangRatio": 1.0,
+      "mealPrep": "냉장 짧게",
+      "note": ""
+    },
+    {
+      "id": "cand-04",
+      "batch": 1,
+      "name": "김치볶음밥(참치)",
+      "source": "https://www.10000recipe.com/bbs/1251",
+      "sourceServings": 1,
+      "korean": true,
+      "protein": "fish",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "참치캔",
+          "coupang": "O"
+        },
+        {
+          "name": "물엿",
+          "coupang": "O"
+        },
+        {
+          "name": "굴소스",
+          "coupang": "O"
+        },
+        {
+          "name": "고춧가루",
+          "coupang": "O"
+        },
+        {
+          "name": "카놀라유",
+          "coupang": "O"
+        },
+        {
+          "name": "포장 김치",
+          "coupang": "O"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "달걀",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "8/8",
+      "coupangRatio": 1.0,
+      "mealPrep": "냉동 쉬움, 달걀 프라이는 먹을 때",
+      "note": ""
+    },
+    {
+      "id": "cand-05",
+      "batch": 1,
+      "name": "닭갈비",
+      "source": "https://www.10000recipe.com/bbs/1899",
+      "sourceServings": null,
+      "korean": true,
+      "protein": "chicken",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "고추장",
+          "coupang": "O"
+        },
+        {
+          "name": "설탕",
+          "coupang": "O"
+        },
+        {
+          "name": "간장",
+          "coupang": "O"
+        },
+        {
+          "name": "맛술",
+          "coupang": "O"
+        },
+        {
+          "name": "고춧가루",
+          "coupang": "O"
+        },
+        {
+          "name": "다진 마늘(냉동)",
+          "coupang": "O"
+        },
+        {
+          "name": "생강가루",
+          "coupang": "O"
+        },
+        {
+          "name": "참기름",
+          "coupang": "O"
+        },
+        {
+          "name": "카레가루",
+          "coupang": "O"
+        },
+        {
+          "name": "닭다리살",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "양배추",
+          "coupang": "F"
+        },
+        {
+          "name": "청양고추",
+          "coupang": "F"
+        },
+        {
+          "name": "대파",
+          "coupang": "F"
+        },
+        {
+          "name": "깻잎",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "15/15",
+      "coupangRatio": 1.0,
+      "mealPrep": "냉동 가능, 깻잎은 먹을 때",
+      "note": ""
+    },
+    {
+      "id": "cand-06",
+      "batch": 1,
+      "name": "새우 볶음밥",
+      "source": "https://www.10000recipe.com/recipe/6912075",
+      "sourceServings": 1,
+      "korean": false,
+      "protein": "seafood",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "냉동 새우",
+          "coupang": "O"
+        },
+        {
+          "name": "굴소스",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "달걀",
+          "coupang": "F"
+        },
+        {
+          "name": "채소(양파·당근)",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "6/6",
+      "coupangRatio": 1.0,
+      "mealPrep": "냉동 쉬움",
+      "note": ""
+    },
+    {
+      "id": "cand-07",
+      "batch": 1,
+      "name": "소고기 숙주볶음",
+      "source": "https://www.10000recipe.com/recipe/7035568",
+      "sourceServings": null,
+      "korean": true,
+      "protein": "beef",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "진간장",
+          "coupang": "O"
+        },
+        {
+          "name": "굴소스",
+          "coupang": "O"
+        },
+        {
+          "name": "맛술",
+          "coupang": "O"
+        },
+        {
+          "name": "설탕",
+          "coupang": "O"
+        },
+        {
+          "name": "참기름",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "통깨",
+          "coupang": "O"
+        },
+        {
+          "name": "식용유",
+          "coupang": "O"
+        },
+        {
+          "name": "차돌박이",
+          "coupang": "F"
+        },
+        {
+          "name": "숙주",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "대파",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "12/12",
+      "coupangRatio": 1.0,
+      "mealPrep": "숙주에서 물이 생겨 냉장 짧게",
+      "note": ""
+    },
+    {
+      "id": "cand-08",
+      "batch": 1,
+      "name": "참치마요 덮밥",
+      "source": "https://www.10000recipe.com/recipe/6924561",
+      "sourceServings": 1,
+      "korean": true,
+      "protein": "fish",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "참치캔",
+          "coupang": "O"
+        },
+        {
+          "name": "마요네즈",
+          "coupang": "O"
+        },
+        {
+          "name": "설탕",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "올리브유",
+          "coupang": "O"
+        },
+        {
+          "name": "조미김",
+          "coupang": "O"
+        },
+        {
+          "name": "달걀",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "대파",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "9/9",
+      "coupangRatio": 1.0,
+      "mealPrep": "마요네즈라 냉동 비추천",
+      "note": ""
+    },
+    {
+      "id": "cand-09",
+      "batch": 1,
+      "name": "닭가슴살 크림 파스타",
+      "source": "https://www.10000recipe.com/recipe/6877232",
+      "sourceServings": 2,
+      "korean": false,
+      "protein": "chicken",
+      "carb": "noodle",
+      "ingredients": [
+        {
+          "name": "페투치니",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "바질(건조)",
+          "coupang": "O"
+        },
+        {
+          "name": "레드페퍼",
+          "coupang": "O"
+        },
+        {
+          "name": "올리브유",
+          "coupang": "O"
+        },
+        {
+          "name": "우유(멸균)",
+          "coupang": "O"
+        },
+        {
+          "name": "닭가슴살",
+          "coupang": "F"
+        },
+        {
+          "name": "적양파",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "새송이버섯",
+          "coupang": "F"
+        },
+        {
+          "name": "생크림",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "12/12",
+      "coupangRatio": 1.0,
+      "mealPrep": "크림소스는 냉동 시 분리 우려",
+      "note": ""
+    },
+    {
+      "id": "cand-10",
+      "batch": 1,
+      "name": "닭볶음탕",
+      "source": "https://www.10000recipe.com/bbs/1806",
+      "sourceServings": 4,
+      "korean": true,
+      "protein": "chicken",
+      "carb": "potato",
+      "ingredients": [
+        {
+          "name": "설탕",
+          "coupang": "O"
+        },
+        {
+          "name": "다진 마늘(냉동)",
+          "coupang": "O"
+        },
+        {
+          "name": "생강가루",
+          "coupang": "O"
+        },
+        {
+          "name": "간장",
+          "coupang": "O"
+        },
+        {
+          "name": "고춧가루",
+          "coupang": "O"
+        },
+        {
+          "name": "닭(볶음탕용)",
+          "coupang": "F"
+        },
+        {
+          "name": "감자",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "청양고추",
+          "coupang": "F"
+        },
+        {
+          "name": "홍고추",
+          "coupang": "F"
+        },
+        {
+          "name": "대파",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "11/11",
+      "coupangRatio": 1.0,
+      "mealPrep": "감자라 냉동 비추천, 냉장 3일",
+      "note": ""
+    },
+    {
+      "id": "cand-11",
+      "batch": 2,
+      "name": "치킨 토르티야 수프",
+      "source": "https://www.lemonblossoms.com/wprm_print/chicken-tortilla-soup-recipe",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "chicken",
+      "carb": "other",
+      "ingredients": [
+        {
+          "name": "치킨스톡",
+          "coupang": "O"
+        },
+        {
+          "name": "토마토 캔",
+          "coupang": "O"
+        },
+        {
+          "name": "커민",
+          "coupang": "O"
+        },
+        {
+          "name": "칠리 파우더",
+          "coupang": "O"
+        },
+        {
+          "name": "오레가노",
+          "coupang": "O"
+        },
+        {
+          "name": "옥수수 또띠아",
+          "coupang": "O"
+        },
+        {
+          "name": "블랙빈 캔",
+          "coupang": "O"
+        },
+        {
+          "name": "옥수수 캔",
+          "coupang": "O"
+        },
+        {
+          "name": "슈레드 치즈",
+          "coupang": "O"
+        },
+        {
+          "name": "닭가슴살",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "고수",
+          "coupang": "F"
+        },
+        {
+          "name": "라임",
+          "coupang": "F"
+        },
+        {
+          "name": "사워크림",
+          "coupang": "F"
+        },
+        {
+          "name": "아보카도",
+          "coupang": "F"
+        },
+        {
+          "name": "생 할라피뇨",
+          "coupang": "X",
+          "substitute": "병 할라피뇨"
+        }
+      ],
+      "coupangAvailable": "16/17",
+      "coupangRatio": 0.94,
+      "mealPrep": "국물 냉동 가능, 토핑은 먹을 때",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-12",
+      "batch": 2,
+      "name": "크리스피 닭다리살 타코",
+      "source": "https://www.blessthismessplease.com/?p=33042",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "chicken",
+      "carb": "other",
+      "ingredients": [
+        {
+          "name": "올리브유",
+          "coupang": "O"
+        },
+        {
+          "name": "칠리 파우더",
+          "coupang": "O"
+        },
+        {
+          "name": "커민",
+          "coupang": "O"
+        },
+        {
+          "name": "훈제 파프리카 가루",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "옥수수 또띠아",
+          "coupang": "O"
+        },
+        {
+          "name": "병 살사",
+          "coupang": "O"
+        },
+        {
+          "name": "닭다리살",
+          "coupang": "F"
+        },
+        {
+          "name": "라임",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "고수",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "11/11",
+      "coupangRatio": 1.0,
+      "mealPrep": "고기만 소분, 또띠아는 먹을 때",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-13",
+      "batch": 2,
+      "name": "하리사 요거트 치킨과 병아리콩",
+      "source": "https://www.platingsandpairings.com/one-pot-harissa-chicken-chickpeas-yogurt/",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "chicken",
+      "carb": "other",
+      "ingredients": [
+        {
+          "name": "올리브유",
+          "coupang": "O"
+        },
+        {
+          "name": "토마토 페이스트",
+          "coupang": "O"
+        },
+        {
+          "name": "병아리콩 캔",
+          "coupang": "O"
+        },
+        {
+          "name": "치킨스톡",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "닭다리살",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "레몬",
+          "coupang": "F"
+        },
+        {
+          "name": "고수",
+          "coupang": "F"
+        },
+        {
+          "name": "그릭 요거트",
+          "coupang": "F"
+        },
+        {
+          "name": "하리사",
+          "coupang": "X",
+          "substitute": "고추장+훈제 파프리카+커민"
+        }
+      ],
+      "coupangAvailable": "12/13",
+      "coupangRatio": 0.92,
+      "mealPrep": "냉동 가능, 요거트 소스 따로",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-14",
+      "batch": 2,
+      "name": "미소 버섯 누들 볼",
+      "source": "https://realplans.com/recipes/miso-mushroom-noodle-bowls-vegetarian",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "other",
+      "carb": "noodle",
+      "ingredients": [
+        {
+          "name": "메밀면",
+          "coupang": "O"
+        },
+        {
+          "name": "미소",
+          "coupang": "O"
+        },
+        {
+          "name": "채소 육수",
+          "coupang": "O"
+        },
+        {
+          "name": "올리브유",
+          "coupang": "O"
+        },
+        {
+          "name": "브라운 양송이",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "생강",
+          "coupang": "F"
+        },
+        {
+          "name": "고추",
+          "coupang": "F"
+        },
+        {
+          "name": "고수",
+          "coupang": "F"
+        },
+        {
+          "name": "타마리 간장",
+          "coupang": "X",
+          "substitute": "진간장"
+        }
+      ],
+      "coupangAvailable": "10/11",
+      "coupangRatio": 0.91,
+      "mealPrep": "면이 불어 국물 따로, 단백질 보강 필요",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-15",
+      "batch": 2,
+      "name": "레드와인 소고기 버섯찜",
+      "source": "https://themodernproper.com/print/wine-braised-beef-with-mushrooms",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "beef",
+      "carb": "other",
+      "ingredients": [
+        {
+          "name": "월계수 잎",
+          "coupang": "O"
+        },
+        {
+          "name": "토마토 페이스트",
+          "coupang": "O"
+        },
+        {
+          "name": "밀가루",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "소고기(척·부채살)",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "당근",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "양송이",
+          "coupang": "F"
+        },
+        {
+          "name": "레드와인",
+          "coupang": "X"
+        },
+        {
+          "name": "생 타임",
+          "coupang": "X",
+          "substitute": "건조 타임"
+        }
+      ],
+      "coupangAvailable": "10/12",
+      "coupangRatio": 0.83,
+      "mealPrep": "냉동 잘 됨. 레드와인은 국내 온라인 구매 불가",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-16",
+      "batch": 2,
+      "name": "슬로쿠커 프렌치 딥 샌드위치",
+      "source": "https://www.pumpkinnspice.com/wprm_print/slow-cooker-french-dip-sandwiches",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "beef",
+      "carb": "other",
+      "ingredients": [
+        {
+          "name": "올리브유",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "오레가노",
+          "coupang": "O"
+        },
+        {
+          "name": "타임(건조)",
+          "coupang": "O"
+        },
+        {
+          "name": "마늘 가루",
+          "coupang": "O"
+        },
+        {
+          "name": "비프 스톡",
+          "coupang": "O"
+        },
+        {
+          "name": "우스터 소스",
+          "coupang": "O"
+        },
+        {
+          "name": "소고기(척)",
+          "coupang": "F"
+        },
+        {
+          "name": "바게트·롤빵",
+          "coupang": "F"
+        },
+        {
+          "name": "프렌치 어니언 수프 캔",
+          "coupang": "X"
+        },
+        {
+          "name": "프로볼로네 치즈",
+          "coupang": "X",
+          "substitute": "모차렐라 슬라이스"
+        }
+      ],
+      "coupangAvailable": "10/12",
+      "coupangRatio": 0.83,
+      "mealPrep": "고기만 냉동, 빵은 먹을 때",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-17",
+      "batch": 2,
+      "name": "고구마 땅콩 스튜",
+      "source": "https://www.thescramble.com/recipes/sweet-potato-and-peanut-stew/",
+      "sourceServings": 6,
+      "korean": false,
+      "protein": "legume",
+      "carb": "sweetPotato",
+      "ingredients": [
+        {
+          "name": "땅콩버터",
+          "coupang": "O"
+        },
+        {
+          "name": "토마토 캔",
+          "coupang": "O"
+        },
+        {
+          "name": "육수",
+          "coupang": "O"
+        },
+        {
+          "name": "커민",
+          "coupang": "O"
+        },
+        {
+          "name": "병아리콩 캔",
+          "coupang": "O"
+        },
+        {
+          "name": "고구마",
+          "coupang": "F"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "생강",
+          "coupang": "F"
+        },
+        {
+          "name": "시금치",
+          "coupang": "F"
+        }
+      ],
+      "coupangAvailable": "10/10",
+      "coupangRatio": 1.0,
+      "mealPrep": "냉동 잘 됨, 단백질 보강 필요",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-18",
+      "batch": 2,
+      "name": "케이준 더티 라이스",
+      "source": "https://kiltedchef.ca/?p=5209",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "other",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "치킨스톡",
+          "coupang": "O"
+        },
+        {
+          "name": "케이준 시즈닝",
+          "coupang": "O"
+        },
+        {
+          "name": "월계수 잎",
+          "coupang": "O"
+        },
+        {
+          "name": "타임(건조)",
+          "coupang": "O"
+        },
+        {
+          "name": "양파",
+          "coupang": "F"
+        },
+        {
+          "name": "청피망",
+          "coupang": "F"
+        },
+        {
+          "name": "셀러리",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "칠면조 다짐육",
+          "coupang": "X",
+          "substitute": "닭 다짐육"
+        }
+      ],
+      "coupangAvailable": "8/9",
+      "coupangRatio": 0.89,
+      "mealPrep": "냉동 가능. 쌀은 판정에서 뺌",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-19",
+      "batch": 2,
+      "name": "파타타스 브라바스 볼",
+      "source": "https://www.marksandspencer.com/c/food-and-wine/cooking/recipes/249611/loaded-patatas-bravas-beef-bowls/",
+      "sourceServings": null,
+      "korean": false,
+      "protein": "beef",
+      "carb": "potato",
+      "ingredients": [
+        {
+          "name": "훈제 파프리카 가루",
+          "coupang": "O"
+        },
+        {
+          "name": "토마토 캔",
+          "coupang": "O"
+        },
+        {
+          "name": "감자",
+          "coupang": "F"
+        },
+        {
+          "name": "소고기 다짐육",
+          "coupang": "F"
+        },
+        {
+          "name": "적양파",
+          "coupang": "F"
+        },
+        {
+          "name": "파프리카",
+          "coupang": "F"
+        },
+        {
+          "name": "마늘",
+          "coupang": "F"
+        },
+        {
+          "name": "파슬리",
+          "coupang": "F"
+        },
+        {
+          "name": "셰리 식초",
+          "coupang": "X",
+          "substitute": "식초·레몬"
+        },
+        {
+          "name": "로스티드 갈릭 아이올리",
+          "coupang": "X",
+          "substitute": "마요네즈+마늘"
+        }
+      ],
+      "coupangAvailable": "8/10",
+      "coupangRatio": 0.8,
+      "mealPrep": "감자라 냉동 비추천",
+      "note": "TapCook 메뉴 이름으로 검색"
+    },
+    {
+      "id": "cand-20",
+      "batch": 2,
+      "name": "이탈리안 소시지 브로콜리 볶음",
+      "source": "https://www.brookshires.com/recipes/Italian%20Sausage%20&%20Broccoli%20Saut%C3%A9",
+      "sourceServings": 4,
+      "korean": false,
+      "protein": "pork",
+      "carb": "rice",
+      "ingredients": [
+        {
+          "name": "이탈리안 소시지(냉동)",
+          "coupang": "O"
+        },
+        {
+          "name": "식용유",
+          "coupang": "O"
+        },
+        {
+          "name": "이탈리안 시즈닝",
+          "coupang": "O"
+        },
+        {
+          "name": "소금",
+          "coupang": "O"
+        },
+        {
+          "name": "후추",
+          "coupang": "O"
+        },
+        {
+          "name": "치킨스톡",
+          "coupang": "O"
+        },
+        {
+          "name": "브로콜리",
+          "coupang": "F"
+        },
+        {
+          "name": "빨강 파프리카",
+          "coupang": "F"
+        },
+        {
+          "name": "노란 주키니",
+          "coupang": "X",
+          "substitute": "애호박"
+        }
+      ],
+      "coupangAvailable": "8/9",
+      "coupangRatio": 0.89,
+      "mealPrep": "냉장 3일. 쌀은 판정에서 뺌",
+      "note": "TapCook 메뉴 이름으로 검색"
+    }
+  ]
+}

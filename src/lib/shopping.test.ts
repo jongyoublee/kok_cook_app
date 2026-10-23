@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { CORNERS, ingredients } from '../data/ingredients'
 import { recipes } from '../data/recipes'
-import { buildShoppingList, servingsOf } from './shopping'
+import { buildShoppingList, perServingCost, servingsOf } from './shopping'
 
 const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS } // 다음 주 평일 5끼, 1인
@@ -59,5 +59,19 @@ describe('장보기 목록 (D1~D4)', () => {
   it('코너 순서대로 정렬한다 (D5)', () => {
     const order = list.items.map((it) => CORNERS.indexOf(it.corner))
     expect(order).toEqual([...order].sort((a, b) => a - b))
+  })
+})
+
+describe('1인분 예상 금액 (B7)', () => {
+  const price = () => 1000
+
+  it('판매 단위 가격을 쓰는 양만큼 나눠 더하고 100원 단위로 반올림한다', () => {
+    const expected = pork.ingredients.reduce((s, { id, amount }) => s + (1000 * amount) / ingredients[id].saleUnit.amount, 0)
+    expect(perServingCost(pork, [], price)).toBe(Math.round(expected / 100) * 100)
+  })
+
+  it('집에 있는 양념과 가격을 모르는 재료는 뺀다', () => {
+    expect(perServingCost(pork, ['soySauce'], price)).toBeLessThanOrEqual(perServingCost(pork, [], price))
+    expect(perServingCost(pork, [], () => undefined)).toBe(0)
   })
 })

@@ -2,7 +2,7 @@
 import { config } from '../config'
 import { ingredients } from '../data/ingredients'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
-import { num } from '../ui'
+import { NUTRITION_NOTE, num } from '../ui'
 
 type Props = {
   recipe: Recipe
@@ -49,7 +49,11 @@ export default function RecipeScreen({ recipe: r, servings, onBack }: Props) {
           ))}
         </dl>
         {r.carb === 'rice' && <p className="mt-2 text-xs text-gray-500">밥 {config.riceWithMeal.grams}g을 포함한 값이에요. 밥은 장보기 목록에 넣지 않아요.</p>}
-        {!r.verified && <p className="mt-2 text-xs text-gray-400">검수 전 추정치예요.</p>}
+        {/* I5 */}
+        <p className="mt-2 text-xs text-gray-400">
+          {NUTRITION_NOTE}
+          {!r.verified && ' 아직 검수 전이에요.'}
+        </p>
       </section>
 
       <section>

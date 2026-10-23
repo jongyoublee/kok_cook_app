@@ -67,7 +67,8 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   cheapest: false,
 })
 
-const KEY = 'kokcook.conditions'
+export const CONDITIONS_KEY = 'kokcook.conditions'
+const KEY = CONDITIONS_KEY
 export type KV = Pick<Storage, 'getItem' | 'setItem'>
 
 export const storageOrNull = (): KV | null => {

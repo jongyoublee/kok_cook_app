@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { budgetOf, budgetRange } from '../lib/budget'
 import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions } from '../conditions'
 import { ingredients, type IngredientId } from '../data/ingredients'
-import { toggle, won } from '../ui'
+import { ALLERGY_NOTE, toggle, won } from '../ui'
 
 export type FieldProps = { c: Conditions; set: (patch: Partial<Conditions>) => void }
 
@@ -62,6 +62,8 @@ export function ProteinField({ c, set }: FieldProps) {
       <div className="flex justify-end">
         <TextButton onClick={() => set({ proteins: ALL_PROTEINS })} disabled={c.proteins.length === ALL_PROTEINS.length}>전부 좋아요</TextButton>
       </div>
+      {/* I5 */}
+      <p className="text-xs text-gray-400">{ALLERGY_NOTE}</p>
     </div>
   )
 }

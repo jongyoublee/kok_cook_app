@@ -35,6 +35,7 @@ export default function ShoppingScreen(props: Props) {
   const [keep, setKeep] = useState(false) // F2 "그대로 진행"을 누르면 교체 제안을 닫는다
   const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
   const left = list.items.filter((it) => !checked.includes(it.id)).length
+  const seasoningCost = list.items.filter((it) => it.corner === '양념').reduce((s, it) => s + (it.price ?? 0), 0)
   const versionB = budgetVersion() === 'B'
   const budget = budgetOf(c)
   const suggestion = versionB && !keep && list.total > budget ? suggestSwap(menu, c) : null
@@ -133,7 +134,11 @@ export default function ShoppingScreen(props: Props) {
                           <input type="checkbox" checked={done} onChange={() => onToggle(it.id)} className="mt-1 h-5 w-5 shrink-0 accent-black" />
                           <span className={`min-w-0 flex-1 ${done ? 'text-gray-400 line-through' : ''}`}>
                             <span className="flex justify-between gap-2">
-                              <span className="font-medium">{it.name}</span>
+                              <span className="font-medium">
+                                {it.name}
+                                {/* D7 양념은 한 번 사면 여러 주 쓴다 */}
+                                {it.corner === '양념' && <span className="ml-1.5 rounded-full border border-gray-300 px-1.5 py-0.5 text-[11px] font-normal text-gray-500">오래 써요</span>}
+                              </span>
                               {it.price !== undefined && <span className="shrink-0">약 {num(it.price)}원</span>}
                             </span>
                             <span className="block text-sm text-gray-500">
@@ -177,8 +182,10 @@ export default function ShoppingScreen(props: Props) {
           <span className="font-semibold">예상 금액 합계</span>
           <span className="text-xl font-bold">약 {num(list.total)}원</span>
         </div>
-        {/* D4 참가격 연동 전 가짜 가격, G2 수수료 고지 */}
-        <p className="mt-1 text-xs text-gray-400">임시 가격 데이터로 계산한 추정치예요. 실제 가격과 다를 수 있어요.</p>
+        {/* D7 처음 사는 양념은 여러 주 쓰므로 첫 주 합계가 높게 보이는 이유를 알린다 */}
+        {seasoningCost > 0 && <p className="mt-1 text-sm text-gray-500">이 중 양념 약 {num(seasoningCost)}원은 한 번 사면 여러 주 써요.</p>}
+        {/* D4 참가격 연동 전 가짜 가격, D8 정가 기준 추정, G2 수수료 고지 */}
+        <p className="mt-1 text-xs text-gray-400">할인 전 정가 기준 추정치라 실제 결제 금액은 대개 이보다 적어요. 지금은 임시 가격 데이터예요.</p>
         {COUPANG_NOTICE && <p className="mt-1 text-xs text-gray-400">{COUPANG_NOTICE}</p>}
         {/* U33 다음 주 계획: 날짜를 다음 기간으로 옮긴 조건 화면으로 */}
         <button type="button" onClick={onPlanNext} className="mt-3 w-full rounded-xl border border-black py-3 font-semibold">

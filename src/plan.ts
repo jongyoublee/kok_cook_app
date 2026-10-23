@@ -1,7 +1,7 @@
 // I2 확정한 메뉴, D6 구매 체크, E1 바꾼 조리일을 기기에 저장한다.
 // 계획을 짤 때의 날짜·인원·끼니도 함께 저장한다. 지금 조건으로 다시 계산하면, 식사 중간에 지난 날짜가 빠지거나
 // 다음 주 날짜로 바뀌었을 때 요일별 메뉴와 냉장·냉동 안내가 달라지기 때문이다
-import { storageOrNull, type Conditions, type Meal } from './conditions'
+import { CONDITIONS_KEY, storageOrNull, type Conditions, type Meal } from './conditions'
 import { ingredients, type IngredientId } from './data/ingredients'
 import { recipes, type Recipe } from './data/recipes'
 import { cookDay, type ISODate } from './lib/dates'
@@ -67,3 +67,13 @@ export const planConditions = (plan: Plan, c: Conditions): Conditions => ({ ...c
 
 // E1 조리일: 바꿔 둔 날이 있으면 그날, 없으면 첫 식사일 전날. 오늘이 지나도 바뀌지 않는다
 export const planCookDate = (plan: Plan): ISODate => plan.cookDate ?? cookDay(plan.dates)!
+
+// I6 내 데이터 지우기: 기기에 저장한 조건과 계획(메뉴, 구매 체크, 조리일)을 지운다
+export function clearSavedData(storage = storageOrNull() as Pick<Storage, 'removeItem'> | null) {
+  try {
+    storage?.removeItem(CONDITIONS_KEY)
+    storage?.removeItem(KEY)
+  } catch {
+    // 저장 공간이 막힌 환경에서는 지울 것도 없다
+  }
+}

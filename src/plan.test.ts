@@ -3,7 +3,7 @@ import { ALL_CARBS, ALL_PROTEINS, defaultConditions, loadConditions, saveConditi
 import { recipes } from './data/recipes'
 import { nextWeek } from './lib/dates'
 import { schedule } from './lib/storagePlan'
-import { confirmPlan, loadPlan, planConditions, planCookDate, savePlan } from './plan'
+import { clearSavedData, confirmPlan, loadPlan, planConditions, planCookDate, savePlan } from './plan'
 
 const fakeStorage = (init?: string) => {
   const m = new Map<string, string>(init ? [['kokcook.plan', init]] : [])
@@ -85,5 +85,17 @@ describe('메뉴 확정 (U16)', () => {
     expect(plan.dates).toEqual(weekdays)
     expect(plan.people).toBe(2)
     expect(plan.meals).toEqual(c.meals)
+  })
+})
+
+describe('내 데이터 지우기 (I6)', () => {
+  it('조건과 계획을 모두 지운다', () => {
+    const m = new Map([
+      ['kokcook.conditions', '{}'],
+      ['kokcook.plan', '{}'],
+      ['other', 'x'],
+    ])
+    clearSavedData({ removeItem: (k: string) => void m.delete(k) })
+    expect([...m.keys()]).toEqual(['other'])
   })
 })

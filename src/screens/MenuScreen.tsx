@@ -11,7 +11,8 @@ import { CostBar, Tile } from '../components/fields'
 import { budgetOf, budgetVersion, menuCost } from '../lib/budget'
 import { summarizeMenu } from '../lib/nutrition'
 import { OPTION_LABEL, suggestAddition, type MenuOption } from '../lib/options'
-import { servingsOf } from '../lib/shopping'
+import { perServingCost, servingsOf } from '../lib/shopping'
+import { priceOf } from '../data/prices'
 import { primaryButton, won } from '../ui'
 
 type Props = {
@@ -118,7 +119,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
                   {FLAVOR_LABEL[r.flavor]} · {METHOD_LABEL[r.method]}
                 </p>
                 <p className="text-sm text-gray-600">
-                  단백질 {r.nutrition.proteinG}g, {r.nutrition.kcal}kcal
+                  단백질 {r.nutrition.proteinG}g, {r.nutrition.kcal}kcal · 1인분 약 {won(perServingCost(r, c.pantry, priceOf))}
                 </p>
                 <p className="text-sm text-gray-600">
                   {dayLabel(days[i], c.dates)} {days[i].length}끼

@@ -63,3 +63,12 @@ export function buildShoppingList(menu: Recipe[], servings: number[], pantry: In
   items.sort((a, b) => CORNERS.indexOf(a.corner) - CORNERS.indexOf(b.corner) || a.name.localeCompare(b.name, 'ko'))
   return { items, inPantry, total: items.reduce((sum, it) => sum + (it.price ?? 0), 0) }
 }
+
+// B7 1인분 예상 재료비: 판매 단위 가격을 쓰는 양만큼 나눠 더한다(남는 양은 넣지 않는다). 집에 있는 양념은 빼고, 100원 단위로 반올림
+export function perServingCost(r: Recipe, pantry: IngredientId[], priceOf: PriceSource): number {
+  const sum = r.ingredients.reduce((s, { id, amount }) => {
+    const price = pantry.includes(id) ? undefined : priceOf(id)
+    return price === undefined ? s : s + (price * amount) / ingredients[id].saleUnit.amount
+  }, 0)
+  return Math.round(sum / 100) * 100
+}

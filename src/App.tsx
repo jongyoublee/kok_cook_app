@@ -6,7 +6,7 @@ import { filterCandidates, maxMenus } from './lib/menu'
 import { budgetOf, budgetVersion } from './lib/budget'
 import { buildMenuOptions, type MenuOption } from './lib/options'
 import { servingsOf } from './lib/shopping'
-import { confirmPlan, loadPlan, planConditions, planCookDate, savePlan, type Plan } from './plan'
+import { clearSavedData, confirmPlan, loadPlan, planConditions, planCookDate, savePlan, type Plan } from './plan'
 import InputScreen from './screens/InputScreen'
 import MenuScreen from './screens/MenuScreen'
 import RecipeScreen from './screens/RecipeScreen'
@@ -136,6 +136,15 @@ export default function App() {
             }
           : undefined
       }
+      onReset={() => {
+        clearSavedData()
+        setConditions(defaultConditions(today))
+        setPlan(null)
+        setMenu([])
+        setOptions([])
+        setDraft(null)
+        setScreen('setup')
+      }}
       onSubmit={(c) => {
         setDraft(null)
         save(c)

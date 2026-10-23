@@ -1,5 +1,6 @@
 // D4, H4 재료 가격. 판매 단위 1개 기준 원. 참가격 연동 전까지 가짜 데이터를 쓴다.
-// 실제 연동은 priceOf만 바꾸면 된다. 화면에는 "예상 금액"으로만 표시한다
+// 실제 연동은 priceOf만 바꾸면 된다. 화면에는 "예상 금액"으로만 표시한다.
+// D8 추정 원칙: 할인가가 아닌 정가·평균가로 넣는다. 틀린다면 실제 결제보다 높게 나오는 쪽이 낫다
 import type { IngredientId } from './ingredients'
 
 export type PriceSource = (id: IngredientId) => number | undefined

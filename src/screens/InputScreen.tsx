@@ -7,7 +7,7 @@ import { BudgetField, CarbField, PantryField, PeopleField, ProteinField } from '
 import { budgetVersion } from '../lib/budget'
 import { mealCount, type Conditions } from '../conditions'
 import { cookDay, formatDay, nextWeek, type ISODate } from '../lib/dates'
-import { filterCandidates } from '../lib/menu'
+import { filterCandidates, hintText, widenHints } from '../lib/menu'
 import { ADVICE, primaryButton } from '../ui'
 
 type Props = {
@@ -15,6 +15,7 @@ type Props = {
   initial: Conditions
   onOpenShopping?: () => void // 확정한 메뉴가 있을 때만
   onSubmit: (c: Conditions) => void
+  onReset: () => void // I6 내 데이터 지우기
 }
 
 const sameDates = (a: ISODate[], b: ISODate[]) => a.join() === b.join()
@@ -34,12 +35,13 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-export default function InputScreen({ today, initial, onOpenShopping, onSubmit }: Props) {
+export default function InputScreen({ today, initial, onOpenShopping, onSubmit, onReset }: Props) {
   const [c, setC] = useState(initial)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const set = (patch: Partial<Conditions>) => setC((cur) => ({ ...cur, ...patch }))
   const { dates } = c
   const candidates = filterCandidates(c).length
+  const hints = candidates < c.menuCount ? widenHints(c) : []
   const missing = !c.proteins.length ? '단백질을 1개 이상 골라 주세요' : !c.carbs.length ? '탄수화물을 1개 이상 골라 주세요' : !candidates ? '조건에 맞는 메뉴가 없어요' : ''
 
   return (
@@ -93,8 +95,21 @@ export default function InputScreen({ today, initial, onOpenShopping, onSubmit }
         </Section>
       )}
 
+      {/* I6 */}
+      <button
+        type="button"
+        onClick={() => window.confirm('조건, 메뉴, 구매 체크를 모두 지우고 처음 설정부터 다시 할까요?') && onReset()}
+        className="self-center text-sm text-gray-400 underline underline-offset-4"
+      >
+        내 데이터 지우기
+      </button>
+
       <div className="sticky bottom-0 -mx-5 flex flex-col gap-2 border-t border-gray-100 bg-white px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p className="text-center text-sm text-gray-500">{missing || `조건에 맞는 메뉴 ${candidates}개`}</p>
+        {/* A11 원하는 메뉴 수보다 후보가 적으면 무엇을 더 고르면 되는지 */}
+        {c.proteins.length > 0 && c.carbs.length > 0 && candidates < c.menuCount && hints.length > 0 && (
+          <p className="text-center text-sm font-medium text-black">{hintText(hints)}</p>
+        )}
         <button type="button" onClick={() => onSubmit(c)} disabled={!!missing} className={primaryButton}>
           메뉴 만들기
         </button>

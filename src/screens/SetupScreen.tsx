@@ -5,7 +5,7 @@ import Calendar from '../components/Calendar'
 import { CarbField, PantryField, PeopleField, ProteinField } from '../components/fields'
 import { ALL_CARBS, ALL_PROTEINS, type Conditions } from '../conditions'
 import { cookDay, formatDay, type ISODate } from '../lib/dates'
-import { filterCandidates } from '../lib/menu'
+import { filterCandidates, hintText, widenHints } from '../lib/menu'
 import { config } from '../config'
 import { ADVICE, primaryButton } from '../ui'
 
@@ -43,11 +43,13 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
   const { name, title, desc } = STEPS[step]
 
   // 아직 답하지 않은 질문(빈 선택)은 전부로 보고 센다. 처음 설정에서 단백질 단계일 때 탄수화물이 비어 있기 때문
-  const candidates = filterCandidates({
+  const counted = {
     ...c,
     proteins: c.proteins.length ? c.proteins : ALL_PROTEINS,
     carbs: c.carbs.length ? c.carbs : ALL_CARBS,
-  }).length
+  }
+  const candidates = filterCandidates(counted).length
+  const hints = candidates < c.menuCount ? widenHints(counted) : []
   const picked = [true, c.proteins.length > 0, c.carbs.length > 0, true, c.dates.length > 0][step]
   const showCount = step === 1 || step === 2
 
@@ -91,6 +93,8 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
           {showCount && picked && (
             <p className={`text-sm ${candidates ? 'text-gray-500' : 'font-medium text-black'}`}>
               {candidates ? `조건에 맞는 메뉴 ${candidates}개` : '맞는 메뉴가 없어요. 더 골라 주세요'}
+              {/* A11 */}
+              {hints.length > 0 && <span className="block font-medium text-black">{hintText(hints)}</span>}
             </p>
           )}
         </Question>

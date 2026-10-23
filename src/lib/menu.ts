@@ -1,6 +1,6 @@
 // B1~B4 메뉴 자동 구성: 조건으로 후보를 거른 뒤(U09) 재료가 겹치는 조합을 우선 고른다(U10)
 import { config } from '../config'
-import { mealCount, PROTEIN_OPTIONS, type Conditions } from '../conditions'
+import { CARB_OPTIONS, mealCount, PROTEIN_OPTIONS, type Conditions } from '../conditions'
 import { ingredients, type IngredientId } from '../data/ingredients'
 import { METHOD_LABEL, recipes, type ProteinSource, type Recipe } from '../data/recipes'
 import type { ISODate } from './dates'
@@ -12,6 +12,25 @@ export type Rng = () => number
 export function filterCandidates(c: Conditions, pool: Recipe[] = recipes): Recipe[] {
   return pool.filter((r) => c.proteins.includes(r.proteinSource) && c.carbs.includes(r.carb))
 }
+
+// A11 아직 고르지 않은 단백질·탄수화물을 하나 더 고르면 후보가 몇 개가 되는지. 늘어나는 것만, 많은 순으로 limit개
+export function widenHints(c: Conditions, limit = 2): { label: string; count: number }[] {
+  const now = filterCandidates(c).length
+  const tries = [
+    ...PROTEIN_OPTIONS.filter((o) => !o.sources.every((s) => c.proteins.includes(s))).map((o) => ({
+      label: o.label,
+      c: { ...c, proteins: [...new Set([...c.proteins, ...o.sources])] },
+    })),
+    ...CARB_OPTIONS.filter((o) => !c.carbs.includes(o.value)).map((o) => ({ label: o.label, c: { ...c, carbs: [...c.carbs, o.value] } })),
+  ]
+  return tries
+    .map((t) => ({ label: t.label, count: filterCandidates(t.c).length }))
+    .filter((h) => h.count > now)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit)
+}
+
+export const hintText = (hints: { label: string; count: number }[]) => hints.map((h) => `${h.label}도 고르면 ${h.count}개`).join(', ')
 
 // 메뉴 수는 설정 최대값, 후보 수, 끼니 수를 넘지 않는다
 export const maxMenus = (c: Conditions, candidates: Recipe[]) =>

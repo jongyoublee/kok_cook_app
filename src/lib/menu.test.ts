@@ -3,7 +3,7 @@ import { config } from '../config'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions, PROTEIN_OPTIONS } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { recipes, type Recipe } from '../data/recipes'
-import { addMenu, assignDays, buildMenu, combinationCount, filterCandidates, fitsSpread, forEachCombo, greedyCombos, maxMenus, missingSeasonings, overlapScore, menuSpread, methodRule, proteinRule, relaxations, searchCombos, sharedIngredients, swapMenu } from './menu'
+import { addMenu, assignDays, buildMenu, combinationCount, filterCandidates, fitsSpread, forEachCombo, greedyCombos, hintText, maxMenus, menuSpread, methodRule, missingSeasonings, overlapScore, proteinRule, relaxations, searchCombos, sharedIngredients, swapMenu, widenHints } from './menu'
 
 const today = '2026-10-22'
 const all = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }
@@ -223,5 +223,21 @@ describe('조리법 분산', () => {
   it('규칙은 조리법 제한부터 1씩 풀고, 다음에 단백질만, 마지막에 규칙 없이', () => {
     const steps = relaxations(menuSpread(ALL_PROTEINS, 3))
     expect(steps.map((s) => s.map((r) => `${r.kind}${r.cap}`).join())).toEqual(['protein1,method2', 'protein1,method3', 'protein1,method4', 'protein1', ''])
+  })
+})
+
+describe('좁은 필터 안내 (A11)', () => {
+  it('하나 더 고르면 후보가 늘어나는 선택지를 많은 순으로 알려준다', () => {
+    const narrow = { ...all, proteins: ['pork' as const], carbs: ['potato' as const] }
+    const hints = widenHints(narrow)
+    expect(hints.length).toBeGreaterThan(0)
+    const now = filterCandidates(narrow).length
+    for (const h of hints) expect(h.count).toBeGreaterThan(now)
+    expect(hints[0].count).toBeGreaterThanOrEqual(hints[hints.length - 1].count)
+    expect(hintText([{ label: '고구마', count: 3 }])).toBe('고구마도 고르면 3개')
+  })
+
+  it('전부 골랐으면 안내할 것이 없다', () => {
+    expect(widenHints(all)).toEqual([])
   })
 })

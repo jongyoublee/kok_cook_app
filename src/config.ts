@@ -26,7 +26,7 @@ export const config = {
   // E4 식품 안전 수치. 공식 기준 확인 전 임시값이므로 화면에 임시값 표시를 붙인다
   foodSafety: {
     provisional: true,
-    fridgeDays: 3, // 3일과 4일 중 미결
+    fridgeDays: 3, // 2026-10-23 3일로 확정. 식약처 공식 기준 확인 전이라 provisional은 유지
     fridgeMaxC: 5,
     freezerMaxC: -18,
   },

@@ -41,6 +41,12 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
     setShown((s) => Object.assign([...s], { [i]: r.shown }))
   }
 
+  // B3 메뉴 삭제. 최소 개수 아래로는 줄이지 않는다
+  const remove = (i: number) => {
+    setMenu(menu.filter((_, j) => j !== i))
+    setShown((s) => s.filter((_, j) => j !== i))
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-4">
       <div className="flex items-center gap-2">
@@ -64,14 +70,25 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
                 {dayLabel(days[i], c.dates)} {days[i].length}끼
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => swap(i)}
-              disabled={candidates.length <= menu.length}
-              className="self-center rounded-lg border px-3 py-2 text-sm disabled:opacity-30"
-            >
-              교체
-            </button>
+            <div className="flex flex-col justify-center gap-1">
+              <button
+                type="button"
+                onClick={() => swap(i)}
+                disabled={candidates.length <= menu.length}
+                className="rounded-lg border px-3 py-2 text-sm disabled:opacity-30"
+              >
+                교체
+              </button>
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                disabled={menu.length <= config.menuCount.min}
+                aria-label={`${r.name} 삭제`}
+                className="px-3 py-1 text-sm text-gray-500 disabled:opacity-30"
+              >
+                삭제
+              </button>
+            </div>
           </li>
         ))}
       </ul>

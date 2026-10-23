@@ -35,21 +35,23 @@ describe('후보 필터 (B4)', () => {
 })
 
 describe('먹고 싶은 단백질 (A8)', () => {
+  // 레시피를 추가해도 깨지지 않도록 기대값은 데이터에서 직접 고른다
+  const ids = (rs: Recipe[]) => rs.map((r) => r.id).sort()
+
   it('고른 단백질이 주재료인 메뉴만 남는다', () => {
     // 단백질 필터만 보려고 칼로리 상한은 푼다
     const c = filterCandidates({ ...korean, maxKcal: Infinity, proteins: ['pork', 'chicken'] })
-    expect(c.map((r) => r.id).sort()).toEqual(['pork-potato-braise', 'soy-chicken', 'spicy-pork'])
+    expect(c.length).toBeGreaterThan(0)
+    expect(ids(c)).toEqual(ids(recipes.filter((r) => r.korean && ['pork', 'chicken'].includes(r.proteinSource))))
   })
 
   it('베이스 탄수화물로도 거른다 (A10)', () => {
     const c = filterCandidates({ ...highProtein, carbs: ['noodle', 'sweetPotato'] })
-    expect(c.map((r) => r.id).sort()).toEqual([
-      'chicken-tomato-pasta',
-      'seafood-udon',
-      'shrimp-garlic-pasta',
-      'sweet-potato-chicken-bowl',
-      'tofu-scramble-sweet-potato',
-    ])
+    const { minProteinG, maxKcal } = config.highProtein
+    expect(c.length).toBeGreaterThan(0)
+    expect(ids(c)).toEqual(
+      ids(recipes.filter((r) => ['noodle', 'sweetPotato'].includes(r.carb) && r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= maxKcal)),
+    )
   })
 
   it('전부 고르면 단백질·탄수화물로 거르지 않는다', () => {

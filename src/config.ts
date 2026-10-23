@@ -9,6 +9,8 @@ export const config = {
   // B1 메뉴 조합 탐색. 조합 수가 maxCombos 이하면 모두 비교하고, 넘으면 탐욕 선택으로 돌아간다.
   // keep: 예산 계산(F1)에 넘길 상위 조합 수. missingSeasoningPenalty: 새로 살 양념 1종당 깎는 점수(A9)
   menuSearch: { maxCombos: 1_000_000, keep: 300, missingSeasoningPenalty: 0.01 },
+  // 같은 조리법(볶음, 조림 등)은 메뉴 수의 이 비율(올림)까지. 0.5면 메뉴 2개는 서로 다르게, 3~4개는 2개까지
+  maxSameMethodRatio: 0.5,
   // A4 메뉴 개수
   menuCount: { min: 1, default: 2, max: 5 },
   // A2 식사 날짜 최대 선택 기간 (제안 단계)

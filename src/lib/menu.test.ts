@@ -3,7 +3,7 @@ import { config } from '../config'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions, PROTEIN_OPTIONS } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { recipes, type Recipe } from '../data/recipes'
-import { addMenu, assignDays, buildMenu, combinationCount, filterCandidates, fitsSpread, forEachCombo, greedyCombos, maxMenus, missingSeasonings, overlapScore, proteinSpread, searchCombos, sharedIngredients, swapMenu } from './menu'
+import { addMenu, assignDays, buildMenu, combinationCount, filterCandidates, fitsSpread, forEachCombo, greedyCombos, maxMenus, missingSeasonings, overlapScore, menuSpread, methodRule, proteinRule, relaxations, searchCombos, sharedIngredients, swapMenu } from './menu'
 
 const today = '2026-10-22'
 const all = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }
@@ -163,25 +163,25 @@ describe('단백질 분산 (B6)', () => {
   }
 
   it('단백질을 1개만 골랐으면 제한이 없다', () => {
-    expect(proteinSpread(['pork'], 3)).toBeUndefined()
-    expect(proteinSpread(['tofu', 'legume'], 3)).toBeUndefined() // 두부·콩은 한 칸
+    expect(proteinRule(['pork'], 3)).toBeUndefined()
+    expect(proteinRule(['tofu', 'legume'], 3)).toBeUndefined() // 두부·콩은 한 칸
   })
 
   it('한 단백질은 메뉴 수 ÷ 고른 단백질 수(올림)까지', () => {
-    expect(proteinSpread(['pork', 'chicken'], 2)!.cap).toBe(1)
-    expect(proteinSpread(['pork', 'chicken'], 3)!.cap).toBe(2)
-    expect(proteinSpread(ALL_PROTEINS, 5)!.cap).toBe(1)
+    expect(proteinRule(['pork', 'chicken'], 2)!.cap).toBe(1)
+    expect(proteinRule(['pork', 'chicken'], 3)!.cap).toBe(2)
+    expect(proteinRule(ALL_PROTEINS, 5)!.cap).toBe(1)
   })
 
   it.each([2, 3, 4])('전부 골랐으면 메뉴 %i개가 모두 다른 단백질', (k) => {
-    const menu = buildMenu(pool, k, [], first, proteinSpread(ALL_PROTEINS, k))
+    const menu = buildMenu(pool, k, [], first, menuSpread(ALL_PROTEINS, k))
     expect(menu).toHaveLength(k)
     expect(Math.max(...groupCounts(menu))).toBe(1)
   })
 
   it('두 개를 골랐고 메뉴가 3개면 한 단백질은 2개까지', () => {
     const two = filterCandidates({ ...all, proteins: ['pork', 'chicken'] })
-    const menu = buildMenu(two, 3, [], first, proteinSpread(['pork', 'chicken'], 3))
+    const menu = buildMenu(two, 3, [], first, menuSpread(['pork', 'chicken'], 3))
     expect(groupCounts(menu).sort()).toEqual([1, 2])
   })
 
@@ -190,17 +190,38 @@ describe('단백질 분산 (B6)', () => {
     const proteins: Recipe['proteinSource'][] = ['chicken', 'legume']
     const pool2 = filterCandidates({ ...all, proteins })
     expect(pool2.filter((r) => r.proteinSource === 'legume')).toHaveLength(1)
-    const spread = proteinSpread(proteins, 4)!
-    expect(spread.cap).toBe(2)
+    const spread = [proteinRule(proteins, 4)!]
+    expect(spread[0].cap).toBe(2)
     expect(buildMenu(pool2, 4, [], first, spread)).toHaveLength(4)
   })
 
   it('교체와 추가도 규칙을 지킨다', () => {
-    const spread = proteinSpread(ALL_PROTEINS, 3)
+    const spread = menuSpread(ALL_PROTEINS, 3)
     let menu = buildMenu(pool, 3, [], first, spread)
     for (let i = 0; i < 5; i++) menu = swapMenu(menu, 0, pool, [], [], first, spread).menu
     expect(fitsSpread(menu, spread)).toBe(true)
-    const added = addMenu(menu, pool, [], first, proteinSpread(ALL_PROTEINS, 4))
-    expect(fitsSpread(added, proteinSpread(ALL_PROTEINS, 4))).toBe(true)
+    const added = addMenu(menu, pool, [], first, menuSpread(ALL_PROTEINS, 4))
+    expect(fitsSpread(added, menuSpread(ALL_PROTEINS, 4))).toBe(true)
+  })
+})
+
+describe('조리법 분산', () => {
+  const pool = filterCandidates(all)
+  const maxSameMethod = (menu: Recipe[]) => Math.max(...menu.map((r) => menu.filter((x) => x.method === r.method).length))
+
+  it('같은 조리법은 메뉴 수의 절반(올림)까지', () => {
+    expect(methodRule(1)).toBeUndefined()
+    expect([2, 3, 4, 5].map((k) => methodRule(k)!.cap)).toEqual([1, 2, 2, 3])
+  })
+
+  it.each([2, 3, 4, 5])('메뉴 %i개도 조리법 규칙을 지킨다', (k) => {
+    const menu = buildMenu(pool, k, [], first, menuSpread(ALL_PROTEINS, k))
+    expect(menu).toHaveLength(k)
+    expect(maxSameMethod(menu)).toBeLessThanOrEqual(methodRule(k)!.cap)
+  })
+
+  it('규칙은 조리법 제한부터 1씩 풀고, 다음에 단백질만, 마지막에 규칙 없이', () => {
+    const steps = relaxations(menuSpread(ALL_PROTEINS, 3))
+    expect(steps.map((s) => s.map((r) => `${r.kind}${r.cap}`).join())).toEqual(['protein1,method2', 'protein1,method3', 'protein1,method4', 'protein1', ''])
   })
 })

@@ -15,9 +15,10 @@ import {
   maxMenus,
   missingSeasonings,
   overlapScore,
-  proteinSpread,
-  searchCombos,
-  topCombos,
+  menuSpread,
+  relaxations,
+  scoreOf,
+  topCombosBy,
   type Rng,
 } from './menu'
 import { buildShoppingList, servingsOf } from './shopping'
@@ -35,7 +36,13 @@ export type MenuOption = {
 
 export const OPTION_LABEL: Record<MenuOptionKind, string> = { simple: '장보기 간단', cheap: '가장 저렴', pantry: '집 양념으로', flex: '한 주 플렉스' }
 
-const premiumOf = (r: Recipe) => [...new Set(r.ingredients.map((i) => (ingredients[i.id] as Ingredient).premium).filter((p) => p !== undefined))]
+// 레시피별 고급 재료 이름은 바뀌지 않으므로 한 번만 계산한다
+const premiumCache = new WeakMap<Recipe, string[]>()
+const premiumOf = (r: Recipe) => {
+  let p = premiumCache.get(r)
+  if (!p) premiumCache.set(r, (p = [...new Set(r.ingredients.map((i) => (ingredients[i.id] as Ingredient).premium).filter((x) => x !== undefined))]))
+  return p
+}
 
 const key = (menu: Recipe[]) => menu.map((r) => r.id).sort().join()
 
@@ -63,20 +70,25 @@ const ORDER: Record<MenuOptionKind, (a: Evaluated, b: Evaluated) => number> = {
 }
 
 // 후보 조합: 겹침 점수 상위, 새로 살 양념이 적은 상위, 탐욕 조합을 합친다
-// B6 분산 규칙에 맞는 조합만 쓰고, 맞는 조합이 하나도 없으면 규칙 없이 만든다
+// B6·조리법 분산 규칙에 맞는 조합만 쓰고, 맞는 조합이 없으면 규칙을 차례로 푼다.
+// 모두 비교할 수 있으면 한 번 돌면서 겹침 상위, 새로 살 양념이 적은 상위, 고급 재료가 많은 상위를 함께 모으고,
+// 조합이 너무 많으면 탐욕 조합을 쓴다
 function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng: Rng): Recipe[][] {
   const { maxCombos, keep } = config.menuSearch
-  const spread = proteinSpread(c.proteins, count)
-  const combos = [...searchCombos(candidates, count, c.pantry, rng, spread), ...greedyCombos(candidates, count, c.pantry, rng, spread)]
-  if (combinationCount(candidates.length, count) <= maxCombos)
-    combos.push(
-      ...topCombos(candidates, count, c.pantry, keep, (overlap, missing) => overlap / 100 - missing, spread).map((x) => x.menu),
-      // 한 주 플렉스 후보: 고급 재료 메뉴가 많은 조합
-      ...topCombos(candidates, count, c.pantry, keep, (overlap, _, menu) => menu.filter((r) => premiumOf(r).length).length * 100 + overlap, spread).map((x) => x.menu),
-    )
-  const fit = combos.filter((m) => fitsSpread(m, spread))
-  const unique = new Map((fit.length ? fit : combos).map((m) => [key(m), m]))
-  return [...unique.values()]
+  const exhaustive = combinationCount(candidates.length, count) <= maxCombos
+  for (const spread of relaxations(menuSpread(c.proteins, count))) {
+    const combos = exhaustive
+      ? topCombosBy(candidates, count, c.pantry, keep, [
+          scoreOf,
+          (overlap, missing) => overlap / 100 - missing,
+          // 한 주 플렉스 후보: 고급 재료 메뉴가 많은 조합
+          (overlap, _, menu) => menu.filter((r) => premiumOf(r).length).length * 100 + overlap,
+        ], spread).flatMap((list) => list.map((x) => x.menu))
+      : greedyCombos(candidates, count, c.pantry, rng, spread)
+    const fit = combos.filter((m) => m.length === count && fitsSpread(m, spread))
+    if (fit.length) return [...new Map(fit.map((m) => [key(m), m])).values()]
+  }
+  return []
 }
 
 // useBudget이면 예산 안 조합만 쓰고(F1), 하나도 없으면 가장 싼 조합 하나와 초과 표시를 돌려준다
@@ -121,7 +133,7 @@ const MAIN_CORNERS = new Set(['육류·달걀', '수산', '두부·콩'])
 // B3, D3, F1 "이 레시피는 어떤가요?" 지금 메뉴와 맛 계열이 다른 메뉴 하나를 더해 보자고 제안한다.
 // 메뉴를 더했다고 보고 장보기와 먹는 날짜를 다시 계산해 늘어나는 금액이 가장 적은 메뉴를 고른다.
 // 남는 재료를 쓰는 메뉴일수록 금액이 덜 늘어 앞에 온다. 단백질은 B6 분산 규칙을 따른다
-// (단백질을 1개만 골랐으면 같은 단백질, 여러 개면 규칙 안에서 다른 단백질도 나온다).
+// (단백질을 1개만 골랐으면 같은 단백질, 여러 개면 규칙 안에서 다른 단백질도 나온다). 조리법 분산도 같다.
 // useBudget이면(버전 A) 더한 뒤에도 예산 안이어야 한다. 더할 수 없으면 null
 export function suggestAddition(menu: Recipe[], c: Conditions, useBudget: boolean): AddSuggestion | null {
   const candidates = filterCandidates(c)
@@ -129,9 +141,9 @@ export function suggestAddition(menu: Recipe[], c: Conditions, useBudget: boolea
   const now = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
   const flavors = new Set(menu.map((r) => r.flavor))
 
-  const spread = proteinSpread(c.proteins, menu.length + 1) // B6 더한 뒤에도 분산 규칙 안
-  const scored = candidates
-    .filter((r) => !menu.includes(r) && !flavors.has(r.flavor) && fitsSpread([...menu, r], spread))
+  // 더한 뒤에도 분산 규칙 안. 맞는 메뉴가 없으면 규칙을 차례로 푼다
+  const fresh = candidates.filter((r) => !menu.includes(r) && !flavors.has(r.flavor))
+  const scored = (relaxations(menuSpread(c.proteins, menu.length + 1)).map((rules) => fresh.filter((r) => fitsSpread([...menu, r], rules))).find((x) => x.length) ?? [])
     .map((r) => {
       const next = [...menu, r]
       const cost = buildShoppingList(next, servingsOf(next, c), c.pantry, priceOf).total

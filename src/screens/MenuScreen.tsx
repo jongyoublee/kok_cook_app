@@ -6,7 +6,7 @@ import { mealCount, type Conditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { formatDay, fromISO, type ISODate } from '../lib/dates'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
-import { addMenu, assignDays, filterCandidates, maxMenus, proteinSpread, sharedIngredients, swapMenu } from '../lib/menu'
+import { addMenu, assignDays, filterCandidates, maxMenus, menuSpread, sharedIngredients, swapMenu } from '../lib/menu'
 import { CostBar, Tile } from '../components/fields'
 import { budgetVersion, menuCost } from '../lib/budget'
 import { summarizeMenu } from '../lib/nutrition'
@@ -66,7 +66,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
   const kcal = summarizeMenu(menu, servingsOf(menu, c).map((n) => n / c.people))
 
   const swap = (i: number) => {
-    const r = swapMenu(menu, i, candidates, shown[i] ?? [], c.pantry, Math.random, proteinSpread(c.proteins, menu.length))
+    const r = swapMenu(menu, i, candidates, shown[i] ?? [], c.pantry, Math.random, menuSpread(c.proteins, menu.length))
     setMenu(r.menu)
     setShown((s) => Object.assign([...s], { [i]: r.shown }))
   }
@@ -149,7 +149,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
 
       <button
         type="button"
-        onClick={() => setMenu(addMenu(menu, candidates, c.pantry, Math.random, proteinSpread(c.proteins, menu.length + 1)))}
+        onClick={() => setMenu(addMenu(menu, candidates, c.pantry, Math.random, menuSpread(c.proteins, menu.length + 1)))}
         disabled={menu.length >= limit}
         className="rounded-xl border border-dashed border-gray-300 py-3 text-sm disabled:opacity-40"
       >

@@ -3,7 +3,7 @@ import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { ingredients, type Ingredient } from '../data/ingredients'
 import type { Recipe } from '../data/recipes'
 import { menuCost } from './budget'
-import { filterCandidates, fitsSpread, greedyCombos, missingSeasonings, proteinSpread } from './menu'
+import { filterCandidates, fitsSpread, greedyCombos, menuSpread, missingSeasonings } from './menu'
 import { buildMenuOptions, suggestAddition } from './options'
 
 const today = '2026-10-22'
@@ -78,7 +78,9 @@ describe('이 레시피는 어떤가요? (B3, D3)', () => {
     expect(s.recipe.proteinSource).toBe('pork')
     expect(s.recipe.flavor).not.toBe(pork.flavor)
     expect(s.extraCost).toBe(menuCost([pork, s.recipe], porkOnly) - menuCost([pork], porkOnly))
-    const others = filterCandidates(porkOnly).filter((r) => r !== pork && r.flavor !== pork.flavor)
+    // 메뉴 2개면 조리법도 달라야 한다
+    expect(s.recipe.method).not.toBe(pork.method)
+    const others = filterCandidates(porkOnly).filter((r) => r !== pork && r.flavor !== pork.flavor && r.method !== pork.method)
     for (const r of others) expect(s.extraCost).toBeLessThanOrEqual(menuCost([pork, r], porkOnly) - menuCost([pork], porkOnly))
   })
 
@@ -93,7 +95,7 @@ describe('이 레시피는 어떤가요? (B3, D3)', () => {
 
   it('단백질을 여러 개 골랐으면 분산 규칙 안에서 제안한다 (B6)', () => {
     const s = suggestAddition([pork], c, false)!
-    expect(fitsSpread([pork, s.recipe], proteinSpread(c.proteins, 2))).toBe(true)
+    expect(fitsSpread([pork, s.recipe], menuSpread(c.proteins, 2))).toBe(true)
     expect(s.recipe.proteinSource).not.toBe('pork')
   })
 

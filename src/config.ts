@@ -19,6 +19,8 @@ export const config = {
   maxSelectMode: 'span' as 'span' | 'count',
   // F3 예산 버전: A는 예산 먼저, B는 예산 마지막. 주소에 ?budget=A 또는 B를 붙여 바꿔 볼 수 있다
   budgetVersion: 'A' as 'A' | 'B',
+  // G2 쿠팡 파트너스를 쓸 때만 수수료 고지를 보인다
+  coupang: { partners: false },
   // A7 예산 슬라이더 (원). 범위는 조건마다 계산한다: 최소는 가장 싼 조합 금액(step 단위 내림),
   // 최대는 그 금액 × maxMultiplier(step 단위 올림). 처음 값은 범위의 중간. 후보가 없을 때만 fallback 범위
   budget: { step: 5_000, maxMultiplier: 2.5, fallbackMin: 50_000, fallbackMax: 300_000 },

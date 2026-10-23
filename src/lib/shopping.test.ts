@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
-import { CORNERS } from '../data/ingredients'
+import { CORNERS, ingredients } from '../data/ingredients'
 import { recipes } from '../data/recipes'
 import { buildShoppingList, servingsOf } from './shopping'
 
@@ -30,13 +30,16 @@ describe('장보기 목록 (D1~D4)', () => {
   })
 
   it('판매 단위로 올림하고 남는 양을 계산한다 (D2)', () => {
-    const it = item('porkShoulder') // 120g × 3 = 360g, 1팩 600g
-    expect(it.need).toBe(360)
-    expect(it.packs).toBe(1)
-    expect(it.leftover).toBe(240)
-    const big = buildShoppingList([pork], [6], [], price).items.find((x) => x.id === 'porkShoulder')! // 720g
-    expect(big.packs).toBe(2)
-    expect(big.leftover).toBe(480)
+    const pack = ingredients.porkShoulder.saleUnit.amount
+    for (const servings of [3, 5]) {
+      const it = buildShoppingList([pork], [servings], [], price).items.find((x) => x.id === 'porkShoulder')!
+      const need = pork.ingredients.find((i) => i.id === 'porkShoulder')!.amount * servings
+      expect(it.need).toBe(need)
+      expect(it.packs).toBe(Math.ceil(need / pack))
+      expect(it.leftover).toBe(it.packs * pack - need)
+      expect(it.leftover).toBeGreaterThanOrEqual(0)
+      expect(it.leftover).toBeLessThan(pack)
+    }
   })
 
   it('예상 금액은 판매 단위 가격 × 개수, 합계는 항목 합 (D4)', () => {

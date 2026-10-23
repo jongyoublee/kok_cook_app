@@ -10,7 +10,13 @@ const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS, pantry: ['soySauce' as const, 'salt' as const] }
 const first = () => 0
 const ids = (menu: { id: string }[]) => menu.map((r) => r.id).sort().join()
-const greedyCosts = () => greedyCombos(filterCandidates(c), c.menuCount, c.pantry, first).map((m) => menuCost(m, c))
+// 추천안과 같은 분산 규칙(B6·조리법)을 지키는 탐욕 조합의 금액
+const greedyCosts = () => {
+  const spread = menuSpread(c.proteins, c.menuCount)
+  return greedyCombos(filterCandidates(c), c.menuCount, c.pantry, first, spread)
+    .filter((m) => fitsSpread(m, spread))
+    .map((m) => menuCost(m, c))
+}
 
 describe('추천안 3개 (B1, A9)', () => {
   const { options, overBudget } = buildMenuOptions(c, undefined, first)
@@ -85,12 +91,14 @@ describe('이 레시피는 어떤가요? (B3, D3)', () => {
   })
 
   it('남는 주재료를 쓰면 알려준다', () => {
-    // 4끼면 앞다리살 480g이 필요해 1팩(600g)에서 120g이 남는다
+    // 4끼면 앞다리살 480g이 필요하고, 판매 단위로 사고 남는 양을 알려준다
     const fourDays = { ...porkOnly, dates: porkOnly.dates.slice(0, 4) }
     const s = suggestAddition([pork], fourDays)!
     const names = s.recipe.ingredients.map((i) => i.id)
     for (const l of s.leftovers) expect(l.amount).toBeGreaterThan(0)
-    if (names.includes('porkShoulder')) expect(s.leftovers).toContainEqual({ name: '돼지고기 앞다리살', amount: 120, unit: 'g' })
+    const pack = ingredients.porkShoulder.saleUnit.amount
+    const left = Math.ceil(480 / pack) * pack - 480
+    if (names.includes('porkShoulder') && left > 0) expect(s.leftovers).toContainEqual({ name: '돼지고기 앞다리살', amount: left, unit: 'g' })
   })
 
   it('단백질을 여러 개 골랐으면 분산 규칙 안에서 제안한다 (B6)', () => {

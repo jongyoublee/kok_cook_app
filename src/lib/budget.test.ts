@@ -3,7 +3,7 @@ import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { recipes } from '../data/recipes'
 import { config } from '../config'
 import { budgetOf, budgetRange, budgetVersion, menuCost, suggestSwap } from './budget'
-import { coupangSearchUrl } from './coupang'
+import { coupangLink, coupangSearchUrl } from './coupang'
 import { filterCandidates } from './menu'
 import { buildMenuOptions } from './options'
 
@@ -40,6 +40,10 @@ describe('버전 전환과 쿠팡 링크 (F3, G1)', () => {
     expect(budgetVersion('?budget=B')).toBe('B')
     expect(budgetVersion('?budget=A')).toBe('A')
     expect(['A', 'B']).toContain(budgetVersion('?budget=x'))
+  })
+
+  it('재료마다 판매 단위를 넣은 검색어로 연결한다 (G1)', () => {
+    expect(coupangLink('onion')).toBe(coupangSearchUrl('국내산 양파 1kg'))
   })
 
   it('재료 이름으로 쿠팡 검색 링크를 만든다', () => {

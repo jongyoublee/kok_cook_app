@@ -8,7 +8,7 @@ import { CORNERS, ingredients, type IngredientId } from '../data/ingredients'
 import { priceOf } from '../data/prices'
 import type { Recipe } from '../data/recipes'
 import { budgetOf, budgetVersion, suggestSwap } from '../lib/budget'
-import { COUPANG_NOTICE, coupangSearchUrl } from '../lib/coupang'
+import { COUPANG_NOTICE, coupangLink } from '../lib/coupang'
 import { formatDay, type ISODate } from '../lib/dates'
 import { buildShoppingList, servingsOf } from '../lib/shopping'
 
@@ -146,7 +146,7 @@ export default function ShoppingScreen(props: Props) {
                         </label>
                         {/* G1 재료별 쿠팡 검색. 체크 상자와 겹치지 않게 label 밖에 둔다 */}
                         <a
-                          href={coupangSearchUrl(it.name)}
+                          href={coupangLink(it.id)}
                           target="_blank"
                           rel="noopener noreferrer sponsored"
                           aria-label={`${it.name} 쿠팡에서 찾기`}
@@ -178,7 +178,7 @@ export default function ShoppingScreen(props: Props) {
         </div>
         {/* D4 참가격 연동 전 가짜 가격, G2 수수료 고지 */}
         <p className="mt-1 text-xs text-gray-400">임시 가격 데이터로 계산한 추정치예요. 실제 가격과 다를 수 있어요.</p>
-        <p className="mt-1 text-xs text-gray-400">{COUPANG_NOTICE}</p>
+        {COUPANG_NOTICE && <p className="mt-1 text-xs text-gray-400">{COUPANG_NOTICE}</p>}
       </div>
     </main>
   )

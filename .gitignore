@@ -1,0 +1,14 @@
+# 의존성과 빌드 결과
+node_modules/
+dist/
+
+# 로그와 환경 변수
+*.log
+.env
+.env.*
+
+# OS
+.DS_Store
+
+# 참고 자료 (외부 콘텐츠, 대용량)
+references/

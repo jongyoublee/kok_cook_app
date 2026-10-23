@@ -1,0 +1,22 @@
+// 설정값은 모두 여기서 읽는다 (CLAUDE.md "설정값으로 분리할 것").
+export const config = {
+  // B4 고단백 기준: 1인분 단백질 30g 이상, 600kcal 이하
+  highProtein: { minProteinG: 30, maxKcal: 600 },
+  // A6 한 끼 칼로리 상한. 선택 구간 값은 미결
+  maxKcalPerMeal: 600,
+  // A4 메뉴 개수
+  menuCount: { min: 1, default: 2, max: 5 },
+  // A2 식사 날짜 최대 선택 기간 (제안 단계)
+  maxSelectDays: 14,
+  // F3 예산 버전: A는 예산 먼저, B는 예산 마지막
+  budgetVersion: 'A' as 'A' | 'B',
+  // E1 냉장·냉동 분배 방식 (미결). byDate: 날짜 기준안, byMealCount: 끼니 수 기준 초안
+  storageSplit: 'byDate' as 'byDate' | 'byMealCount',
+  // E4 식품 안전 수치. 공식 기준 확인 전 임시값이므로 화면에 임시값 표시를 붙인다
+  foodSafety: {
+    provisional: true,
+    fridgeDays: 3, // 3일과 4일 중 미결
+    fridgeMaxC: 5,
+    freezerMaxC: -18,
+  },
+}

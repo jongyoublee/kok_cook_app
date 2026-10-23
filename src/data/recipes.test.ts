@@ -1,0 +1,42 @@
+import { describe, expect, it } from 'vitest'
+import { config } from '../config'
+import { ingredients } from './ingredients'
+import { recipes } from './recipes'
+
+// I3 서비스 문구에 쓰지 않는 표현
+const FORBIDDEN = ['다이어트', '당뇨', '치료', '효능']
+
+describe('레시피 데이터 (H1, H2, C1, C2, C4)', () => {
+  it('레시피 id가 겹치지 않는다', () => {
+    expect(new Set(recipes.map((r) => r.id)).size).toBe(recipes.length)
+  })
+
+  it.each(recipes)('$name: 재료는 사전에 있고 분량이 양수다', (r) => {
+    expect(r.ingredients.length).toBeGreaterThan(0)
+    for (const { id, amount } of r.ingredients) {
+      expect(ingredients).toHaveProperty(id)
+      expect(amount).toBeGreaterThan(0)
+    }
+    expect(new Set(r.ingredients.map((i) => i.id)).size).toBe(r.ingredients.length)
+  })
+
+  it.each(recipes)('$name: 조리 단계, 영양정보, 보관 정보가 채워져 있다', (r) => {
+    expect(r.steps.length).toBeGreaterThan(0)
+    expect(r.cookMinutes).toBeGreaterThan(0)
+    for (const v of Object.values(r.nutrition)) expect(v).toBeGreaterThanOrEqual(0)
+    expect(r.storage.fridgeDays).toBeGreaterThan(0)
+    expect(r.storage.fridgeDays).toBeLessThanOrEqual(config.foodSafety.fridgeDays)
+  })
+
+  it.each(recipes)('$name: 금지 표현이 없다', (r) => {
+    const text = [r.name, ...r.steps].join(' ')
+    for (const word of FORBIDDEN) expect(text).not.toContain(word)
+  })
+
+  it('한식과 고단백 분류에 각각 메뉴 최대 개수만큼 후보가 있다', () => {
+    const { minProteinG, maxKcal } = config.highProtein
+    const highProtein = recipes.filter((r) => r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= maxKcal)
+    expect(recipes.filter((r) => r.korean).length).toBeGreaterThanOrEqual(config.menuCount.max)
+    expect(highProtein.length).toBeGreaterThanOrEqual(config.menuCount.max)
+  })
+})

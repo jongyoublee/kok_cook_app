@@ -24,12 +24,13 @@ type Props = {
   onBudgetChange: (budget: number) => void
   onApplySwap: (menu: Recipe[]) => void
   onBack: () => void
+  onPlanNext: () => void // U33 다음 주 계획하기
 }
 
 const num = (n: number) => n.toLocaleString('ko-KR')
 
 export default function ShoppingScreen(props: Props) {
-  const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack } = props
+  const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack, onPlanNext } = props
   const [tab, setTab] = useState<'list' | 'storage'>('list')
   const [keep, setKeep] = useState(false) // F2 "그대로 진행"을 누르면 교체 제안을 닫는다
   const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
@@ -179,6 +180,10 @@ export default function ShoppingScreen(props: Props) {
         {/* D4 참가격 연동 전 가짜 가격, G2 수수료 고지 */}
         <p className="mt-1 text-xs text-gray-400">임시 가격 데이터로 계산한 추정치예요. 실제 가격과 다를 수 있어요.</p>
         {COUPANG_NOTICE && <p className="mt-1 text-xs text-gray-400">{COUPANG_NOTICE}</p>}
+        {/* U33 다음 주 계획: 날짜를 다음 기간으로 옮긴 조건 화면으로 */}
+        <button type="button" onClick={onPlanNext} className="mt-3 w-full rounded-xl border border-black py-3 font-semibold">
+          다음 주 계획하기
+        </button>
       </div>
     </main>
   )

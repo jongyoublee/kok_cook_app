@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { config } from '../config'
-import { addDays, canSelect, cookDay, formatDay, nextWeek } from './dates'
+import { addDays, canSelect, cookDay, followingPeriod, formatDay, nextWeek } from './dates'
 
 // 와이어프레임 기준: 오늘 2026-10-22(목)
 const today = '2026-10-22'
@@ -36,5 +36,27 @@ describe('식사 날짜 (A2)', () => {
     const max = config.maxSelectDays
     expect(canSelect(addDays(first, max - 1), [first], today)).toBe(true)
     expect(canSelect(addDays(first, max), [first], today)).toBe(false)
+  })
+})
+
+describe('다음 주 계획 (U33)', () => {
+  const today = '2026-10-22'
+
+  it('평일 5일은 다음 주 평일로', () => {
+    expect(followingPeriod(nextWeek(today, true), today)).toEqual(nextWeek('2026-10-29', true))
+  })
+
+  it('고른 요일 구성을 유지한다', () => {
+    expect(followingPeriod(['2026-10-26', '2026-10-28', '2026-10-30'], today)).toEqual(['2026-11-02', '2026-11-04', '2026-11-06'])
+  })
+
+  it('2주에 걸친 날짜는 2주 뒤로', () => {
+    const twoWeeks = ['2026-10-26', '2026-11-06']
+    expect(followingPeriod(twoWeeks, today)).toEqual(['2026-11-09', '2026-11-20'])
+  })
+
+  it('날짜가 없거나 옮겨도 지난 날짜면 오늘 기준 다음 주 평일', () => {
+    expect(followingPeriod([], today)).toEqual(nextWeek(today, true))
+    expect(followingPeriod(['2026-09-01'], today)).toEqual(nextWeek(today, true))
   })
 })

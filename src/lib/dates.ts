@@ -29,6 +29,16 @@ export function nextWeek(today: ISODate, weekdaysOnly: boolean): ISODate[] {
   return Array.from({ length: weekdaysOnly ? 5 : 7 }, (_, i) => addDays(monday, i))
 }
 
+// U33 다음 주 계획: 지금 고른 날짜를 7일 단위로 기간만큼 뒤로 옮겨 요일 구성을 유지한다
+// (월~금 → 다음 주 월~금, 2주 → 2주 뒤). 옮긴 날짜가 없거나 지났으면 오늘 기준 다음 주 평일
+export function followingPeriod(dates: ISODate[], today: ISODate): ISODate[] {
+  const sorted = [...dates].sort()
+  if (!sorted.length) return nextWeek(today, true)
+  const weeks = Math.ceil((daysBetween(sorted[0], sorted[sorted.length - 1]) + 1) / 7)
+  const next = sorted.map((d) => addDays(d, weeks * 7))
+  return next[0] >= today ? next : nextWeek(today, true)
+}
+
 // 조리일은 첫 식사일 전날로 가정한다
 export const cookDay = (dates: ISODate[]): ISODate | null => (dates.length ? addDays([...dates].sort()[0], -1) : null)
 

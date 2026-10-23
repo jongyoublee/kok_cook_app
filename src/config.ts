@@ -8,6 +8,8 @@ export const config = {
   menuCount: { min: 1, default: 2, max: 5 },
   // A2 식사 날짜 최대 선택 기간 (제안 단계)
   maxSelectDays: 14,
+  // A2 최대 기간 해석 (미결). span: 첫날~마지막 날 기간, count: 선택한 날짜 개수
+  maxSelectMode: 'span' as 'span' | 'count',
   // F3 예산 버전: A는 예산 먼저, B는 예산 마지막
   budgetVersion: 'A' as 'A' | 'B',
   // E1 냉장·냉동 분배 방식 (미결). byDate: 날짜 기준안, byMealCount: 끼니 수 기준 초안

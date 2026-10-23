@@ -7,8 +7,9 @@ import { recipes, type Recipe } from './data/recipes'
 import { cookDay, type ISODate } from './lib/dates'
 
 export type PlanBasis = Pick<Conditions, 'dates' | 'people' | 'meals'>
-// skipped: B9 안 먹는 날
-export type Plan = PlanBasis & { menu: Recipe[]; checked: IngredientId[]; cookDate?: ISODate; skipped: ISODate[] }
+// skipped: B9 안 먹는 날, extras: D9 메뉴와 관계없이 직접 추가한 장보기 항목
+export type Extra = { name: string; done: boolean }
+export type Plan = PlanBasis & { menu: Recipe[]; checked: IngredientId[]; cookDate?: ISODate; skipped: ISODate[]; extras: Extra[] }
 
 const KEY = 'kokcook.plan'
 const isDate = (d: unknown): d is ISODate => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)
@@ -27,12 +28,16 @@ export function loadPlan(fallback: PlanBasis, storage = storageOrNull()): Plan |
     const dates = Array.isArray(saved?.dates) ? saved.dates.filter(isDate).sort() : []
     const meals = Array.isArray(saved?.meals) ? saved.meals.filter((m: unknown) => MEALS.includes(m as Meal)) : []
     const skipped = Array.isArray(saved?.skipped) ? saved.skipped.filter(isDate) : []
+    const extras: Extra[] = (Array.isArray(saved?.extras) ? saved.extras : [])
+      .filter((e: unknown): e is Extra => typeof (e as Extra)?.name === 'string' && (e as Extra).name.trim() !== '')
+      .map((e: Extra) => ({ name: e.name, done: e.done === true }))
     if (!menu.length) return null
     return {
       menu,
       checked,
       cookDate,
       skipped,
+      extras,
       dates: dates.length ? dates : fallback.dates,
       people: Number.isInteger(saved?.people) && saved.people >= 1 ? saved.people : fallback.people,
       meals: meals.length ? meals : fallback.meals,
@@ -44,8 +49,8 @@ export function loadPlan(fallback: PlanBasis, storage = storageOrNull()): Plan |
 
 export function savePlan(plan: Plan, storage = storageOrNull()) {
   try {
-    const { menu, checked, cookDate, dates, people, meals, skipped } = plan
-    storage?.setItem(KEY, JSON.stringify({ recipeIds: menu.map((r) => r.id), checked, cookDate, dates, people, meals, skipped }))
+    const { menu, checked, cookDate, dates, people, meals, skipped, extras } = plan
+    storage?.setItem(KEY, JSON.stringify({ recipeIds: menu.map((r) => r.id), checked, cookDate, dates, people, meals, skipped, extras }))
   } catch {
     // 저장 공간이 막힌 환경에서는 저장 없이 진행한다
   }
@@ -56,13 +61,13 @@ const sameList = <T,>(a: T[], b: T[]) => a.length === b.length && [...a].sort().
 const sameBasis = (prev: Plan, b: PlanBasis) => sameList(prev.dates, b.dates) && prev.people === b.people && sameList(prev.meals, b.meals)
 const usedBy = (menu: Recipe[]) => new Set(menu.flatMap((r) => r.ingredients.map((i) => i.id)))
 
-// U16 메뉴 확정. 날짜·인원·끼니가 그대로면 조리일과 안 먹는 날을 이어 쓰고, 구매 체크는 새 메뉴가 쓰는 재료만 남긴다(B8).
+// U16 메뉴 확정. 날짜·인원·끼니가 그대로면 조리일, 안 먹는 날, 직접 추가한 항목을 이어 쓰고, 구매 체크는 새 메뉴가 쓰는 재료만 남긴다(B8).
 // 날짜·인원이 바뀌었으면(다음 주 계획 등) 모두 비운다
 export function confirmPlan(prev: Plan | null, menu: Recipe[], c: Conditions): Plan {
   const basis: PlanBasis = { dates: [...c.dates], people: c.people, meals: [...c.meals] }
-  if (!prev || !sameBasis(prev, basis)) return { menu, ...basis, checked: [], skipped: [] }
+  if (!prev || !sameBasis(prev, basis)) return { menu, ...basis, checked: [], skipped: [], extras: [] }
   const used = usedBy(menu)
-  return { menu, ...basis, checked: prev.checked.filter((id) => used.has(id)), cookDate: prev.cookDate, skipped: prev.skipped }
+  return { menu, ...basis, checked: prev.checked.filter((id) => used.has(id)), cookDate: prev.cookDate, skipped: prev.skipped, extras: prev.extras }
 }
 
 // B8 메뉴를 이렇게 바꾸면 쓸 곳이 없어지는 이미 산(구매 체크한) 재료

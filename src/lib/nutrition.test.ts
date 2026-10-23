@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { config } from '../config'
 import { RICE_PER_100G } from '../data/nutrition'
 import { recipes } from '../data/recipes'
-import { computeNutrition, summarizeMenu } from './nutrition'
+import { computeNutrition, proteinEnergyShare, summarizeMenu } from './nutrition'
 
 describe('영양정보 계산 (H3, C2)', () => {
   it('g 재료는 100g 기준값에 분량 비율을 곱한다', () => {
@@ -39,5 +39,13 @@ describe('추천 메뉴 칼로리 요약 (A6)', () => {
 
   it('끼니가 없으면 0', () => {
     expect(summarizeMenu([], [])).toEqual({ meals: 0, avgKcal: 0, avgProteinG: 0, totalKcal: 0 })
+  })
+})
+
+describe('단백질 열량 비중 (B5)', () => {
+  const n = { kcal: 400, proteinG: 30, carbsG: 0, fatG: 0, saturatedFatG: 0, sugarG: 0, sodiumMg: 0 }
+  it('단백질 g × 4 ÷ 열량', () => {
+    expect(proteinEnergyShare(n)).toBe(30)
+    expect(proteinEnergyShare({ ...n, kcal: 0 })).toBe(0)
   })
 })

@@ -10,7 +10,8 @@ import type { Recipe } from '../data/recipes'
 import { budgetOf, budgetVersion, suggestSwap } from '../lib/budget'
 import { COUPANG_NOTICE, coupangLink } from '../lib/coupang'
 import { formatDay, type ISODate } from '../lib/dates'
-import { buildShoppingList, servingsOf } from '../lib/shopping'
+import { buildShoppingList, servingsOf, shoppingText } from '../lib/shopping'
+import type { Extra } from '../plan'
 import { num } from '../ui'
 
 type Props = {
@@ -27,19 +28,43 @@ type Props = {
   onBack: () => void
   onPlanNext: () => void // U33 다음 주 계획하기
   onToggleSkip: (d: ISODate) => void // B9 안 먹는 날
+  extras: Extra[] // D9 직접 추가한 항목
+  onExtrasChange: (extras: Extra[]) => void
 }
 
 
 export default function ShoppingScreen(props: Props) {
-  const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack, onPlanNext, onToggleSkip } = props
+  const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack, onPlanNext, onToggleSkip, extras, onExtrasChange } = props
   const [tab, setTab] = useState<'list' | 'storage'>('list')
   const [keep, setKeep] = useState(false) // F2 "그대로 진행"을 누르면 교체 제안을 닫는다
+  const [draftExtra, setDraftExtra] = useState('') // D9 입력 중인 항목
+  const [shared, setShared] = useState('') // D10 공유 결과 안내
   const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
   const left = list.items.filter((it) => !checked.includes(it.id)).length
   const seasoningCost = list.items.filter((it) => it.corner === '양념').reduce((s, it) => s + (it.price ?? 0), 0)
   const versionB = budgetVersion() === 'B'
   const budget = budgetOf(c)
   const suggestion = versionB && !keep && list.total > budget ? suggestSwap(menu, c) : null
+
+  const share = async () => {
+    const text = shoppingText(`장보기 목록 (${formatDay(cookDate)} 조리 전까지)`, list, checked, extras)
+    try {
+      if (navigator.share) {
+        await navigator.share({ text })
+        return
+      }
+      await navigator.clipboard.writeText(text)
+      setShared('복사했어요')
+    } catch {
+      setShared('공유하지 못했어요')
+    }
+  }
+  const addExtra = () => {
+    const name = draftExtra.trim()
+    if (!name) return
+    onExtrasChange([...extras, { name, done: false }])
+    setDraftExtra('')
+  }
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-white px-5 pt-4">
@@ -83,6 +108,11 @@ export default function ShoppingScreen(props: Props) {
             <p className="mt-1 text-gray-500">
               {formatDay(cookDate)} 조리 전까지 구매 · {left}개 남음
             </p>
+            {/* D10 공유 기능이 있으면 공유 창, 없으면 복사 */}
+            <button type="button" onClick={share} className="mt-3 rounded-lg border border-gray-200 px-3 py-1.5 text-sm">
+              목록 공유
+            </button>
+            {shared && <span className="ml-2 text-sm text-gray-500">{shared}</span>}
             <div className="mt-4 flex flex-wrap gap-2">
               {menu.map((r) => (
                 <button key={r.id} type="button" onClick={() => onOpenRecipe(r)} className="rounded-full border border-gray-200 px-3 py-1 text-sm">
@@ -168,6 +198,48 @@ export default function ShoppingScreen(props: Props) {
               </section>
             )
           })}
+
+          {/* D9 메뉴와 관계없이 살 물건 */}
+          <section>
+            <h2 className="mb-2 text-sm font-semibold text-gray-500">직접 추가</h2>
+            {extras.length > 0 && (
+              <ul className="mb-2 divide-y divide-gray-100 rounded-xl border border-gray-200">
+                {extras.map((e, i) => (
+                  <li key={i} className="flex items-center gap-3 py-3 pr-2 pl-4">
+                    <input
+                      type="checkbox"
+                      checked={e.done}
+                      onChange={() => onExtrasChange(extras.with(i, { ...e, done: !e.done }))}
+                      aria-label={`${e.name} 샀어요`}
+                      className="h-5 w-5 shrink-0 accent-black"
+                    />
+                    <span className={`min-w-0 flex-1 ${e.done ? 'text-gray-400 line-through' : ''}`}>{e.name}</span>
+                    <button type="button" onClick={() => onExtrasChange(extras.filter((_, j) => j !== i))} aria-label={`${e.name} 지우기`} className="p-2 text-gray-400">
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <form
+              onSubmit={(ev) => {
+                ev.preventDefault()
+                addExtra()
+              }}
+              className="flex gap-2"
+            >
+              <input
+                value={draftExtra}
+                onChange={(ev) => setDraftExtra(ev.target.value)}
+                placeholder="예: 휴지, 우유"
+                aria-label="장보기 항목 직접 추가"
+                className="min-w-0 flex-1 rounded-xl border border-gray-200 px-4 py-2"
+              />
+              <button type="submit" disabled={!draftExtra.trim()} className="rounded-xl border border-black px-4 py-2 text-sm font-semibold disabled:opacity-30">
+                추가
+              </button>
+            </form>
+          </section>
 
           {list.inPantry.length > 0 && (
             <details className="rounded-xl border border-gray-200 px-4 py-3">

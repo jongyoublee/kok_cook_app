@@ -72,3 +72,16 @@ export function perServingCost(r: Recipe, pantry: IngredientId[], priceOf: Price
   }, 0)
   return Math.round(sum / 100) * 100
 }
+
+// D10 장보기 목록을 공유하거나 복사할 글. 코너별로 묶고, 직접 추가한 항목(D9)은 끝에 둔다. 산 항목은 뺀다
+export function shoppingText(title: string, list: ShoppingList, checked: IngredientId[], extras: { name: string; done: boolean }[]): string {
+  const lines = [title]
+  for (const corner of CORNERS) {
+    const items = list.items.filter((it) => it.corner === corner && !checked.includes(it.id))
+    if (!items.length) continue
+    lines.push('', `[${corner}]`, ...items.map((it) => `- ${it.name} ${it.saleLabel} × ${it.packs}`))
+  }
+  const todo = extras.filter((e) => !e.done)
+  if (todo.length) lines.push('', '[직접 추가]', ...todo.map((e) => `- ${e.name}`))
+  return lines.join('\n')
+}

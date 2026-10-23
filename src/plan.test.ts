@@ -20,7 +20,7 @@ const [a, b] = recipes
 describe('확정 메뉴와 구매 체크 저장 (I2, D6)', () => {
   it('저장 후 불러오면 같다', () => {
     const s = fakeStorage()
-    const plan = { ...basis, menu: [a, b], checked: ['onion' as const], cookDate: '2026-10-24', skipped: ['2026-10-27'] }
+    const plan = { ...basis, menu: [a, b], checked: ['onion' as const], cookDate: '2026-10-24', skipped: ['2026-10-27'], extras: [{ name: '휴지', done: true }] }
     savePlan(plan, s)
     expect(loadPlan(basis, s)).toEqual(plan)
   })
@@ -125,5 +125,18 @@ describe('안 먹는 날 (B9)', () => {
     // 다른 날의 메뉴는 바뀌지 않는다
     const before = schedule(plan.menu, pc.dates, planCookDate(plan))
     for (const s of slots) expect(s.recipe).toBe(before.find((x) => x.date === s.date)!.recipe)
+  })
+})
+
+describe('직접 추가한 항목 (D9)', () => {
+  it('같은 주에 메뉴를 바꾸면 이어 쓰고, 다음 주 계획에서는 비운다', () => {
+    const prev = { ...confirmPlan(null, [a, b], c), extras: [{ name: '휴지', done: false }] }
+    expect(confirmPlan(prev, [a], c).extras).toEqual(prev.extras)
+    expect(confirmPlan(prev, [a], { ...c, dates: nextWeek('2026-10-29', true) }).extras).toEqual([])
+  })
+
+  it('이름이 빈 저장값은 버린다', () => {
+    const plan = loadPlan(basis, fakeStorage(JSON.stringify({ recipeIds: [a.id], extras: [{ name: ' ' }, { name: '우유', done: 'x' }, 3] })))!
+    expect(plan.extras).toEqual([{ name: '우유', done: false }])
   })
 })

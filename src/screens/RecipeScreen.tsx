@@ -2,6 +2,7 @@
 import { config } from '../config'
 import { ingredients } from '../data/ingredients'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
+import { proteinEnergyShare } from '../lib/nutrition'
 import { NUTRITION_NOTE, num } from '../ui'
 
 type Props = {
@@ -18,8 +19,11 @@ export default function RecipeScreen({ recipe: r, servings, onBack }: Props) {
     ['탄수화물', `${n.carbsG}g`],
     ['단백질', `${n.proteinG}g`],
     ['지방', `${n.fatG}g`],
+    // B5 포화지방과 단백질 열량 비중을 함께 보여준다(기준선은 미결이라 표시만)
+    ['포화지방', `${n.saturatedFatG}g`],
     ['당류', `${n.sugarG}g`],
     ['나트륨', `${num(n.sodiumMg)}mg`],
+    ['단백질 열량 비중', `${proteinEnergyShare(n)}%`],
   ]
 
   return (

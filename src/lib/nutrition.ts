@@ -42,3 +42,6 @@ export function summarizeMenu(menu: { nutrition: NutritionFacts }[], mealsPerMen
     totalKcal: Math.round(sum('kcal') / 10) * 10,
   }
 }
+
+// B5 단백질 열량 비중(%): 단백질 1g = 4kcal로 본 단백질 열량 ÷ 전체 열량
+export const proteinEnergyShare = (n: NutritionFacts) => (n.kcal ? Math.round(((n.proteinG * 4) / n.kcal) * 100) : 0)

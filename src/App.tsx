@@ -123,6 +123,8 @@ export default function App() {
           updatePlan(confirmPlan(plan, next, pc))
         }}
         onToggleSkip={(d) => updatePlan({ ...plan, skipped: toggle(plan.skipped, d) })}
+        extras={plan.extras}
+        onExtrasChange={(extras) => updatePlan({ ...plan, extras })}
         onBack={() => {
           setMenu(plan.menu)
           setScreen('menu')

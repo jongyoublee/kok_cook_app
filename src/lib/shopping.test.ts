@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { CORNERS, ingredients } from '../data/ingredients'
 import { recipes } from '../data/recipes'
-import { buildShoppingList, perServingCost, servingsOf } from './shopping'
+import { buildShoppingList, perServingCost, servingsOf, shoppingText } from './shopping'
 
 const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS } // 다음 주 평일 5끼, 1인
@@ -73,5 +73,18 @@ describe('1인분 예상 금액 (B7)', () => {
   it('집에 있는 양념과 가격을 모르는 재료는 뺀다', () => {
     expect(perServingCost(pork, ['soySauce'], price)).toBeLessThanOrEqual(perServingCost(pork, [], price))
     expect(perServingCost(pork, [], () => undefined)).toBe(0)
+  })
+})
+
+describe('목록 공유 글 (D10)', () => {
+  it('코너별로 묶고, 산 항목은 빼고, 직접 추가한 항목은 끝에 둔다', () => {
+    const l = buildShoppingList([pork], [3], [], () => 1000)
+    const bought = l.items[0].id
+    const text = shoppingText('장보기 목록', l, [bought], [{ name: '휴지', done: false }, { name: '우유', done: true }])
+    const lines = text.split('\n')
+    expect(lines[0]).toBe('장보기 목록')
+    expect(text).not.toContain(`- ${l.items[0].name} `)
+    expect(lines.slice(-2)).toEqual(['[직접 추가]', '- 휴지'])
+    expect(text).not.toContain('우유')
   })
 })

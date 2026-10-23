@@ -30,7 +30,6 @@ const FAKE_PRICES = {
   tofu: 1800,
   softTofu: 1500,
   chickpeas: 2500,
-  cookedRice: 3500,
   pasta: 2500,
   udon: 3500,
   soySauce: 5000,

@@ -1,6 +1,8 @@
 // H1 레시피 데이터. 조리 단계는 직접 작성했고 외부 글을 옮기지 않았다.
-// 영양정보는 검수 전 추정치다(verified: false). H3 공공 식품 성분 자료로 다시 계산한다.
+// 영양정보는 재료별 추정 영양값(data/nutrition)으로 계산한 검수 전 값이다(verified: false).
+import { computeNutrition } from '../lib/nutrition'
 import type { IngredientId } from './ingredients'
+import type { NutritionFacts } from './nutrition'
 
 // A10 베이스 탄수화물. 반찬·찌개처럼 밥과 함께 먹는 메뉴는 rice
 export type CarbBase = 'rice' | 'noodle' | 'potato' | 'sweetPotato'
@@ -20,22 +22,15 @@ export type Recipe = {
   cookMinutes: number
   // 1인분 조리 후 무게(g). 다 만든 뒤 저울로 이만큼씩 나눠 담는다. 검수 전 추정치
   portionG: number
-  // C2 1인분 영양정보. 나트륨만 mg, 나머지는 g
-  nutrition: {
-    kcal: number
-    carbsG: number
-    proteinG: number
-    fatG: number
-    saturatedFatG: number
-    sugarG: number
-    sodiumMg: number
-  }
+  // C2 1인분 영양정보. 나트륨만 mg, 나머지는 g. 재료 분량으로 계산한다(H3, lib/nutrition)
+  nutrition: NutritionFacts
   // C4 보관 정보
   storage: { freezable: boolean; fridgeDays: number }
   verified: boolean // 사람 검수 여부
 }
 
-export const recipes: Recipe[] = [
+// 영양정보는 적지 않고 아래에서 계산해 채운다
+const recipeData: Omit<Recipe, 'nutrition'>[] = [
   {
     id: 'spicy-pork',
     name: '돼지고기 고추장볶음',
@@ -62,7 +57,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 230,
-    nutrition: { kcal: 480, carbsG: 22, proteinG: 32, fatG: 28, saturatedFatG: 9, sugarG: 12, sodiumMg: 1100 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
@@ -90,7 +84,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 30,
     portionG: 220,
-    nutrition: { kcal: 450, carbsG: 20, proteinG: 31, fatG: 26, saturatedFatG: 10, sugarG: 13, sodiumMg: 1200 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
@@ -118,7 +111,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 220,
-    nutrition: { kcal: 330, carbsG: 16, proteinG: 44, fatG: 5, saturatedFatG: 1, sugarG: 9, sodiumMg: 1150 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
@@ -145,7 +137,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 30,
     portionG: 250,
-    nutrition: { kcal: 420, carbsG: 12, proteinG: 31, fatG: 27, saturatedFatG: 6, sugarG: 6, sodiumMg: 1400 },
     storage: { freezable: true, fridgeDays: 2 },
     verified: false,
   },
@@ -172,7 +163,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 400,
-    nutrition: { kcal: 280, carbsG: 26, proteinG: 18, fatG: 11, saturatedFatG: 2, sugarG: 6, sodiumMg: 1300 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,
   },
@@ -189,7 +179,6 @@ export const recipes: Recipe[] = [
       { id: 'greenOnion', amount: 15 },
       { id: 'soySauce', amount: 10 },
       { id: 'sesameOil', amount: 5 },
-      { id: 'cookedRice', amount: 1 },
     ],
     steps: [
       '애호박은 반달 모양으로, 양파는 채 썬다.',
@@ -199,7 +188,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 15,
     portionG: 380,
-    nutrition: { kcal: 520, carbsG: 74, proteinG: 19, fatG: 16, saturatedFatG: 4, sugarG: 6, sodiumMg: 800 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -211,7 +199,6 @@ export const recipes: Recipe[] = [
     carb: 'rice',
     ingredients: [
       { id: 'chickenBreast', amount: 150 },
-      { id: 'cookedRice', amount: 1 },
       { id: 'cabbage', amount: 80 },
       { id: 'carrot', amount: 30 },
       { id: 'egg', amount: 1 },
@@ -226,7 +213,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 20,
     portionG: 400,
-    nutrition: { kcal: 590, carbsG: 72, proteinG: 46, fatG: 10, saturatedFatG: 3, sugarG: 5, sodiumMg: 750 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
@@ -252,7 +238,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 15,
     portionG: 260,
-    nutrition: { kcal: 420, carbsG: 14, proteinG: 33, fatG: 25, saturatedFatG: 9, sugarG: 5, sodiumMg: 950 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
@@ -281,7 +266,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 380,
-    nutrition: { kcal: 560, carbsG: 60, proteinG: 44, fatG: 14, saturatedFatG: 2, sugarG: 8, sodiumMg: 700 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
@@ -309,7 +293,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 30,
     portionG: 350,
-    nutrition: { kcal: 510, carbsG: 40, proteinG: 27, fatG: 20, saturatedFatG: 7, sugarG: 9, sodiumMg: 1200 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,
   },
@@ -336,7 +319,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 380,
-    nutrition: { kcal: 500, carbsG: 50, proteinG: 46, fatG: 12, saturatedFatG: 3, sugarG: 10, sodiumMg: 600 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,
   },
@@ -370,7 +352,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 350,
-    nutrition: { kcal: 430, carbsG: 40, proteinG: 35, fatG: 14, saturatedFatG: 2, sugarG: 13, sodiumMg: 1300 },
     storage: { freezable: true, fridgeDays: 2 },
     verified: false,
   },
@@ -398,7 +379,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 15,
     portionG: 340,
-    nutrition: { kcal: 360, carbsG: 20, proteinG: 43, fatG: 12, saturatedFatG: 2, sugarG: 6, sodiumMg: 900 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -426,7 +406,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 20,
     portionG: 330,
-    nutrition: { kcal: 550, carbsG: 58, proteinG: 41, fatG: 17, saturatedFatG: 3, sugarG: 4, sodiumMg: 900 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -456,7 +435,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 20,
     portionG: 450,
-    nutrition: { kcal: 570, carbsG: 72, proteinG: 39, fatG: 14, saturatedFatG: 2, sugarG: 8, sodiumMg: 1400 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -482,7 +460,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 30,
     portionG: 330,
-    nutrition: { kcal: 490, carbsG: 31, proteinG: 35, fatG: 25, saturatedFatG: 4, sugarG: 3, sodiumMg: 900 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -511,7 +488,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 450,
-    nutrition: { kcal: 340, carbsG: 14, proteinG: 36, fatG: 15, saturatedFatG: 3, sugarG: 5, sodiumMg: 1700 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,
   },
@@ -541,7 +517,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 320,
-    nutrition: { kcal: 430, carbsG: 19, proteinG: 31, fatG: 26, saturatedFatG: 4, sugarG: 8, sodiumMg: 1300 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,
   },
@@ -571,7 +546,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 20,
     portionG: 550,
-    nutrition: { kcal: 420, carbsG: 16, proteinG: 40, fatG: 21, saturatedFatG: 4, sugarG: 5, sodiumMg: 1500 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -599,7 +573,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 20,
     portionG: 380,
-    nutrition: { kcal: 530, carbsG: 43, proteinG: 34, fatG: 25, saturatedFatG: 5, sugarG: 8, sodiumMg: 850 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -629,7 +602,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 35,
     portionG: 480,
-    nutrition: { kcal: 540, carbsG: 80, proteinG: 21, fatG: 16, saturatedFatG: 2, sugarG: 10, sodiumMg: 900 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
@@ -656,7 +628,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 15,
     portionG: 330,
-    nutrition: { kcal: 380, carbsG: 17, proteinG: 22, fatG: 25, saturatedFatG: 5, sugarG: 10, sodiumMg: 650 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -683,7 +654,6 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 25,
     portionG: 380,
-    nutrition: { kcal: 520, carbsG: 38, proteinG: 23, fatG: 30, saturatedFatG: 6, sugarG: 6, sodiumMg: 700 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
   },
@@ -710,8 +680,9 @@ export const recipes: Recipe[] = [
     ],
     cookMinutes: 20,
     portionG: 300,
-    nutrition: { kcal: 500, carbsG: 23, proteinG: 34, fatG: 30, saturatedFatG: 10, sugarG: 10, sodiumMg: 1250 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
   },
 ]
+
+export const recipes: Recipe[] = recipeData.map((r) => ({ ...r, nutrition: computeNutrition(r) }))

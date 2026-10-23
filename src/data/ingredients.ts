@@ -38,7 +38,6 @@ export const ingredients = {
   tofu: { name: '두부', unit: 'g', corner: '두부·콩', saleUnit: { amount: 300, label: '1모(300g)' } },
   softTofu: { name: '순두부', unit: 'g', corner: '두부·콩', saleUnit: { amount: 350, label: '1봉(350g)' } },
   chickpeas: { name: '병아리콩 통조림', unit: 'g', corner: '두부·콩', saleUnit: { amount: 240, label: '1캔(건더기 240g)' } },
-  cookedRice: { name: '즉석밥', unit: '개', corner: '곡류', saleUnit: { amount: 3, label: '3개입' } },
   pasta: { name: '스파게티면', unit: 'g', corner: '곡류', saleUnit: { amount: 500, label: '1봉(500g)' } },
   udon: { name: '우동면', unit: '개', corner: '곡류', saleUnit: { amount: 3, label: '3개입(1개 200g)' } },
   soySauce: { name: '간장', unit: 'ml', corner: '양념', saleUnit: { amount: 500, label: '1병(500ml)' } },

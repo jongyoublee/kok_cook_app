@@ -2,6 +2,8 @@
 export const config = {
   // B4 고단백 기준: 1인분 단백질 30g 이상, 600kcal 이하
   highProtein: { minProteinG: 30, maxKcal: 600 },
+  // C2 밥과 함께 먹는 메뉴(베이스 탄수화물이 밥)는 영양정보에 쌀밥을 이만큼 더한다
+  riceWithMeal: { grams: 150 },
   // A6 한 끼 칼로리 상한. 선택 구간 값은 미결
   maxKcalPerMeal: 600,
   // A4 메뉴 개수

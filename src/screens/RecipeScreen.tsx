@@ -48,6 +48,7 @@ export default function RecipeScreen({ recipe: r, servings, onBack }: Props) {
             </div>
           ))}
         </dl>
+        {r.carb === 'rice' && <p className="mt-2 text-xs text-gray-500">밥 {config.riceWithMeal.grams}g을 포함한 값이에요. 밥은 장보기 목록에 넣지 않아요.</p>}
         {!r.verified && <p className="mt-2 text-xs text-gray-400">검수 전 추정치예요.</p>}
       </section>
 

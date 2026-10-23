@@ -36,7 +36,8 @@ describe('후보 필터 (B4)', () => {
 
 describe('먹고 싶은 단백질 (A8)', () => {
   it('고른 단백질이 주재료인 메뉴만 남는다', () => {
-    const c = filterCandidates({ ...korean, proteins: ['pork', 'chicken'] })
+    // 단백질 필터만 보려고 칼로리 상한은 푼다
+    const c = filterCandidates({ ...korean, maxKcal: Infinity, proteins: ['pork', 'chicken'] })
     expect(c.map((r) => r.id).sort()).toEqual(['pork-potato-braise', 'soy-chicken', 'spicy-pork'])
   })
 

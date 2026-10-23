@@ -59,7 +59,7 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
 
       <ul className="flex flex-col gap-3">
         {menu.map((r, i) => (
-          <li key={r.id} className="flex gap-3 rounded-xl border p-3">
+          <li key={r.id} className="relative flex gap-3 rounded-xl border p-3 pr-9">
             <div className="h-20 w-20 shrink-0 rounded-lg bg-gray-100" aria-hidden />
             <div className="flex min-w-0 flex-1 flex-col">
               <p className="font-semibold">{r.name}</p>
@@ -70,25 +70,24 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
                 {dayLabel(days[i], c.dates)} {days[i].length}끼
               </p>
             </div>
-            <div className="flex flex-col justify-center gap-1">
-              <button
-                type="button"
-                onClick={() => swap(i)}
-                disabled={candidates.length <= menu.length}
-                className="rounded-lg border px-3 py-2 text-sm disabled:opacity-30"
-              >
-                교체
-              </button>
+            <button
+              type="button"
+              onClick={() => swap(i)}
+              disabled={candidates.length <= menu.length}
+              className="self-center rounded-lg border px-3 py-2 text-sm disabled:opacity-30"
+            >
+              교체
+            </button>
+            {menu.length > config.menuCount.min && (
               <button
                 type="button"
                 onClick={() => remove(i)}
-                disabled={menu.length <= config.menuCount.min}
                 aria-label={`${r.name} 삭제`}
-                className="px-3 py-1 text-sm text-gray-500 disabled:opacity-30"
+                className="absolute top-1 right-1 flex h-8 w-8 items-center justify-center text-gray-400"
               >
-                삭제
+                ✕
               </button>
-            </div>
+            )}
           </li>
         ))}
       </ul>

@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { defaultConditions, loadConditions, saveConditions, type Conditions } from './conditions'
 import type { Recipe } from './data/recipes'
 import { toISO } from './lib/dates'
-import { filterCandidates, initialMenu, maxMenus } from './lib/menu'
-import { budgetVersion, buildMenuInBudget } from './lib/budget'
+import { filterCandidates, maxMenus } from './lib/menu'
+import { budgetVersion } from './lib/budget'
+import { buildMenuOptions, type MenuOption } from './lib/options'
 import { servingsOf } from './lib/shopping'
 import { effectiveCookDate } from './lib/storagePlan'
 import { loadPlan, savePlan, type Plan } from './plan'
@@ -27,6 +28,7 @@ export default function App() {
   const [conditions, setConditions] = useState(saved ?? defaultConditions(today))
   const [screen, setScreen] = useState<Screen>(saved ? 'input' : 'setup')
   const [menu, setMenu] = useState<Recipe[]>(savedPlan?.menu ?? []) // 추천 메뉴 화면에서 고치는 중인 메뉴
+  const [options, setOptions] = useState<MenuOption[]>([]) // B1 추천안 3개
   const [plan, setPlan] = useState<Plan | null>(savedPlan) // 확정한 메뉴와 구매 체크
   const [recipe, setRecipe] = useState<{ r: Recipe; back: 'menu' | 'shopping' } | null>(null)
 
@@ -65,6 +67,7 @@ export default function App() {
       <MenuScreen
         conditions={conditions}
         menu={menu}
+        options={options}
         onChange={setMenu}
         onOpenRecipe={openRecipe('menu')}
         onBack={() => setScreen('input')}
@@ -110,8 +113,10 @@ export default function App() {
       onOpenShopping={plan ? () => setScreen('shopping') : undefined}
       onSubmit={(c) => {
         save(c)
-        // U11 버전 A면 예산 안 조합(U12), 아니면 재료 겹침만으로 구성
-        setMenu(budgetVersion() === 'A' ? buildMenuInBudget(c).menu : initialMenu(c))
+        // U11 버전 A면 예산 안 조합(U12)으로, 아니면 예산 없이 추천안을 만들고 첫 추천안으로 시작한다
+        const { options } = buildMenuOptions(c, budgetVersion() === 'A')
+        setOptions(options)
+        setMenu(options[0]?.menu ?? [])
         setScreen('menu')
       }}
     />

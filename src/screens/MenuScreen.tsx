@@ -7,20 +7,27 @@ import { ingredients } from '../data/ingredients'
 import { formatDay, fromISO, type ISODate } from '../lib/dates'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
 import { addMenu, assignDays, filterCandidates, maxMenus, sharedIngredients, swapMenu } from '../lib/menu'
-import { CostBar } from '../components/fields'
+import { CostBar, Tile } from '../components/fields'
 import { budgetVersion, menuCost } from '../lib/budget'
 import { summarizeMenu } from '../lib/nutrition'
+import { OPTION_LABEL, type MenuOption } from '../lib/options'
 import { servingsOf } from '../lib/shopping'
 import { primaryButton } from '../ui'
 
 type Props = {
   conditions: Conditions
   menu: Recipe[]
+  options: MenuOption[] // B1 추천안. 고른 뒤에도 교체·추가·삭제로 고칠 수 있다
   onChange: (menu: Recipe[]) => void
   onOpenRecipe: (r: Recipe) => void
   onConfirm: () => void
   onBack: () => void
 }
+
+const sameMenu = (a: Recipe[], b: Recipe[]) => a.map((r) => r.id).sort().join() === b.map((r) => r.id).sort().join()
+const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
+const optionDesc = (o: MenuOption) =>
+  o.kind === 'cheap' ? `약 ${won(o.cost)}` : o.kind === 'pantry' ? (o.missing ? `새 양념 ${o.missing}가지` : '새 양념 없음') : `재료 ${o.items}가지`
 
 // 한 주 안이면 요일만, 넘어가면 날짜까지 표시
 function dayLabel(days: ISODate[], all: ISODate[]) {
@@ -28,7 +35,7 @@ function dayLabel(days: ISODate[], all: ISODate[]) {
   return days.map((d) => (oneWeek ? '일월화수목금토'[fromISO(d).getDay()] : formatDay(d))).join(', ')
 }
 
-export default function MenuScreen({ conditions: c, menu, onChange: setMenu, onOpenRecipe, onConfirm, onBack }: Props) {
+export default function MenuScreen({ conditions: c, menu, options, onChange: setMenu, onOpenRecipe, onConfirm, onBack }: Props) {
   const candidates = useMemo(() => filterCandidates(c), [c])
   const limit = maxMenus(c, candidates)
   const [shown, setShown] = useState<string[][]>([])
@@ -69,6 +76,23 @@ export default function MenuScreen({ conditions: c, menu, onChange: setMenu, onO
       </p>
       {limit < c.menuCount && (
         <p className="text-sm font-medium text-black">조건에 맞게 만들 수 있는 메뉴가 {limit}개라 {limit}개로 구성했어요.</p>
+      )}
+
+      {options.length > 1 && (
+        <div className="grid grid-cols-3 gap-2">
+          {options.map((o) => (
+            <Tile
+              key={o.kind}
+              on={sameMenu(o.menu, menu)}
+              onClick={() => {
+                setMenu(o.menu)
+                setShown([])
+              }}
+              label={OPTION_LABEL[o.kind]}
+              desc={optionDesc(o)}
+            />
+          ))}
+        </div>
       )}
 
       <ul className="flex flex-col gap-3">

@@ -196,8 +196,3 @@ export function assignDays(menu: Recipe[], dates: ISODate[]): ISODate[][] {
   return menu.map((_, i) => sorted.filter((_, d) => order[d] === i))
 }
 
-// 조건으로 처음 보여줄 메뉴. 개수는 지난번 개수(c.menuCount)로 시작하되 상한을 넘지 않는다
-export function initialMenu(c: Conditions): Recipe[] {
-  const candidates = filterCandidates(c)
-  return buildMenu(candidates, Math.min(c.menuCount, maxMenus(c, candidates)), c.pantry)
-}

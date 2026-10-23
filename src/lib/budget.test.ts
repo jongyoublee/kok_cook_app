@@ -1,41 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { recipes } from '../data/recipes'
-import { budgetVersion, buildMenuInBudget, menuCost, suggestSwap } from './budget'
+import { budgetVersion, menuCost, suggestSwap } from './budget'
 import { coupangSearchUrl } from './coupang'
-import { filterCandidates, greedyCombos, searchCombos } from './menu'
+import { filterCandidates } from './menu'
 
 const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }
-const first = () => 0
-// buildMenuInBudget과 같은 후보 조합(점수 상위 + 탐욕)의 예상 금액
-const costs = (cond: typeof c) => {
-  const pool = filterCandidates(cond)
-  return [...searchCombos(pool, cond.menuCount, cond.pantry, first), ...greedyCombos(pool, cond.menuCount, cond.pantry, first)].map((m) => menuCost(m, cond))
-}
-const greedyCosts = (cond: typeof c) => greedyCombos(filterCandidates(cond), cond.menuCount, cond.pantry, first).map((m) => menuCost(m, cond))
 
-describe('예산 버전 A (F1)', () => {
-  it('예산 안에 드는 조합을 고른다', () => {
-    const budget = Math.max(...costs(c)) - 1 // 가장 비싼 조합만 빠지게
-    const { menu, overBudget } = buildMenuInBudget({ ...c, budget }, first)
-    expect(overBudget).toBe(false)
-    expect(menuCost(menu, c)).toBeLessThanOrEqual(budget)
-  })
-
-  it('예산 안에 드는 조합이 없으면 가장 싼 조합과 초과 표시', () => {
-    const { menu, overBudget } = buildMenuInBudget({ ...c, budget: 1 }, first)
-    expect(overBudget).toBe(true)
-    expect(menuCost(menu, c)).toBe(Math.min(...costs(c)))
-  })
-
-  it('가장 싸게 구성은 예산과 상관없이 가장 싼 조합', () => {
-    const { menu } = buildMenuInBudget({ ...c, cheapest: true, budget: 300_000 }, first)
-    expect(menuCost(menu, c)).toBe(Math.min(...costs(c)))
-    // 모든 조합을 비교하므로 탐욕 선택만 쓸 때보다 비싸지지 않는다 (B1)
-    expect(menuCost(menu, c)).toBeLessThanOrEqual(Math.min(...greedyCosts(c)))
-  })
-
+describe('예상 금액 (D4)', () => {
   it('집에 있는 양념은 예상 금액에서 빠진다', () => {
     const menu = recipes.slice(0, 2)
     expect(menuCost(menu, { ...c, pantry: ['soySauce'] })).toBeLessThan(menuCost(menu, c))

@@ -117,6 +117,14 @@ describe('교체와 추가 (B2, B3)', () => {
 })
 
 describe('먹는 날짜 배정', () => {
+  it('냉동이 안 맞는 메뉴는 앞 날짜로 모은다 (E2)', () => {
+    const stew = recipes.find((r) => !r.storage.freezable)!
+    const pork = byId('spicy-pork')
+    const [porkDays, stewDays] = assignDays([pork, stew], korean.dates)
+    expect(stewDays).toEqual(['2026-10-26', '2026-10-27'])
+    expect(porkDays).toEqual(['2026-10-28', '2026-10-29', '2026-10-30'])
+  })
+
   it('날짜 순서대로 돌아가며 배정', () => {
     const menu = filterCandidates(korean).slice(0, 2)
     expect(assignDays(menu, korean.dates)).toEqual([

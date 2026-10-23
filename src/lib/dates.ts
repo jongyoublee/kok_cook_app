@@ -18,7 +18,7 @@ export function addDays(s: ISODate, n: number): ISODate {
   return toISO(d)
 }
 
-const daysBetween = (a: ISODate, b: ISODate) => Math.round((fromISO(b).getTime() - fromISO(a).getTime()) / 86_400_000)
+export const daysBetween = (a: ISODate, b: ISODate) => Math.round((fromISO(b).getTime() - fromISO(a).getTime()) / 86_400_000)
 
 // 월요일 시작 기준 요일 (월=0 ... 일=6)
 export const mondayIndex = (s: ISODate) => (fromISO(s).getDay() + 6) % 7

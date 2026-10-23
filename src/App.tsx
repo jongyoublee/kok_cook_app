@@ -4,6 +4,7 @@ import type { Recipe } from './data/recipes'
 import { toISO } from './lib/dates'
 import { filterCandidates, initialMenu, maxMenus } from './lib/menu'
 import { servingsOf } from './lib/shopping'
+import { effectiveCookDate } from './lib/storagePlan'
 import { loadPlan, savePlan, type Plan } from './plan'
 import InputScreen from './screens/InputScreen'
 import MenuScreen from './screens/MenuScreen'
@@ -71,7 +72,7 @@ export default function App() {
           const start = Math.min(conditions.menuCount, maxMenus(conditions, filterCandidates(conditions)))
           if (menu.length !== start) save({ ...conditions, menuCount: menu.length })
           // 메뉴가 그대로면 구매 체크를 이어 쓰고, 바뀌었으면 비운다
-          updatePlan({ menu, checked: plan && sameMenu(plan.menu, menu) ? plan.checked : [] })
+          updatePlan({ menu, checked: plan && sameMenu(plan.menu, menu) ? plan.checked : [], cookDate: plan?.cookDate })
           setScreen('shopping')
         }}
       />
@@ -80,7 +81,10 @@ export default function App() {
   if (screen === 'shopping' && plan)
     return (
       <ShoppingScreen
+        today={today}
         conditions={conditions}
+        cookDate={effectiveCookDate(plan.cookDate, today, conditions.dates)}
+        onCookDateChange={(cookDate) => updatePlan({ ...plan, cookDate })}
         menu={plan.menu}
         checked={plan.checked}
         onToggle={(id) => updatePlan({ ...plan, checked: toggle(plan.checked, id) })}

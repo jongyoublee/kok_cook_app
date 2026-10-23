@@ -10,7 +10,7 @@ const fakeStorage = (init?: string) => {
 describe('확정 메뉴와 구매 체크 저장 (I2, D6)', () => {
   it('저장 후 불러오면 같다', () => {
     const s = fakeStorage()
-    const plan = { menu: recipes.slice(0, 2), checked: ['onion' as const] }
+    const plan = { menu: recipes.slice(0, 2), checked: ['onion' as const], cookDate: '2026-10-24' }
     savePlan(plan, s)
     expect(loadPlan(s)).toEqual(plan)
   })
@@ -19,6 +19,7 @@ describe('확정 메뉴와 구매 체크 저장 (I2, D6)', () => {
     const plan = loadPlan(fakeStorage(JSON.stringify({ recipeIds: ['x', recipes[0].id], checked: ['onion', 'x', 3] })))!
     expect(plan.menu).toEqual([recipes[0]])
     expect(plan.checked).toEqual(['onion'])
+    expect(plan.cookDate).toBeUndefined()
     expect(loadPlan(fakeStorage(JSON.stringify({ recipeIds: ['x'] })))).toBeNull()
     expect(loadPlan(fakeStorage('{oops'))).toBeNull()
     expect(loadPlan(fakeStorage())).toBeNull()

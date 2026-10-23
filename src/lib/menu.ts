@@ -99,9 +99,14 @@ export function addMenu(menu: Recipe[], candidates: Recipe[], pantry: Ingredient
   return next ? [...menu, next] : menu
 }
 
-// 날짜 순서대로 메뉴를 돌아가며 배정한다(1, 2, 1, 2, 1). 결과는 메뉴별 먹는 날짜
-export const assignDays = (menu: Recipe[], dates: ISODate[]): ISODate[][] =>
-  menu.map((_, i) => [...dates].sort().filter((_, d) => d % menu.length === i))
+// 날짜 순서대로 메뉴를 돌아가며 배정한다(1, 2, 1, 2, 1). 결과는 메뉴별 먹는 날짜.
+// E2 냉동이 맞지 않는 메뉴는 냉장 기간 안에 먹도록 앞 날짜로 모은다(끼니 수는 그대로)
+export function assignDays(menu: Recipe[], dates: ISODate[]): ISODate[][] {
+  const sorted = [...dates].sort()
+  const turns = sorted.map((_, d) => d % menu.length)
+  const order = [...turns.filter((i) => !menu[i].storage.freezable), ...turns.filter((i) => menu[i].storage.freezable)]
+  return menu.map((_, i) => sorted.filter((_, d) => order[d] === i))
+}
 
 // 조건으로 처음 보여줄 메뉴. 개수는 지난번 개수(c.menuCount)로 시작하되 상한을 넘지 않는다
 export function initialMenu(c: Conditions): Recipe[] {

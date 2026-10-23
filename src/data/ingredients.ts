@@ -10,6 +10,7 @@ export type Ingredient = {
   corner: Corner
   // D2 판매 단위. amount는 unit 기준 양
   saleUnit: { amount: number; label: string }
+  premium?: string // B1 '한 주 플렉스'에서 고급 재료로 보는 재료와 화면에 쓸 짧은 이름
 }
 
 export const ingredients = {
@@ -32,16 +33,16 @@ export const ingredients = {
   cheongyangPepper: { name: '청양고추', unit: 'g', corner: '채소', saleUnit: { amount: 100, label: '1봉(100g)' } },
   porkShoulder: { name: '돼지고기 앞다리살', unit: 'g', corner: '육류·달걀', saleUnit: { amount: 600, label: '1팩(600g)' } },
   porkTenderloin: { name: '돼지고기 안심', unit: 'g', corner: '육류·달걀', saleUnit: { amount: 500, label: '1팩(500g)' } },
-  beefBulgogi: { name: '소고기 불고기용', unit: 'g', corner: '육류·달걀', saleUnit: { amount: 400, label: '1팩(400g)' } },
-  beefRound: { name: '소고기 우둔', unit: 'g', corner: '육류·달걀', saleUnit: { amount: 400, label: '1팩(400g)' } },
+  beefBulgogi: { name: '소고기 불고기용', unit: 'g', corner: '육류·달걀', saleUnit: { amount: 400, label: '1팩(400g)' }, premium: '소고기' },
+  beefRound: { name: '소고기 우둔', unit: 'g', corner: '육류·달걀', saleUnit: { amount: 400, label: '1팩(400g)' }, premium: '소고기' },
   chickenBreast: { name: '닭가슴살', unit: 'g', corner: '육류·달걀', saleUnit: { amount: 500, label: '1팩(500g)' } },
   egg: { name: '달걀', unit: '개', corner: '육류·달걀', saleUnit: { amount: 10, label: '10구' } },
   mackerel: { name: '손질 고등어', unit: 'g', corner: '수산', saleUnit: { amount: 400, label: '1팩(2마리, 400g)' } },
   pollock: { name: '손질 동태', unit: 'g', corner: '수산', saleUnit: { amount: 600, label: '1팩(600g)' } },
-  salmon: { name: '생연어', unit: 'g', corner: '수산', saleUnit: { amount: 300, label: '1팩(300g)' } },
+  salmon: { name: '생연어', unit: 'g', corner: '수산', saleUnit: { amount: 300, label: '1팩(300g)' }, premium: '연어' },
   tunaCan: { name: '참치캔', unit: '개', corner: '수산', saleUnit: { amount: 3, label: '3캔입(150g)' } },
   squid: { name: '손질 오징어', unit: 'g', corner: '수산', saleUnit: { amount: 500, label: '1팩(2마리, 500g)' } },
-  shrimp: { name: '냉동 새우살', unit: 'g', corner: '수산', saleUnit: { amount: 500, label: '1봉(500g)' } },
+  shrimp: { name: '냉동 새우살', unit: 'g', corner: '수산', saleUnit: { amount: 500, label: '1봉(500g)' }, premium: '새우' },
   tofu: { name: '두부', unit: 'g', corner: '두부·콩', saleUnit: { amount: 300, label: '1모(300g)' } },
   softTofu: { name: '순두부', unit: 'g', corner: '두부·콩', saleUnit: { amount: 350, label: '1봉(350g)' } },
   chickpeas: { name: '병아리콩 통조림', unit: 'g', corner: '두부·콩', saleUnit: { amount: 240, label: '1캔(건더기 240g)' } },

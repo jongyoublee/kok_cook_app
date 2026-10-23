@@ -1,9 +1,11 @@
 // B1, A9, F1 추천안 3개. 무엇이 좋은지가 다른 조합을 하나씩 골라 사용자가 고르게 한다.
 // 장보기 간단: 장볼 품목이 가장 적은 조합(같으면 겹침 점수) / 가장 저렴: 예상 금액이 가장 낮은 조합 /
-// 집 양념으로: 새로 살 양념이 가장 적은 조합. 셋이 같으면 다음 순위로 채워 서로 다른 조합을 보여준다
+// 집 양념으로: 새로 살 양념이 가장 적은 조합 / 한 주 플렉스(예산 버전 A만): 예산 안에서 고급 재료 끼니 비중이 가장 높은 조합.
+// 서로 같으면 다음 순위로 채워 서로 다른 조합을 보여준다
 import { config } from '../config'
 import type { Conditions } from '../conditions'
 import { priceOf } from '../data/prices'
+import { ingredients, type Ingredient } from '../data/ingredients'
 import type { Recipe } from '../data/recipes'
 import {
   combinationCount,
@@ -20,7 +22,7 @@ import {
 } from './menu'
 import { buildShoppingList, servingsOf } from './shopping'
 
-export type MenuOptionKind = 'simple' | 'cheap' | 'pantry'
+export type MenuOptionKind = 'simple' | 'cheap' | 'pantry' | 'flex'
 
 export type MenuOption = {
   kind: MenuOptionKind
@@ -28,17 +30,26 @@ export type MenuOption = {
   cost: number // D4 예상 금액
   items: number // 장보기 목록 품목 수 (집에 있는 양념 제외)
   missing: number // A9 새로 살 양념 종류
+  premium: string[] // 들어가는 고급 재료의 짧은 이름 (한 주 플렉스 표시용)
 }
 
-export const OPTION_LABEL: Record<MenuOptionKind, string> = { simple: '장보기 간단', cheap: '가장 저렴', pantry: '집 양념으로' }
+export const OPTION_LABEL: Record<MenuOptionKind, string> = { simple: '장보기 간단', cheap: '가장 저렴', pantry: '집 양념으로', flex: '한 주 플렉스' }
+
+const premiumOf = (r: Recipe) => [...new Set(r.ingredients.map((i) => (ingredients[i.id] as Ingredient).premium).filter((p) => p !== undefined))]
 
 const key = (menu: Recipe[]) => menu.map((r) => r.id).sort().join()
 
 function evaluate(menu: Recipe[], c: Conditions) {
-  const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
+  const servings = servingsOf(menu, c)
+  const list = buildShoppingList(menu, servings, c.pantry, priceOf)
   const missing = missingSeasonings(menu, c.pantry)
   const score = overlapScore(menu) - missing * config.menuSearch.missingSeasoningPenalty
-  return { menu, cost: list.total, items: list.items.length, missing, score }
+  // 고급 재료가 들어간 끼니 비중과, 남는 재료를 금액으로 친 값(판매 단위 가격 × 남는 비율)
+  const meals = servings.reduce((a, b) => a + b, 0)
+  const premiumShare = meals ? menu.reduce((s, r, i) => s + (premiumOf(r).length ? servings[i] : 0), 0) / meals : 0
+  const waste = list.items.reduce((s, it) => s + (it.price ? (it.price / it.packs) * (it.leftover / ingredients[it.id].saleUnit.amount) : 0), 0)
+  const premium = [...new Set(menu.flatMap(premiumOf))]
+  return { menu, cost: list.total, items: list.items.length, missing, score, premiumShare, waste, premium }
 }
 type Evaluated = ReturnType<typeof evaluate>
 
@@ -47,6 +58,8 @@ const ORDER: Record<MenuOptionKind, (a: Evaluated, b: Evaluated) => number> = {
   simple: (a, b) => a.items - b.items || b.score - a.score || a.cost - b.cost,
   cheap: (a, b) => a.cost - b.cost || b.score - a.score,
   pantry: (a, b) => a.missing - b.missing || b.score - a.score || a.cost - b.cost,
+  // 고급 재료 끼니가 많을수록, 같으면 남는 재료가 적을수록. 예산을 꽉 채우는 것 자체는 목표가 아니다
+  flex: (a, b) => b.premiumShare - a.premiumShare || a.waste - b.waste || a.cost - b.cost,
 }
 
 // 후보 조합: 겹침 점수 상위, 새로 살 양념이 적은 상위, 탐욕 조합을 합친다
@@ -56,7 +69,11 @@ function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng
   const spread = proteinSpread(c.proteins, count)
   const combos = [...searchCombos(candidates, count, c.pantry, rng, spread), ...greedyCombos(candidates, count, c.pantry, rng, spread)]
   if (combinationCount(candidates.length, count) <= maxCombos)
-    combos.push(...topCombos(candidates, count, c.pantry, keep, (overlap, missing) => overlap / 100 - missing, spread).map((x) => x.menu))
+    combos.push(
+      ...topCombos(candidates, count, c.pantry, keep, (overlap, missing) => overlap / 100 - missing, spread).map((x) => x.menu),
+      // 한 주 플렉스 후보: 고급 재료 메뉴가 많은 조합
+      ...topCombos(candidates, count, c.pantry, keep, (overlap, _, menu) => menu.filter((r) => premiumOf(r).length).length * 100 + overlap, spread).map((x) => x.menu),
+    )
   const fit = combos.filter((m) => fitsSpread(m, spread))
   const unique = new Map((fit.length ? fit : combos).map((m) => [key(m), m]))
   return [...unique.values()]
@@ -75,17 +92,19 @@ export function buildMenuOptions(c: Conditions, useBudget: boolean, rng: Rng = M
   const fit = useBudget && !c.cheapest ? pool.filter((x) => x.cost <= c.budget) : pool
   if (!fit.length) {
     const cheapest = [...pool].sort(ORDER.cheap)[0]
-    return { options: [{ kind: 'cheap', ...cheapest }], overBudget: true }
+    return { options: [{ kind: 'cheap', menu: cheapest.menu, cost: cheapest.cost, items: cheapest.items, missing: cheapest.missing, premium: cheapest.premium }], overBudget: true }
   }
 
   const kinds: MenuOptionKind[] = c.cheapest ? ['cheap', 'simple', 'pantry'] : ['simple', 'cheap', 'pantry']
+  // 한 주 플렉스는 예산을 받은 버전 A에서, '가장 싸게 구성'이 꺼져 있을 때만
+  if (useBudget && !c.cheapest) kinds.push('flex')
   const used = new Set<string>()
   const options: MenuOption[] = []
   for (const kind of kinds) {
-    const pick = [...fit].sort(ORDER[kind]).find((x) => !used.has(key(x.menu)))
+    const pick = [...fit].sort(ORDER[kind]).find((x) => !used.has(key(x.menu)) && (kind !== 'flex' || x.premiumShare > 0))
     if (!pick) continue
     used.add(key(pick.menu))
-    options.push({ kind, menu: pick.menu, cost: pick.cost, items: pick.items, missing: pick.missing })
+    options.push({ kind, menu: pick.menu, cost: pick.cost, items: pick.items, missing: pick.missing, premium: pick.premium })
   }
   return { options, overBudget: false }
 }

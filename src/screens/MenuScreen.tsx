@@ -27,7 +27,15 @@ type Props = {
 const sameMenu = (a: Recipe[], b: Recipe[]) => a.map((r) => r.id).sort().join() === b.map((r) => r.id).sort().join()
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
 const optionDesc = (o: MenuOption) =>
-  o.kind === 'cheap' ? `약 ${won(o.cost)}` : o.kind === 'pantry' ? (o.missing ? `새 양념 ${o.missing}가지` : '새 양념 없음') : `재료 ${o.items}가지`
+  o.kind === 'cheap'
+    ? `약 ${won(o.cost)}`
+    : o.kind === 'pantry'
+      ? o.missing
+        ? `새 양념 ${o.missing}가지`
+        : '새 양념 없음'
+      : o.kind === 'flex'
+        ? `${o.premium.join('·')} · 약 ${won(o.cost)}`
+        : `재료 ${o.items}가지`
 
 // 한 주 안이면 요일만, 넘어가면 날짜까지 표시
 function dayLabel(days: ISODate[], all: ISODate[]) {
@@ -83,7 +91,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
       )}
 
       {options.length > 1 && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className={`grid gap-2 ${options.length === 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
           {options.map((o) => (
             <Tile
               key={o.kind}

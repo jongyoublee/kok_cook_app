@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
+import { ingredients, type Ingredient } from '../data/ingredients'
+import type { Recipe } from '../data/recipes'
 import { menuCost } from './budget'
 import { filterCandidates, fitsSpread, greedyCombos, missingSeasonings, proteinSpread } from './menu'
 import { buildMenuOptions, suggestAddition } from './options'
@@ -103,5 +105,32 @@ describe('이 레시피는 어떤가요? (B3, D3)', () => {
   it('메뉴가 끼니 수나 최대 개수만큼 차 있으면 제안하지 않는다', () => {
     const twoDays = { ...c, dates: c.dates.slice(0, 2) }
     expect(suggestAddition(pool.slice(0, 2), twoDays, false)).toBeNull()
+  })
+})
+
+describe('한 주 플렉스 (B1, F1)', () => {
+  const budget = 150_000
+  const { options } = buildMenuOptions({ ...c, budget }, true, first)
+  const flex = options.find((o) => o.kind === 'flex')!
+  const premiumMeals = (menu: Recipe[]) => menu.filter((r) => r.ingredients.some((i) => (ingredients[i.id] as Ingredient).premium)).length
+
+  it('예산 버전 A에서 네 번째 추천안으로, 예산 안에서 고급 재료가 들어간다', () => {
+    expect(options.map((o) => o.kind)).toEqual(['simple', 'cheap', 'pantry', 'flex'])
+    expect(flex.cost).toBeLessThanOrEqual(budget)
+    expect(flex.premium.length).toBeGreaterThan(0)
+  })
+
+  it('다른 추천안보다 고급 재료 메뉴가 적지 않다', () => {
+    for (const o of options) expect(premiumMeals(flex.menu)).toBeGreaterThanOrEqual(premiumMeals(o.menu))
+  })
+
+  it('예산을 쓰지 않거나 가장 싸게 구성이면 없다', () => {
+    expect(buildMenuOptions({ ...c, budget }, false, first).options.map((o) => o.kind)).not.toContain('flex')
+    expect(buildMenuOptions({ ...c, budget, cheapest: true }, true, first).options.map((o) => o.kind)).not.toContain('flex')
+  })
+
+  it('고급 재료 메뉴를 고를 수 없으면 없다', () => {
+    const noPremium = { ...c, budget, proteins: ['pork' as const, 'egg' as const] }
+    expect(buildMenuOptions(noPremium, true, first).options.map((o) => o.kind)).not.toContain('flex')
   })
 })

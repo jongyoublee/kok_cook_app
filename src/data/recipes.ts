@@ -7,6 +7,22 @@ import type { NutritionFacts } from './nutrition'
 // A10 베이스 탄수화물. 반찬·찌개처럼 밥과 함께 먹는 메뉴는 rice
 export type CarbBase = 'rice' | 'noodle' | 'potato' | 'sweetPotato'
 
+// 맛 계열과 조리법. 같은 재료라도 양념·조리법이 다르면 다른 메뉴로 본다(추가 제안, 교체).
+// 2026-10-23 Claude가 붙인 값으로 사람 검수 전이다
+export type Flavor = 'soy' | 'spicy' | 'doenjang' | 'kimchi' | 'oyster' | 'tomato' | 'oilSalt' | 'mayo'
+export type CookMethod = 'stirFry' | 'braise' | 'grill' | 'steam' | 'salad'
+export const FLAVOR_LABEL: Record<Flavor, string> = {
+  soy: '간장',
+  spicy: '매콤',
+  doenjang: '된장',
+  kimchi: '김치',
+  oyster: '굴소스',
+  tomato: '토마토',
+  oilSalt: '오일·소금',
+  mayo: '마요',
+}
+export const METHOD_LABEL: Record<CookMethod, string> = { stirFry: '볶음', braise: '조림', grill: '구이', steam: '찜', salad: '샐러드' }
+
 // B6 단백질 공급원 분산용
 export type ProteinSource = 'pork' | 'beef' | 'chicken' | 'fish' | 'seafood' | 'tofu' | 'egg' | 'legume'
 
@@ -16,6 +32,8 @@ export type Recipe = {
   korean: boolean // 한식 여부. 2026-10-23 식단 분류에서 빠졌고, 나중에 '한식만 보기' 같은 필터에 쓴다
   proteinSource: ProteinSource
   carb: CarbBase
+  flavor: Flavor
+  method: CookMethod
   // C1 1인분 기준 분량. amount는 재료 사전의 unit 기준
   ingredients: { id: IngredientId; amount: number }[]
   steps: string[]
@@ -37,6 +55,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'pork',
     carb: 'rice',
+    flavor: 'spicy',
+    method: 'stirFry',
     ingredients: [
       { id: 'porkShoulder', amount: 120 },
       { id: 'onion', amount: 50 },
@@ -66,6 +86,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'beef',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'beefBulgogi', amount: 120 },
       { id: 'onion', amount: 50 },
@@ -93,6 +115,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'chicken',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'braise',
     ingredients: [
       { id: 'chickenBreast', amount: 120 },
       { id: 'onion', amount: 40 },
@@ -120,6 +144,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'fish',
     carb: 'rice',
+    flavor: 'kimchi',
+    method: 'braise',
     ingredients: [
       { id: 'mackerel', amount: 150 },
       { id: 'kimchi', amount: 100 },
@@ -146,6 +172,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'egg',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'egg', amount: 2 },
       { id: 'zucchini', amount: 100 },
@@ -171,6 +199,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'chicken',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'chickenBreast', amount: 120 },
       { id: 'cabbage', amount: 80 },
@@ -196,6 +226,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'beef',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'beefBulgogi', amount: 120 },
       { id: 'broccoli', amount: 100 },
@@ -221,6 +253,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'chicken',
     carb: 'noodle',
+    flavor: 'tomato',
+    method: 'stirFry',
     ingredients: [
       { id: 'chickenBreast', amount: 120 },
       { id: 'pasta', amount: 70 },
@@ -249,6 +283,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'pork',
     carb: 'potato',
+    flavor: 'soy',
+    method: 'braise',
     ingredients: [
       { id: 'porkShoulder', amount: 120 },
       { id: 'potato', amount: 150 },
@@ -276,6 +312,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'chicken',
     carb: 'sweetPotato',
+    flavor: 'oilSalt',
+    method: 'grill',
     ingredients: [
       { id: 'chickenBreast', amount: 120 },
       { id: 'sweetPotato', amount: 150 },
@@ -302,6 +340,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'seafood',
     carb: 'rice',
+    flavor: 'spicy',
+    method: 'stirFry',
     ingredients: [
       { id: 'squid', amount: 200 },
       { id: 'cabbage', amount: 80 },
@@ -335,6 +375,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'seafood',
     carb: 'rice',
+    flavor: 'oyster',
+    method: 'stirFry',
     ingredients: [
       { id: 'shrimp', amount: 200 },
       { id: 'broccoli', amount: 150 },
@@ -362,6 +404,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'seafood',
     carb: 'noodle',
+    flavor: 'oilSalt',
+    method: 'stirFry',
     ingredients: [
       { id: 'shrimp', amount: 150 },
       { id: 'pasta', amount: 70 },
@@ -389,6 +433,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'seafood',
     carb: 'noodle',
+    flavor: 'oyster',
+    method: 'stirFry',
     ingredients: [
       { id: 'udon', amount: 1 },
       { id: 'squid', amount: 100 },
@@ -418,6 +464,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'fish',
     carb: 'potato',
+    flavor: 'oilSalt',
+    method: 'grill',
     ingredients: [
       { id: 'salmon', amount: 150 },
       { id: 'potato', amount: 150 },
@@ -443,6 +491,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'tofu',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'braise',
     ingredients: [
       { id: 'tofu', amount: 300 },
       { id: 'onion', amount: 40 },
@@ -472,6 +522,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'tofu',
     carb: 'sweetPotato',
+    flavor: 'oilSalt',
+    method: 'stirFry',
     ingredients: [
       { id: 'tofu', amount: 200 },
       { id: 'egg', amount: 2 },
@@ -499,6 +551,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'legume',
     carb: 'potato',
+    flavor: 'tomato',
+    method: 'braise',
     ingredients: [
       { id: 'chickpeas', amount: 200 },
       { id: 'tomato', amount: 200 },
@@ -528,6 +582,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'egg',
     carb: 'rice',
+    flavor: 'tomato',
+    method: 'stirFry',
     ingredients: [
       { id: 'egg', amount: 3 },
       { id: 'tomato', amount: 250 },
@@ -554,6 +610,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'egg',
     carb: 'potato',
+    flavor: 'mayo',
+    method: 'salad',
     ingredients: [
       { id: 'egg', amount: 3 },
       { id: 'potato', amount: 200 },
@@ -580,6 +638,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'beef',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'beefBulgogi', amount: 120 },
       { id: 'kingOysterMushroom', amount: 150 },
@@ -606,6 +666,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'pork',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'porkTenderloin', amount: 120 },
       { id: 'onion', amount: 50 },
@@ -633,6 +695,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'pork',
     carb: 'rice',
+    flavor: 'spicy',
+    method: 'stirFry',
     ingredients: [
       { id: 'porkTenderloin', amount: 120 },
       { id: 'beanSprouts', amount: 150 },
@@ -661,6 +725,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'pork',
     carb: 'rice',
+    flavor: 'kimchi',
+    method: 'stirFry',
     ingredients: [
       { id: 'porkTenderloin', amount: 120 },
       { id: 'kimchi', amount: 120 },
@@ -687,6 +753,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'beef',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'braise',
     ingredients: [
       { id: 'beefRound', amount: 120 },
       { id: 'egg', amount: 1 },
@@ -713,6 +781,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'beef',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'beefRound', amount: 120 },
       { id: 'eggplant', amount: 150 },
@@ -740,6 +810,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'chicken',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'stirFry',
     ingredients: [
       { id: 'chickenBreast', amount: 120 },
       { id: 'kingOysterMushroom', amount: 100 },
@@ -766,6 +838,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'chicken',
     carb: 'potato',
+    flavor: 'soy',
+    method: 'braise',
     ingredients: [
       { id: 'chickenBreast', amount: 120 },
       { id: 'potato', amount: 150 },
@@ -792,6 +866,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'chicken',
     carb: 'sweetPotato',
+    flavor: 'spicy',
+    method: 'stirFry',
     ingredients: [
       { id: 'chickenBreast', amount: 120 },
       { id: 'sweetPotato', amount: 120 },
@@ -822,6 +898,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'fish',
     carb: 'rice',
+    flavor: 'spicy',
+    method: 'braise',
     ingredients: [
       { id: 'mackerel', amount: 140 },
       { id: 'radish', amount: 150 },
@@ -848,6 +926,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'fish',
     carb: 'rice',
+    flavor: 'spicy',
+    method: 'braise',
     ingredients: [
       { id: 'tunaCan', amount: 1 },
       { id: 'tofu', amount: 150 },
@@ -875,6 +955,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'seafood',
     carb: 'rice',
+    flavor: 'oilSalt',
+    method: 'stirFry',
     ingredients: [
       { id: 'shrimp', amount: 170 },
       { id: 'zucchini', amount: 150 },
@@ -902,6 +984,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'seafood',
     carb: 'potato',
+    flavor: 'spicy',
+    method: 'braise',
     ingredients: [
       { id: 'squid', amount: 180 },
       { id: 'potato', amount: 150 },
@@ -930,6 +1014,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'seafood',
     carb: 'rice',
+    flavor: 'spicy',
+    method: 'steam',
     ingredients: [
       { id: 'squid', amount: 120 },
       { id: 'shrimp', amount: 100 },
@@ -959,6 +1045,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'tofu',
     carb: 'rice',
+    flavor: 'kimchi',
+    method: 'stirFry',
     ingredients: [
       { id: 'tofu', amount: 300 },
       { id: 'kimchi', amount: 120 },
@@ -985,6 +1073,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'tofu',
     carb: 'rice',
+    flavor: 'doenjang',
+    method: 'braise',
     ingredients: [
       { id: 'tofu', amount: 250 },
       { id: 'kingOysterMushroom', amount: 80 },
@@ -1013,6 +1103,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: true,
     proteinSource: 'egg',
     carb: 'rice',
+    flavor: 'soy',
+    method: 'braise',
     ingredients: [
       { id: 'egg', amount: 4 },
       { id: 'kingOysterMushroom', amount: 100 },
@@ -1037,6 +1129,8 @@ const recipeData: Omit<Recipe, 'nutrition'>[] = [
     korean: false,
     proteinSource: 'chicken',
     carb: 'noodle',
+    flavor: 'oyster',
+    method: 'stirFry',
     ingredients: [
       { id: 'udon', amount: 1 },
       { id: 'chickenBreast', amount: 120 },

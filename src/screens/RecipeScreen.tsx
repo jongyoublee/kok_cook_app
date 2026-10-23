@@ -1,7 +1,7 @@
 // C1~C4 레시피 상세 (와이어프레임 3). 재료 분량은 만들 인분(끼니 수 × 인원)으로 곱해 보여준다(C3)
 import { config } from '../config'
 import { ingredients } from '../data/ingredients'
-import type { Recipe } from '../data/recipes'
+import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
 
 type Props = {
   recipe: Recipe
@@ -34,7 +34,7 @@ export default function RecipeScreen({ recipe: r, servings, onBack }: Props) {
         <div className="aspect-[4/3] w-full rounded-2xl bg-gray-100" aria-hidden />
         <h1 className="mt-4 text-[26px] font-bold">{r.name}</h1>
         <p className="mt-1 text-gray-500">
-          조리 {r.cookMinutes}분 · {servings}인분
+          {FLAVOR_LABEL[r.flavor]} {METHOD_LABEL[r.method]} · 조리 {r.cookMinutes}분 · {servings}인분
         </p>
       </section>
 

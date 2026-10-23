@@ -5,7 +5,7 @@ import { config } from '../config'
 import { mealCount, type Conditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { formatDay, fromISO, type ISODate } from '../lib/dates'
-import type { Recipe } from '../data/recipes'
+import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
 import { addMenu, assignDays, filterCandidates, maxMenus, sharedIngredients, swapMenu } from '../lib/menu'
 import { CostBar } from '../components/fields'
 import { budgetVersion, menuCost } from '../lib/budget'
@@ -78,6 +78,9 @@ export default function MenuScreen({ conditions: c, menu, onChange: setMenu, onO
               <div className="h-20 w-20 shrink-0 rounded-lg bg-gray-100" aria-hidden />
               <div className="flex min-w-0 flex-1 flex-col">
                 <p className="font-semibold underline-offset-4 hover:underline">{r.name}</p>
+                <p className="text-xs text-gray-400">
+                  {FLAVOR_LABEL[r.flavor]} · {METHOD_LABEL[r.method]}
+                </p>
                 <p className="text-sm text-gray-600">
                   단백질 {r.nutrition.proteinG}g, {r.nutrition.kcal}kcal
                 </p>

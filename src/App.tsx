@@ -32,7 +32,14 @@ export default function App() {
       />
     )
 
-  if (screen === 'menu') return <MenuScreen conditions={conditions} onBack={() => setScreen('input')} />
+  if (screen === 'menu')
+    return (
+      <MenuScreen
+        conditions={conditions}
+        onBack={() => setScreen('input')}
+        onMenuCountChange={(menuCount) => save({ ...conditions, menuCount })}
+      />
+    )
 
   return (
     <InputScreen

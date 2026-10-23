@@ -1,12 +1,12 @@
-// 이번 주 조건 화면 (와이어프레임 1-1): A2 식사 날짜, A3 끼니 수, A4 메뉴 개수.
+// 이번 주 조건 화면 (와이어프레임 1-1): A2 식사 날짜, A3 끼니 수.
+// A4 메뉴 개수는 메뉴 화면에서 추가·삭제로 조절한다.
 // 인원·식단·먹고 싶은 단백질·집에 있는 양념은 내 설정(SetupScreen)에서 받고 여기서는 요약만 보여준다.
 // 예산 입력(A7)은 6단계에서 추가한다
 import { useState } from 'react'
 import CalendarSheet from '../components/CalendarSheet'
-import { config } from '../config'
 import { ALL_PROTEINS, mealCount, PROTEIN_OPTIONS, type Conditions } from '../conditions'
 import { cookDay, formatDay, nextWeek, type ISODate } from '../lib/dates'
-import { ADVICE, chip, primaryButton } from '../ui'
+import { ADVICE, primaryButton } from '../ui'
 
 type Props = {
   today: ISODate
@@ -61,16 +61,6 @@ export default function InputScreen({ today, initial, onEditProfile, onSubmit }:
         <p className="mt-2 text-sm text-gray-500">조리일은 {formatDay(cook)}로 가정해요</p>
       </section>
 
-      <section>
-        <h2 className="mb-2 font-semibold">메뉴 개수</h2>
-        <div className="flex gap-2">
-          {Array.from({ length: config.menuCount.max - config.menuCount.min + 1 }, (_, i) => config.menuCount.min + i).map((n) => (
-            <button key={n} type="button" aria-pressed={c.menuCount === n} onClick={() => set({ menuCount: n })} className={`${chip(c.menuCount === n)} flex-1`}>
-              {n}
-            </button>
-          ))}
-        </div>
-      </section>
 
       <section className="rounded-xl bg-gray-50 p-4">
         <div className="flex items-center justify-between">

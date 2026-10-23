@@ -9,6 +9,8 @@ import { addMenu, assignDays, buildMenu, filterCandidates, maxMenus, sharedIngre
 type Props = {
   conditions: Conditions
   onBack: () => void
+  // A4 사용자가 추가·삭제로 바꾼 메뉴 개수. 다음 주에 이 개수로 시작한다
+  onMenuCountChange: (n: number) => void
 }
 
 // 한 주 안이면 요일만, 넘어가면 날짜까지 표시
@@ -17,7 +19,7 @@ function dayLabel(days: ISODate[], all: ISODate[]) {
   return days.map((d) => (oneWeek ? '일월화수목금토'[fromISO(d).getDay()] : formatDay(d))).join(', ')
 }
 
-export default function MenuScreen({ conditions: c, onBack }: Props) {
+export default function MenuScreen({ conditions: c, onBack, onMenuCountChange }: Props) {
   const candidates = useMemo(() => filterCandidates(c), [c])
   const limit = maxMenus(c, candidates)
   const [menu, setMenu] = useState(() => buildMenu(candidates, Math.min(c.menuCount, limit), c.pantry))
@@ -44,6 +46,7 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
   // B3 메뉴 삭제. 최소 개수 아래로는 줄이지 않는다
   const remove = (i: number) => {
     setMenu(menu.filter((_, j) => j !== i))
+    onMenuCountChange(menu.length - 1)
     setShown((s) => s.filter((_, j) => j !== i))
   }
 
@@ -97,7 +100,11 @@ export default function MenuScreen({ conditions: c, onBack }: Props) {
 
       <button
         type="button"
-        onClick={() => setMenu(addMenu(menu, candidates, c.pantry))}
+        onClick={() => {
+          const next = addMenu(menu, candidates, c.pantry)
+          setMenu(next)
+          onMenuCountChange(next.length)
+        }}
         disabled={menu.length >= limit}
         className="rounded-xl border border-dashed py-3 text-sm disabled:opacity-40"
       >

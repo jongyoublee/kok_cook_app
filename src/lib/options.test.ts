@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { menuCost } from './budget'
-import { filterCandidates, greedyCombos, missingSeasonings } from './menu'
+import { filterCandidates, fitsSpread, greedyCombos, missingSeasonings, proteinSpread } from './menu'
 import { buildMenuOptions, suggestAddition } from './options'
 
 const today = '2026-10-22'
@@ -69,18 +69,30 @@ describe('이 레시피는 어떤가요? (B3, D3)', () => {
   const pool = filterCandidates(c)
   const pork = pool.find((r) => r.id === 'spicy-pork')!
 
-  it('같은 단백질이면서 맛 계열이 다른 메뉴를, 늘어나는 금액이 가장 적은 것으로 제안한다', () => {
-    const s = suggestAddition([pork], c, false)!
+  const porkOnly = { ...c, proteins: ['pork' as const] }
+
+  it('단백질을 1개만 골랐으면 같은 단백질이면서 맛이 다른 메뉴를, 늘어나는 금액이 가장 적은 것으로 제안한다', () => {
+    const s = suggestAddition([pork], porkOnly, false)!
     expect(s.recipe.proteinSource).toBe('pork')
     expect(s.recipe.flavor).not.toBe(pork.flavor)
-    expect(s.extraCost).toBe(menuCost([pork, s.recipe], c) - menuCost([pork], c))
-    const others = pool.filter((r) => r !== pork && r.proteinSource === 'pork' && r.flavor !== pork.flavor)
-    for (const r of others) expect(s.extraCost).toBeLessThanOrEqual(menuCost([pork, r], c) - menuCost([pork], c))
+    expect(s.extraCost).toBe(menuCost([pork, s.recipe], porkOnly) - menuCost([pork], porkOnly))
+    const others = filterCandidates(porkOnly).filter((r) => r !== pork && r.flavor !== pork.flavor)
+    for (const r of others) expect(s.extraCost).toBeLessThanOrEqual(menuCost([pork, r], porkOnly) - menuCost([pork], porkOnly))
   })
 
   it('남는 주재료를 쓰면 알려준다', () => {
-    const s = suggestAddition([pork], c, false)!
+    // 4끼면 앞다리살 480g이 필요해 1팩(600g)에서 120g이 남는다
+    const fourDays = { ...porkOnly, dates: porkOnly.dates.slice(0, 4) }
+    const s = suggestAddition([pork], fourDays, false)!
+    const names = s.recipe.ingredients.map((i) => i.id)
     for (const l of s.leftovers) expect(l.amount).toBeGreaterThan(0)
+    if (names.includes('porkShoulder')) expect(s.leftovers).toContainEqual({ name: '돼지고기 앞다리살', amount: 120, unit: 'g' })
+  })
+
+  it('단백질을 여러 개 골랐으면 분산 규칙 안에서 제안한다 (B6)', () => {
+    const s = suggestAddition([pork], c, false)!
+    expect(fitsSpread([pork, s.recipe], proteinSpread(c.proteins, 2))).toBe(true)
+    expect(s.recipe.proteinSource).not.toBe('pork')
   })
 
   it('버전 A는 더한 뒤에도 예산 안이어야 하고, 안 되면 제안하지 않는다', () => {

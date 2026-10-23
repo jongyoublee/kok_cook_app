@@ -5,7 +5,19 @@ import { config } from '../config'
 import type { Conditions } from '../conditions'
 import { priceOf } from '../data/prices'
 import type { Recipe } from '../data/recipes'
-import { combinationCount, filterCandidates, greedyCombos, maxMenus, missingSeasonings, overlapScore, searchCombos, topCombos, type Rng } from './menu'
+import {
+  combinationCount,
+  filterCandidates,
+  fitsSpread,
+  greedyCombos,
+  maxMenus,
+  missingSeasonings,
+  overlapScore,
+  proteinSpread,
+  searchCombos,
+  topCombos,
+  type Rng,
+} from './menu'
 import { buildShoppingList, servingsOf } from './shopping'
 
 export type MenuOptionKind = 'simple' | 'cheap' | 'pantry'
@@ -38,12 +50,15 @@ const ORDER: Record<MenuOptionKind, (a: Evaluated, b: Evaluated) => number> = {
 }
 
 // 후보 조합: 겹침 점수 상위, 새로 살 양념이 적은 상위, 탐욕 조합을 합친다
+// B6 분산 규칙에 맞는 조합만 쓰고, 맞는 조합이 하나도 없으면 규칙 없이 만든다
 function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng: Rng): Recipe[][] {
   const { maxCombos, keep } = config.menuSearch
-  const combos = [...searchCombos(candidates, count, c.pantry, rng), ...greedyCombos(candidates, count, c.pantry, rng)]
+  const spread = proteinSpread(c.proteins, count)
+  const combos = [...searchCombos(candidates, count, c.pantry, rng, spread), ...greedyCombos(candidates, count, c.pantry, rng, spread)]
   if (combinationCount(candidates.length, count) <= maxCombos)
-    combos.push(...topCombos(candidates, count, c.pantry, keep, (overlap, missing) => overlap / 100 - missing).map((x) => x.menu))
-  const unique = new Map(combos.map((m) => [key(m), m]))
+    combos.push(...topCombos(candidates, count, c.pantry, keep, (overlap, missing) => overlap / 100 - missing, spread).map((x) => x.menu))
+  const fit = combos.filter((m) => fitsSpread(m, spread))
+  const unique = new Map((fit.length ? fit : combos).map((m) => [key(m), m]))
   return [...unique.values()]
 }
 
@@ -84,18 +99,20 @@ export type AddSuggestion = {
 // 주재료 코너. 양념·채소는 남는 재료 안내에서 뺀다
 const MAIN_CORNERS = new Set(['육류·달걀', '수산', '두부·콩'])
 
-// B3, D3, F1 "이 레시피는 어떤가요?" 지금 메뉴와 같은 단백질을 쓰면서 맛 계열이 다른 메뉴 하나를 더해 보자고 제안한다.
+// B3, D3, F1 "이 레시피는 어떤가요?" 지금 메뉴와 맛 계열이 다른 메뉴 하나를 더해 보자고 제안한다.
 // 메뉴를 더했다고 보고 장보기와 먹는 날짜를 다시 계산해 늘어나는 금액이 가장 적은 메뉴를 고른다.
+// 남는 재료를 쓰는 메뉴일수록 금액이 덜 늘어 앞에 온다. 단백질은 B6 분산 규칙을 따른다
+// (단백질을 1개만 골랐으면 같은 단백질, 여러 개면 규칙 안에서 다른 단백질도 나온다).
 // useBudget이면(버전 A) 더한 뒤에도 예산 안이어야 한다. 더할 수 없으면 null
 export function suggestAddition(menu: Recipe[], c: Conditions, useBudget: boolean): AddSuggestion | null {
   const candidates = filterCandidates(c)
   if (!menu.length || menu.length >= maxMenus(c, candidates)) return null
   const now = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
-  const proteins = new Set(menu.map((r) => r.proteinSource))
   const flavors = new Set(menu.map((r) => r.flavor))
 
+  const spread = proteinSpread(c.proteins, menu.length + 1) // B6 더한 뒤에도 분산 규칙 안
   const scored = candidates
-    .filter((r) => !menu.includes(r) && proteins.has(r.proteinSource) && !flavors.has(r.flavor))
+    .filter((r) => !menu.includes(r) && !flavors.has(r.flavor) && fitsSpread([...menu, r], spread))
     .map((r) => {
       const next = [...menu, r]
       const cost = buildShoppingList(next, servingsOf(next, c), c.pantry, priceOf).total

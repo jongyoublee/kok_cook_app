@@ -22,30 +22,31 @@ export type Conditions = {
 }
 
 // A8 선택지. 두부·콩은 두 공급원을 함께 고른다
-export const PROTEIN_OPTIONS: { label: string; icon: string; sources: ProteinSource[] }[] = [
-  { label: '돼지고기', icon: '🐷', sources: ['pork'] },
-  { label: '소고기', icon: '🐮', sources: ['beef'] },
-  { label: '닭고기', icon: '🐔', sources: ['chicken'] },
-  { label: '생선', icon: '🐟', sources: ['fish'] },
-  { label: '해산물', icon: '🦐', sources: ['seafood'] },
-  { label: '두부·콩', icon: '🫘', sources: ['tofu', 'legume'] },
-  { label: '달걀', icon: '🥚', sources: ['egg'] },
+export const PROTEIN_OPTIONS: { label: string; sources: ProteinSource[] }[] = [
+  { label: '돼지고기', sources: ['pork'] },
+  { label: '소고기', sources: ['beef'] },
+  { label: '닭고기', sources: ['chicken'] },
+  { label: '생선', sources: ['fish'] },
+  { label: '해산물', sources: ['seafood'] },
+  { label: '두부·콩', sources: ['tofu', 'legume'] },
+  { label: '달걀', sources: ['egg'] },
 ]
 
 export const ALL_PROTEINS = PROTEIN_OPTIONS.flatMap((o) => o.sources)
 
 // A10 선택지
-export const CARB_OPTIONS: { label: string; icon: string; value: CarbBase }[] = [
-  { label: '밥', icon: '🍚', value: 'rice' },
-  { label: '면·파스타', icon: '🍝', value: 'noodle' },
-  { label: '감자', icon: '🥔', value: 'potato' },
-  { label: '고구마', icon: '🍠', value: 'sweetPotato' },
+export const CARB_OPTIONS: { label: string; value: CarbBase }[] = [
+  { label: '밥', value: 'rice' },
+  { label: '면·파스타', value: 'noodle' },
+  { label: '감자', value: 'potato' },
+  { label: '고구마', value: 'sweetPotato' },
 ]
 
 export const ALL_CARBS = CARB_OPTIONS.map((o) => o.value)
 
-// A9 집에 있는지 묻는 재료: 양념 코너
+// A9 집에 있는지 묻는 재료: 양념 코너. 기본 양념을 먼저 보여주고 나머지는 더보기로
 export const PANTRY_OPTIONS = (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === '양념')
+export const PANTRY_BASIC: IngredientId[] = ['soySauce', 'gochujang', 'doenjang', 'chiliPowder', 'sugar', 'salt', 'blackPepper', 'cookingOil', 'sesameOil', 'vinegar']
 
 // A3 끼니 수는 선택한 날짜로 자동 계산
 export const mealCount = (c: Conditions) => c.dates.length * c.meals.length

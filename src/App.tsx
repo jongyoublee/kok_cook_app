@@ -6,12 +6,12 @@ import MenuScreen from './screens/MenuScreen'
 import SetupScreen from './screens/SetupScreen'
 
 const today = toISO(new Date())
-// U02 저장된 설정이 있으면 불러오고(U03), 없으면 내 설정부터 묻는다(U04) (I2)
+// U02 저장된 조건이 있으면 불러와 조건 화면으로(U03), 없으면 처음 설정부터(U04) (I2)
 const saved = loadConditions(today)
 
 export default function App() {
+  // 처음 설정은 단백질·탄수화물을 비운 채 시작해 직접 고르게 한다
   const [conditions, setConditions] = useState(saved ?? { ...defaultConditions(today), proteins: [], carbs: [] })
-  const [hasProfile, setHasProfile] = useState(saved !== null)
   const [screen, setScreen] = useState<'setup' | 'input' | 'menu'>(saved ? 'input' : 'setup')
 
   const save = (c: Conditions) => {
@@ -22,11 +22,10 @@ export default function App() {
   if (screen === 'setup')
     return (
       <SetupScreen
+        today={today}
         initial={conditions}
-        onCancel={hasProfile ? () => setScreen('input') : undefined}
         onDone={(c) => {
           save(c)
-          setHasProfile(true)
           setScreen('input')
         }}
       />
@@ -45,10 +44,6 @@ export default function App() {
     <InputScreen
       today={today}
       initial={conditions}
-      onEditProfile={(c) => {
-        setConditions(c)
-        setScreen('setup')
-      }}
       onSubmit={(c) => {
         save(c)
         setScreen('menu')

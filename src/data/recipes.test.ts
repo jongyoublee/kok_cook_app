@@ -35,15 +35,9 @@ describe('레시피 데이터 (H1, H2, C1, C2, C4)', () => {
     for (const word of FORBIDDEN) expect(text).not.toContain(word)
   })
 
-  // A5, A6 화면에 '모든 메뉴는 한 끼 600kcal 이하 기준'이라고 안내한다
+  // A6 화면에 '모든 메뉴는 한 끼 600kcal 이하 기준'이라고 안내하고, 후보 필터는 칼로리를 보지 않는다
   it.each(recipes)('$name: 한 끼 칼로리 기준 이하다', (r) => {
     expect(r.nutrition.kcal).toBeLessThanOrEqual(config.maxKcalPerMeal)
-  })
-
-  it('가벼운 한 끼 기준에 맞는 메뉴가 메뉴 최대 개수 이상 있다', () => {
-    const { minProteinG, maxKcal } = config.highProtein
-    const light = recipes.filter((r) => r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= maxKcal)
-    expect(light.length).toBeGreaterThanOrEqual(config.menuCount.max)
   })
 
   // A8, A10 어떤 선택지 하나만 골라도 후보가 0개가 되지 않는다

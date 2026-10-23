@@ -1,9 +1,9 @@
 // 이번 식단 조건 화면 (와이어프레임 1-1). 처음 설정 이후에는 이 화면에서 모든 조건을 바로 고친다:
-// A2·A3 먹을 날짜, A1 인원, A5·A6 식단, A8 단백질, A10 탄수화물, A9 양념.
+// A2·A3 먹을 날짜, A1 인원, A8 단백질, A10 탄수화물, A9 양념.
 // A4 메뉴 개수는 메뉴 화면에서 추가·삭제로 조절한다. A7 예산은 버전 A일 때만 여기서 받는다
 import { useState, type ReactNode } from 'react'
 import CalendarSheet from '../components/CalendarSheet'
-import { BudgetField, CarbField, DietField, PantryField, PeopleField, ProteinField } from '../components/fields'
+import { BudgetField, CarbField, PantryField, PeopleField, ProteinField } from '../components/fields'
 import { budgetVersion } from '../lib/budget'
 import { mealCount, type Conditions } from '../conditions'
 import { cookDay, formatDay, nextWeek, type ISODate } from '../lib/dates'
@@ -74,10 +74,6 @@ export default function InputScreen({ today, initial, onOpenShopping, onSubmit }
         <PeopleField c={c} set={set} />
       </Section>
 
-      <Section title="식단">
-        <DietField c={c} set={set} />
-        <p className="mt-2 text-sm text-gray-500">모든 메뉴는 한 끼 {c.maxKcal}kcal 이하 기준으로 만들었어요.</p>
-      </Section>
 
       <Section title="먹고 싶은 단백질">
         <ProteinField c={c} set={set} />

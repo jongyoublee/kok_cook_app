@@ -1,11 +1,12 @@
-// 처음 설정: A1 인원 → A8 단백질 → A10 탄수화물 → A9 양념 → A2 먹을 날짜 → A5·A6 식단.
+// 처음 설정: A1 인원 → A8 단백질 → A10 탄수화물 → A9 양념 → A2 먹을 날짜 (A5 식단은 2026-10-23 삭제).
 // 질문 하나씩 묻고 저장한다. 다음부터는 이번 식단 조건 화면(InputScreen)에서 바로 고친다
 import { useState, type ReactNode } from 'react'
 import Calendar from '../components/Calendar'
-import { CarbField, DietField, PantryField, PeopleField, ProteinField } from '../components/fields'
+import { CarbField, PantryField, PeopleField, ProteinField } from '../components/fields'
 import { ALL_CARBS, ALL_PROTEINS, type Conditions } from '../conditions'
 import { cookDay, formatDay, type ISODate } from '../lib/dates'
 import { filterCandidates } from '../lib/menu'
+import { config } from '../config'
 import { ADVICE, primaryButton } from '../ui'
 
 type Props = {
@@ -20,7 +21,6 @@ const STEPS = [
   { name: '탄수화물', title: '무엇과 함께 먹고 싶나요?', desc: '메뉴의 바탕이 되는 탄수화물이에요. 여러 개 고를 수 있어요.' },
   { name: '양념', title: '집에 이미 있는 양념을 골라 주세요', desc: '고른 양념은 장보기 목록에서 빼고, 다음 주에도 기억해요.' },
   { name: '날짜', title: '언제 먹을 건가요?', desc: '고른 날짜 수만큼 저녁 끼니를 준비해요.' },
-  { name: '식단', title: '어떤 식단으로 할까요?', desc: '' },
 ]
 
 function Question({ title, desc, children }: { title: string; desc?: string; children: ReactNode }) {
@@ -48,7 +48,7 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
     proteins: c.proteins.length ? c.proteins : ALL_PROTEINS,
     carbs: c.carbs.length ? c.carbs : ALL_CARBS,
   }).length
-  const picked = [true, c.proteins.length > 0, c.carbs.length > 0, true, c.dates.length > 0, true][step]
+  const picked = [true, c.proteins.length > 0, c.carbs.length > 0, true, c.dates.length > 0][step]
   const showCount = step === 1 || step === 2
 
   return (
@@ -84,12 +84,7 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
             <>
               <Calendar today={today} selected={c.dates} onChange={(dates) => set({ dates })} />
               {c.dates.length > 0 && <p className="-mt-2 text-sm text-gray-500">조리일은 {formatDay(cookDay(c.dates)!)}로 가정해요</p>}
-            </>
-          )}
-          {step === 5 && (
-            <>
-              <DietField c={c} set={set} />
-              <p className="text-sm text-gray-500">모든 메뉴는 한 끼 {c.maxKcal}kcal 이하 기준으로 만들었어요.</p>
+              <p className="text-sm text-gray-500">모든 메뉴는 한 끼 {config.maxKcalPerMeal}kcal 이하 기준으로 만들었어요.</p>
               <p className="text-xs text-gray-400">{ADVICE}</p>
             </>
           )}

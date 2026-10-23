@@ -7,17 +7,10 @@ import type { ISODate } from './dates'
 
 export type Rng = () => number
 
-// B4 든든한 한 끼는 칼로리 상한만, 가벼운 한 끼는 단백질·칼로리 기준으로 거른다
+// A8 먹고 싶은 단백질이 주재료이고 A10 먹고 싶은 베이스 탄수화물인 메뉴만 남긴다.
+// 식단 분류(A5)는 2026-10-23 삭제. 한 끼 칼로리 기준은 레시피 데이터가 지킨다(recipes.test)
 export function filterCandidates(c: Conditions, pool: Recipe[] = recipes): Recipe[] {
-  const { minProteinG, maxKcal } = config.highProtein
-  return pool.filter(
-    (r) =>
-      c.proteins.includes(r.proteinSource) && // A8 먹고 싶은 단백질이 주재료인 메뉴만
-      c.carbs.includes(r.carb) && // A10 먹고 싶은 베이스 탄수화물
-      (c.diet === 'hearty'
-        ? r.nutrition.kcal <= c.maxKcal
-        : r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= Math.min(maxKcal, c.maxKcal)),
-  )
+  return pool.filter((r) => c.proteins.includes(r.proteinSource) && c.carbs.includes(r.carb))
 }
 
 // 메뉴 수는 설정 최대값, 후보 수, 끼니 수를 넘지 않는다

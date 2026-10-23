@@ -2,7 +2,7 @@
 // 아이콘은 나중에 단색 아이콘으로 넣는다
 import { useState } from 'react'
 import { config } from '../config'
-import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions, type Diet } from '../conditions'
+import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions } from '../conditions'
 import { ingredients, type IngredientId } from '../data/ingredients'
 import { toggle } from '../ui'
 
@@ -109,22 +109,6 @@ export function PantryField({ c, set }: FieldProps) {
       <button type="button" onClick={() => setMore(!more)} aria-expanded={more} className="w-full rounded-xl border border-gray-200 py-3 text-sm font-medium">
         {more ? '접기' : `한식·양식 양념 더 보기 (${restCount})`}
       </button>
-    </div>
-  )
-}
-
-const DIETS: { value: Diet; label: string; desc: string }[] = [
-  { value: 'hearty', label: '든든한 한 끼', desc: '모든 메뉴에서 골라요' },
-  { value: 'light', label: '가벼운 한 끼', desc: `단백질 ${config.highProtein.minProteinG}g 이상 메뉴만` },
-]
-
-// A5, A6
-export function DietField({ c, set }: FieldProps) {
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {DIETS.map((d) => (
-        <Tile key={d.value} on={c.diet === d.value} onClick={() => set({ diet: d.value })} label={d.label} desc={d.desc} />
-      ))}
     </div>
   )
 }

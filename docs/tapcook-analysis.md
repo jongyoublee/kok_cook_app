@@ -4,6 +4,7 @@
 - `references/uptodown-com.testmaxx.reelchef.apk`를 디컴파일해 보니 패키지가 `com.uptodown`이었다. TapCook 본체가 아니라 Uptodown 스토어 설치 앱이고, TapCook 코드나 데이터는 들어 있지 않다. Uptodown은 TapCook APK를 직접 올려 두지 않고 Play 스토어로 연결만 한다.
 - `com.testmaxx.reelchef`는 TapCook(testmaxx LLC)의 패키지 이름이다.
 - TapCook 이용약관은 리버스 엔지니어링과 레시피·가격 데이터 수집을 금지한다. 그래서 본체 APK는 구하지 않았고 공개 자료만 봤다. Play 스토어 설명, 홈페이지(tapcookapp.com), 이용약관, 개인정보처리방침이다.
+- 2026-10-23 추가: 사용자가 APKPure에서 본체 XAPK(v2.1.6)를 받아 와 분석을 요청했다. 약관 위반 위험을 알린 뒤 사용자 결정으로 진행했고, 결과는 아래 "본체 APK 분석" 절에 있다. TapCook의 레시피 글, 가격, 이미지, 코드는 우리 저장소에 옮기지 않았다.
 - 비교 기준은 step1-recipe-data 브랜치의 기능명세서(A8~A10, F1~F3 구현 포함)다.
 
 ## TapCook 구조 요약
@@ -64,3 +65,58 @@
 - 크리에이터 추천 코드와 광고 측정(TikTok SDK): 수익 구조라 MVP와 관계없다.
 - 레시피 이름과 구성: 미국식 메뉴이고, 레시피 글·사진 복사 금지 원칙에도 걸린다.
 - 구독 결제: 수익 모델은 아직 기획에 없다.
+
+## 본체 APK 분석 (2026-10-23, v2.1.6)
+
+### 방법
+- `references/TapCook_+Budget+Meal+Plans_2.1.6_APKPure.xapk`. `manifest.json`의 패키지 `com.testmaxx.reelchef`, 버전 2.1.6으로 본체임을 확인했다. 설치·실행하지 않았고 작업 폴더 밖 임시 폴더에서 압축만 풀었다.
+- React Native(Expo, expo-router) 앱이고 화면 로직은 Hermes 바이트코드(`index.android.bundle`, v98)에 있다. 원본 JS로 되돌릴 수 없어 문자열 표에서 화면 문구, 설정 키, 외부 주소를 읽어 기능을 추정했다. 그래서 아래 내용은 "그런 기능이 있다" 수준이고 정확한 규칙(점수 계산식 등)은 알 수 없다.
+- 번들에는 TapCook 자체 레시피의 조리 문구도 들어 있으나 보지 않고 건너뛰었다.
+
+### 공개 자료로 몰랐던 것
+| 확인한 기능 | 근거가 된 화면 문구(요약) | 우리 기능 |
+|---|---|---|
+| 메뉴를 빼면 그걸 위해 산 재료가 낭비된다고 경고 | "…bought for it won't be used by anything else" | B2 |
+| "이 메뉴 다시 안 보기"를 누르면 그날은 다른 메뉴로 채움 | "won't be planned again. We'll put something else on that night" | B1, B2 |
+| 요리 후 평가: "이 레시피 괜찮았나요?" → "무엇을 고칠까요?" 이유 선택, 레시피 평점 배지 | "Was this recipe good?", "What are we fixing?", RecipeRatingBadge | 랭킹(새 항목) |
+| 계획을 만드는 동안 단계 문구로 알고리즘을 설명 | "Choosing proteins for the week", "Cutting waste from this week", "Finding the cheapest week that works", "Picking the easiest dinners" | B1, F1 |
+| 필터가 너무 좁을 때 구체적으로 안내 | "Your filters leave nothing to cook.", 매일 고기면 "Try unticking one" | A8, B6 |
+| 남은 음식 냉동 재고: "N일 안에 먹고 나머지는 얼리기", "냉동실에 넣은 날", 다음 주 계획에 "냉동실에서" 표시 | "DAYS FREEZE THE REST", "LEFTOVERS YOU FROZE", "In your freezer since", "From your freezer" | E1, D3 |
+| 장보기 날짜를 따로 두고, 기본은 첫 요리하는 날. 지난 뒤 메뉴를 바꾸면 "이미 장을 봤을 것" 경고 | "Shop the same day you cook your first dinner", shopDayHasPassed, "You've likely already shopped for this week." | A2, D1 |
+| 단백질·탄수화물을 1인분 "g 이상/이하"로 사용자가 직접 정함 | "g or more per serving", "g or less per serving" | B4, A6 |
+| 알레르기를 넣으면 안 먹는 재료에 자동 추가 | "Added from your allergies." | A8 옆 |
+| 저장한 메뉴(즐겨찾기)는 계획 짜기에 영향을 주지 않음을 명시 | "Saved dinners live here. They don't change how your weeks are built." | 즐겨찾기(새 항목) |
+| 지난주 메뉴 기록, 이번 주/다음 주 탭 | "LAST WEEK'S DINNERS", WeeksAway | 기록(새 항목) |
+| 내 데이터 전부 지우기(기기와 서버), 처음 설정 다시 하기 | "This removes your plans, your grocery lists, your kitchen and your saved recipes…", "Restart onboarding?" | I2, I4 |
+| 가격 추정이 틀린다면 실제보다 높게. 실제 가격이 있는 마트만 노출 | "A good week at the shop puts you under…", "We only list stores we have real prices for." | D4, J4 |
+| 근처 마트 찾기는 무료 OpenStreetMap(Overpass API)과 우편번호 좌표 변환 사용 | overpass-api.de, zippopotam.us | J1 |
+| 장보기 목록 보내기·공유, 레시피 공유·인쇄, 배달앱 연결과 "제휴 아님" 고지 | "…send or share", "Share or print this recipe", "isn't affiliated with Instacart or DoorDash" | D6, G1, G2 |
+| 기술: 기기 안에서 계획, Supabase(익명 ID·가구 공유), RevenueCat(구독), Expo 푸시(오늘 저녁·체험 종료 알림), CleverTap·AppsFlyer(분석) | 외부 주소, 모듈 이름 | J6, J7 |
+
+### 우리 앱에 적용할 후보 (APK에서 새로 나온 것, 우선순위 순)
+기존 1~16번과 겹치는 것은 번호만 적었다(7번 냉동, 9번 좋아요/싫어요, 10번 알레르기, 14번 알림, 12번 가구 공유).
+
+**바로 할 수 있음 (기기 저장, 지금 구조)**
+17. **교체할 때 낭비 경고** (B2): 빼려는 메뉴에만 쓰는 재료가 이미 장보기 목록에서 체크(구매)됐으면 "이 메뉴를 빼면 ○○를 쓸 곳이 없어요"를 보여 준다. 장보기 목록의 `usedBy`와 구매 체크가 이미 있어 계산만 붙이면 된다.
+18. **계획 만드는 중 단계 문구** (B1, F1): "단백질 고르는 중 → 겹치는 재료 찾는 중 → 예산 맞추는 중"을 짧게 보여 준다. 실제 계산은 즉시 끝나므로 1초 안팎의 연출이며, 추천 근거를 사용자가 이해하게 하는 효과가 크다.
+19. **좁은 필터 안내 구체화** (A8, A10, B6): 지금은 "조건에 맞는 메뉴 N개"만 보인다. 0개일 때 어떤 선택을 풀면 몇 개가 되는지(예: "고구마도 고르면 3개") 알려 준다. 필터 함수를 조건별로 다시 돌리면 된다.
+20. **요리 후 평가로 내 취향 랭킹** (새 항목, 9번 확장): 먹는 날이 지난 메뉴에 "괜찮았나요? 좋아요/별로예요"와 이유(짜다, 양이 적다, 손이 많이 간다 등)를 받는다. 별로예요는 추천에서 내리고, 이유는 레시피 검수(H1) 자료로 쓴다. 앞서 이야기한 "랭킹 시스템"의 기기 버전이다.
+21. **이 메뉴 다시 안 보기** (B2): 교체 버튼 옆 메뉴에서 "다시 추천하지 않기". 9번 싫어요와 같은 저장소를 쓴다.
+22. **장보기 날짜와 "이미 장 봤어요" 경고** (A2, D1): 장보기 날짜를 기본 조리일로 두고, 구매 체크가 있는 상태에서 메뉴를 바꾸면 "이미 산 재료가 있어요" 확인을 받는다. 지금 메뉴가 바뀌면 체크가 조용히 지워지므로 그 전에 알리는 효과도 있다.
+23. **내 데이터 지우기·처음 설정 다시 하기** (I2, I4): 조건 화면 아래에 둔다. 기기 저장만 하므로 localStorage 두 키를 지우면 된다.
+
+**데이터나 결정이 필요함**
+24. **남은 음식 냉동 재고** (7번 구체화, E1): 우리는 이미 날짜별 냉장·냉동을 계산한다. 여기에 "냉동실에 넣은 날"을 기록하고, 다음 주 조건 화면에 "냉동실에 ○○ 2끼 있어요, 이번 주에 넣을까요?"를 띄운다. 냉동 보관 기간은 식품 안전 수치라 설정값·임시값으로 둔다.
+25. **1인분 단백질 기준을 사용자가 고르기** (B4, A6): 지금 고단백은 30g 고정이다. "20g/30g/40g 이상"처럼 고르게 하면 A6 칼로리 구간 미결과 같은 방식으로 풀 수 있다. 미결 4·5와 함께 정한다.
+26. **즐겨찾기와 지난주 기록**: 저장한 메뉴는 추천에 영향을 주지 않는다는 TapCook 방식이 단순하다. 지난주 메뉴는 다음 주 추천에서 겹치지 않게 하는 데 쓸 수 있다.
+27. **근처 마트 찾기를 무료로** (J1): 카카오·네이버 지도 API 대신 OpenStreetMap Overpass API로 시작할 수 있다. 다만 국내 OSM의 마트·전통시장 데이터가 충분한지 먼저 확인해야 한다.
+28. **장보기 목록 공유** (D6): 웹 공유(Web Share API)나 텍스트 복사로 가족에게 보내기. 가구 공유(12번) 전 단계로 가볍다.
+
+**앱 전환 때 참고**
+- TapCook은 Expo(React Native)로 웹·iOS·안드로이드를 한 코드로 낸다. 우리는 Vite+React 웹이라 앱 전환(J7) 때 웹을 감싸는 방식(Capacitor 등)과 Expo로 옮기는 방식을 비교해야 한다. 오늘 저녁 알림, 체험 종료 알림처럼 기기 알림이 핵심 재방문 장치라는 점도 확인됐다(14번).
+- 화면은 밝은 테마 고정, 글꼴은 Inter와 Schibsted Grotesk 조합이다. 우리 블랙/화이트 방향과 크게 다르지 않다.
+
+### 참고하지 않을 것 (추가)
+- 주간 다시 만들기 횟수 제한(체험판 1회), 구독 결제 화면, 추천인 보상: 수익 모델이라 MVP와 관계없다.
+- 번들 안의 레시피 이름·조리 문구·가격 데이터: 약관과 우리 복사 금지 원칙에 걸려 쓰지 않는다.
+

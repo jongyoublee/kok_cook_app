@@ -25,3 +25,7 @@ dist-ssr
 
 # 참고 영상 (외부 콘텐츠)
 references/
+
+# 환경 변수
+.env
+.env.*

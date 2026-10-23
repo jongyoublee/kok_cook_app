@@ -22,7 +22,7 @@ describe('입력 조건 (A1~A6, I2)', () => {
 
   it('저장 후 불러오면 같은 조건', () => {
     const s = fakeStorage()
-    const c = { ...defaultConditions(today), people: 3, menuCount: 4, diet: 'highProtein' as const, proteins: ['pork' as const], pantry: ['soySauce' as const] }
+    const c = { ...defaultConditions(today), people: 3, menuCount: 4, diet: 'highProtein' as const, proteins: ['pork' as const], carbs: ['potato' as const], pantry: ['soySauce' as const] }
     saveConditions(c, s)
     expect(loadConditions(today, s)).toEqual(c)
   })

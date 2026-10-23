@@ -2,6 +2,9 @@
 // 영양정보는 검수 전 추정치다(verified: false). H3 공공 식품 성분 자료로 다시 계산한다.
 import type { IngredientId } from './ingredients'
 
+// A10 베이스 탄수화물. 반찬·찌개처럼 밥과 함께 먹는 메뉴는 rice
+export type CarbBase = 'rice' | 'noodle' | 'potato' | 'sweetPotato'
+
 // B6 단백질 공급원 분산용
 export type ProteinSource = 'pork' | 'beef' | 'chicken' | 'fish' | 'seafood' | 'tofu' | 'egg' | 'legume'
 
@@ -10,6 +13,7 @@ export type Recipe = {
   name: string
   korean: boolean // A5 한식 분류. 고단백은 태그 없이 영양정보로 판정한다(B4)
   proteinSource: ProteinSource
+  carb: CarbBase
   // C1 1인분 기준 분량. amount는 재료 사전의 unit 기준
   ingredients: { id: IngredientId; amount: number }[]
   steps: string[]
@@ -35,6 +39,7 @@ export const recipes: Recipe[] = [
     name: '돼지고기 고추장볶음',
     korean: true,
     proteinSource: 'pork',
+    carb: 'rice',
     ingredients: [
       { id: 'porkShoulder', amount: 150 },
       { id: 'onion', amount: 50 },
@@ -63,6 +68,7 @@ export const recipes: Recipe[] = [
     name: '소고기 불고기',
     korean: true,
     proteinSource: 'beef',
+    carb: 'rice',
     ingredients: [
       { id: 'beefBulgogi', amount: 150 },
       { id: 'onion', amount: 50 },
@@ -89,6 +95,7 @@ export const recipes: Recipe[] = [
     name: '닭가슴살 간장조림',
     korean: true,
     proteinSource: 'chicken',
+    carb: 'rice',
     ingredients: [
       { id: 'chickenBreast', amount: 180 },
       { id: 'onion', amount: 40 },
@@ -115,6 +122,7 @@ export const recipes: Recipe[] = [
     name: '고등어 김치조림',
     korean: true,
     proteinSource: 'fish',
+    carb: 'rice',
     ingredients: [
       { id: 'mackerel', amount: 150 },
       { id: 'kimchi', amount: 100 },
@@ -140,6 +148,7 @@ export const recipes: Recipe[] = [
     name: '두부 된장찌개',
     korean: true,
     proteinSource: 'tofu',
+    carb: 'rice',
     ingredients: [
       { id: 'tofu', amount: 150 },
       { id: 'zucchini', amount: 60 },
@@ -165,6 +174,7 @@ export const recipes: Recipe[] = [
     name: '애호박 달걀덮밥',
     korean: true,
     proteinSource: 'egg',
+    carb: 'rice',
     ingredients: [
       { id: 'egg', amount: 2 },
       { id: 'zucchini', amount: 100 },
@@ -190,6 +200,7 @@ export const recipes: Recipe[] = [
     name: '닭가슴살 양배추볶음밥',
     korean: false,
     proteinSource: 'chicken',
+    carb: 'rice',
     ingredients: [
       { id: 'chickenBreast', amount: 150 },
       { id: 'cookedRice', amount: 1 },
@@ -215,6 +226,7 @@ export const recipes: Recipe[] = [
     name: '소고기 브로콜리볶음',
     korean: false,
     proteinSource: 'beef',
+    carb: 'rice',
     ingredients: [
       { id: 'beefBulgogi', amount: 150 },
       { id: 'broccoli', amount: 100 },
@@ -232,6 +244,87 @@ export const recipes: Recipe[] = [
     cookMinutes: 15,
     nutrition: { kcal: 420, carbsG: 14, proteinG: 33, fatG: 25, saturatedFatG: 9, sugarG: 5, sodiumMg: 950 },
     storage: { freezable: true, fridgeDays: 3 },
+    verified: false,
+  },
+  {
+    id: 'chicken-tomato-pasta',
+    name: '닭가슴살 토마토 파스타',
+    korean: false,
+    proteinSource: 'chicken',
+    carb: 'noodle',
+    ingredients: [
+      { id: 'chickenBreast', amount: 150 },
+      { id: 'pasta', amount: 70 },
+      { id: 'tomato', amount: 150 },
+      { id: 'onion', amount: 50 },
+      { id: 'garlic', amount: 10 },
+      { id: 'oliveOil', amount: 10 },
+      { id: 'salt', amount: 2 },
+      { id: 'blackPepper', amount: 1 },
+    ],
+    steps: [
+      '끓는 소금물에 면을 봉지 안내 시간보다 1분 짧게 삶고, 면수 반 컵을 남겨 둔다.',
+      '닭가슴살은 한입 크기로, 토마토와 양파는 작게 썬다.',
+      '팬에 올리브유와 마늘을 볶다가 닭고기를 넣어 겉이 하얗게 익을 때까지 볶는다.',
+      '양파와 토마토를 넣고 토마토가 뭉개질 때까지 5분 정도 졸인다.',
+      '면과 면수를 넣고 1분 더 섞으며 졸인 뒤 소금, 후추로 간한다.',
+    ],
+    cookMinutes: 25,
+    nutrition: { kcal: 560, carbsG: 60, proteinG: 44, fatG: 14, saturatedFatG: 2, sugarG: 8, sodiumMg: 700 },
+    storage: { freezable: true, fridgeDays: 3 },
+    verified: false,
+  },
+  {
+    id: 'pork-potato-braise',
+    name: '돼지고기 감자조림',
+    korean: true,
+    proteinSource: 'pork',
+    carb: 'potato',
+    ingredients: [
+      { id: 'porkShoulder', amount: 120 },
+      { id: 'potato', amount: 150 },
+      { id: 'onion', amount: 50 },
+      { id: 'carrot', amount: 40 },
+      { id: 'garlic', amount: 10 },
+      { id: 'soySauce', amount: 20 },
+      { id: 'sugar', amount: 5 },
+      { id: 'cookingOil', amount: 5 },
+    ],
+    steps: [
+      '감자와 당근은 큼직하게, 돼지고기는 한입 크기로 썬다.',
+      '냄비에 식용유를 두르고 고기와 마늘을 볶아 겉면을 익힌다.',
+      '감자, 당근, 양파와 물 1컵, 간장, 설탕을 넣고 끓인다.',
+      '끓어오르면 중약불로 줄여 감자가 젓가락으로 쑥 들어갈 때까지 15분 정도 조린다.',
+    ],
+    cookMinutes: 30,
+    nutrition: { kcal: 510, carbsG: 40, proteinG: 27, fatG: 20, saturatedFatG: 7, sugarG: 9, sodiumMg: 1200 },
+    storage: { freezable: false, fridgeDays: 3 },
+    verified: false,
+  },
+  {
+    id: 'sweet-potato-chicken-bowl',
+    name: '고구마 닭가슴살 구이볼',
+    korean: false,
+    proteinSource: 'chicken',
+    carb: 'sweetPotato',
+    ingredients: [
+      { id: 'chickenBreast', amount: 150 },
+      { id: 'sweetPotato', amount: 150 },
+      { id: 'broccoli', amount: 80 },
+      { id: 'egg', amount: 1 },
+      { id: 'oliveOil', amount: 5 },
+      { id: 'salt', amount: 2 },
+      { id: 'blackPepper', amount: 1 },
+    ],
+    steps: [
+      '고구마는 깍둑 썰어 전자레인지에 5분 익히고, 달걀은 10분 삶는다.',
+      '닭가슴살에 소금, 후추를 뿌리고 올리브유를 두른 팬에서 앞뒤로 노릇하게 굽는다.',
+      '같은 팬에 고구마와 브로콜리를 넣어 겉면이 노릇해질 때까지 굽는다.',
+      '닭고기를 썰어 고구마, 브로콜리, 반으로 자른 달걀과 함께 그릇에 담는다.',
+    ],
+    cookMinutes: 25,
+    nutrition: { kcal: 500, carbsG: 50, proteinG: 46, fatG: 12, saturatedFatG: 3, sugarG: 10, sodiumMg: 600 },
+    storage: { freezable: false, fridgeDays: 3 },
     verified: false,
   },
 ]

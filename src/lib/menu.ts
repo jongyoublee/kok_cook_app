@@ -13,6 +13,7 @@ export function filterCandidates(c: Conditions, pool: Recipe[] = recipes): Recip
   return pool.filter(
     (r) =>
       c.proteins.includes(r.proteinSource) && // A8 먹고 싶은 단백질이 주재료인 메뉴만
+      c.carbs.includes(r.carb) && // A10 먹고 싶은 베이스 탄수화물
       (c.diet === 'korean'
         ? r.korean && r.nutrition.kcal <= c.maxKcal
         : r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= Math.min(maxKcal, c.maxKcal)),

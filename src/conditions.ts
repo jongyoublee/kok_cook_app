@@ -1,8 +1,8 @@
-// A1~A6, A8, A9 입력 조건과 I2 기기 저장.
-// 내 설정(인원, 식단, 먹고 싶은 단백질, 집에 있는 양념)은 처음 한 번 묻고, 날짜·메뉴 개수는 매주 묻는다
+// A1~A6, A8~A10 입력 조건과 I2 기기 저장.
+// 내 설정(인원, 식단, 먹고 싶은 단백질·탄수화물, 집에 있는 양념)은 처음 한 번 묻고, 날짜·메뉴 개수는 매주 묻는다
 import { config } from './config'
 import { ingredients, type IngredientId } from './data/ingredients'
-import type { ProteinSource } from './data/recipes'
+import type { CarbBase, ProteinSource } from './data/recipes'
 import { nextWeek, type ISODate } from './lib/dates'
 
 export type Diet = 'korean' | 'highProtein'
@@ -17,21 +17,32 @@ export type Conditions = {
   diet: Diet
   maxKcal: number
   proteins: ProteinSource[] // A8 먹고 싶은 단백질 (1개 이상)
+  carbs: CarbBase[] // A10 먹고 싶은 베이스 탄수화물 (1개 이상)
   pantry: IngredientId[] // A9 집에 있는 양념
 }
 
 // A8 선택지. 두부·콩은 두 공급원을 함께 고른다
-export const PROTEIN_OPTIONS: { label: string; sources: ProteinSource[] }[] = [
-  { label: '돼지고기', sources: ['pork'] },
-  { label: '소고기', sources: ['beef'] },
-  { label: '닭고기', sources: ['chicken'] },
-  { label: '생선', sources: ['fish'] },
-  { label: '해산물', sources: ['seafood'] },
-  { label: '두부·콩', sources: ['tofu', 'legume'] },
-  { label: '달걀', sources: ['egg'] },
+export const PROTEIN_OPTIONS: { label: string; icon: string; sources: ProteinSource[] }[] = [
+  { label: '돼지고기', icon: '🐷', sources: ['pork'] },
+  { label: '소고기', icon: '🐮', sources: ['beef'] },
+  { label: '닭고기', icon: '🐔', sources: ['chicken'] },
+  { label: '생선', icon: '🐟', sources: ['fish'] },
+  { label: '해산물', icon: '🦐', sources: ['seafood'] },
+  { label: '두부·콩', icon: '🫘', sources: ['tofu', 'legume'] },
+  { label: '달걀', icon: '🥚', sources: ['egg'] },
 ]
 
 export const ALL_PROTEINS = PROTEIN_OPTIONS.flatMap((o) => o.sources)
+
+// A10 선택지
+export const CARB_OPTIONS: { label: string; icon: string; value: CarbBase }[] = [
+  { label: '밥', icon: '🍚', value: 'rice' },
+  { label: '면·파스타', icon: '🍝', value: 'noodle' },
+  { label: '감자', icon: '🥔', value: 'potato' },
+  { label: '고구마', icon: '🍠', value: 'sweetPotato' },
+]
+
+export const ALL_CARBS = CARB_OPTIONS.map((o) => o.value)
 
 // A9 집에 있는지 묻는 재료: 양념 코너
 export const PANTRY_OPTIONS = (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === '양념')
@@ -47,6 +58,7 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   diet: 'korean',
   maxKcal: config.maxKcalPerMeal,
   proteins: ALL_PROTEINS,
+  carbs: ALL_CARBS,
   pantry: [],
 })
 
@@ -84,6 +96,8 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   if (saved.diet === 'korean' || saved.diet === 'highProtein') c.diet = saved.diet
   const proteins = Array.isArray(saved.proteins) ? saved.proteins.filter((p) => ALL_PROTEINS.includes(p)) : []
   if (proteins.length) c.proteins = proteins
+  const carbs = Array.isArray(saved.carbs) ? saved.carbs.filter((v) => ALL_CARBS.includes(v)) : []
+  if (carbs.length) c.carbs = carbs
   if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
   return c
 }

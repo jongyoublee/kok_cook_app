@@ -37,10 +37,15 @@ describe('후보 필터 (B4)', () => {
 describe('먹고 싶은 단백질 (A8)', () => {
   it('고른 단백질이 주재료인 메뉴만 남는다', () => {
     const c = filterCandidates({ ...korean, proteins: ['pork', 'chicken'] })
-    expect(c.map((r) => r.id).sort()).toEqual(['soy-chicken', 'spicy-pork'])
+    expect(c.map((r) => r.id).sort()).toEqual(['pork-potato-braise', 'soy-chicken', 'spicy-pork'])
   })
 
-  it('기본은 전부라 단백질로 거르지 않는다', () => {
+  it('베이스 탄수화물로도 거른다 (A10)', () => {
+    const c = filterCandidates({ ...highProtein, carbs: ['noodle', 'sweetPotato'] })
+    expect(c.map((r) => r.id).sort()).toEqual(['chicken-tomato-pasta', 'sweet-potato-chicken-bowl'])
+  })
+
+  it('기본은 전부라 단백질·탄수화물로 거르지 않는다', () => {
     expect(filterCandidates(korean)).toEqual(recipes.filter((r) => r.korean && r.nutrition.kcal <= korean.maxKcal))
   })
 })

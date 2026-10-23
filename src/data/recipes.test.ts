@@ -23,6 +23,7 @@ describe('레시피 데이터 (H1, H2, C1, C2, C4)', () => {
   it.each(recipes)('$name: 조리 단계, 영양정보, 보관 정보가 채워져 있다', (r) => {
     expect(r.steps.length).toBeGreaterThan(0)
     expect(r.cookMinutes).toBeGreaterThan(0)
+    expect(r.portionG).toBeGreaterThan(0)
     for (const v of Object.values(r.nutrition)) expect(v).toBeGreaterThanOrEqual(0)
     expect(r.storage.fridgeDays).toBeGreaterThan(0)
     expect(r.storage.fridgeDays).toBeLessThanOrEqual(config.foodSafety.fridgeDays)

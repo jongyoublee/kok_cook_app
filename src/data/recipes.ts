@@ -18,6 +18,8 @@ export type Recipe = {
   ingredients: { id: IngredientId; amount: number }[]
   steps: string[]
   cookMinutes: number
+  // 1인분 조리 후 무게(g). 다 만든 뒤 저울로 이만큼씩 나눠 담는다. 검수 전 추정치
+  portionG: number
   // C2 1인분 영양정보. 나트륨만 mg, 나머지는 g
   nutrition: {
     kcal: number
@@ -59,6 +61,7 @@ export const recipes: Recipe[] = [
       '양파와 대파를 넣어 숨이 죽을 만큼만 더 볶고 불을 끈 뒤 참기름을 두른다.',
     ],
     cookMinutes: 25,
+    portionG: 230,
     nutrition: { kcal: 480, carbsG: 22, proteinG: 32, fatG: 28, saturatedFatG: 9, sugarG: 12, sodiumMg: 1100 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
@@ -86,6 +89,7 @@ export const recipes: Recipe[] = [
       '팬에 고기와 채소를 함께 넣고 센 불에서 국물이 졸아들 때까지 볶는다.',
     ],
     cookMinutes: 30,
+    portionG: 220,
     nutrition: { kcal: 450, carbsG: 20, proteinG: 31, fatG: 26, saturatedFatG: 10, sugarG: 13, sodiumMg: 1200 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
@@ -113,6 +117,7 @@ export const recipes: Recipe[] = [
       '브로콜리와 대파를 넣고 한 번 뒤적여 마무리한다.',
     ],
     cookMinutes: 25,
+    portionG: 220,
     nutrition: { kcal: 330, carbsG: 16, proteinG: 44, fatG: 5, saturatedFatG: 1, sugarG: 9, sodiumMg: 1150 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
@@ -139,6 +144,7 @@ export const recipes: Recipe[] = [
       '뚜껑을 덮고 중불에서 15분 끓이다가 양파와 대파를 넣고 5분 더 졸인다.',
     ],
     cookMinutes: 30,
+    portionG: 250,
     nutrition: { kcal: 420, carbsG: 12, proteinG: 31, fatG: 27, saturatedFatG: 6, sugarG: 6, sodiumMg: 1400 },
     storage: { freezable: true, fridgeDays: 2 },
     verified: false,
@@ -165,6 +171,7 @@ export const recipes: Recipe[] = [
       '두부를 넣고 5분 더 끓인 뒤 대파를 올린다.',
     ],
     cookMinutes: 25,
+    portionG: 400,
     nutrition: { kcal: 280, carbsG: 26, proteinG: 18, fatG: 11, saturatedFatG: 2, sugarG: 6, sodiumMg: 1300 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,
@@ -191,6 +198,7 @@ export const recipes: Recipe[] = [
       '데운 밥 위에 올리고 대파와 참기름을 뿌린다.',
     ],
     cookMinutes: 15,
+    portionG: 380,
     nutrition: { kcal: 520, carbsG: 74, proteinG: 19, fatG: 16, saturatedFatG: 4, sugarG: 6, sodiumMg: 800 },
     storage: { freezable: false, fridgeDays: 2 },
     verified: false,
@@ -217,6 +225,7 @@ export const recipes: Recipe[] = [
       '밥을 넣고 간장으로 간한 뒤 달걀을 깨 넣어 고루 섞으며 익힌다.',
     ],
     cookMinutes: 20,
+    portionG: 400,
     nutrition: { kcal: 590, carbsG: 72, proteinG: 46, fatG: 10, saturatedFatG: 3, sugarG: 5, sodiumMg: 750 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
@@ -242,6 +251,7 @@ export const recipes: Recipe[] = [
       '간장을 둘러 볶고 불을 끈 뒤 참기름을 넣는다.',
     ],
     cookMinutes: 15,
+    portionG: 260,
     nutrition: { kcal: 420, carbsG: 14, proteinG: 33, fatG: 25, saturatedFatG: 9, sugarG: 5, sodiumMg: 950 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
@@ -270,6 +280,7 @@ export const recipes: Recipe[] = [
       '면과 면수를 넣고 1분 더 섞으며 졸인 뒤 소금, 후추로 간한다.',
     ],
     cookMinutes: 25,
+    portionG: 380,
     nutrition: { kcal: 560, carbsG: 60, proteinG: 44, fatG: 14, saturatedFatG: 2, sugarG: 8, sodiumMg: 700 },
     storage: { freezable: true, fridgeDays: 3 },
     verified: false,
@@ -297,6 +308,7 @@ export const recipes: Recipe[] = [
       '끓어오르면 중약불로 줄여 감자가 젓가락으로 쑥 들어갈 때까지 15분 정도 조린다.',
     ],
     cookMinutes: 30,
+    portionG: 350,
     nutrition: { kcal: 510, carbsG: 40, proteinG: 27, fatG: 20, saturatedFatG: 7, sugarG: 9, sodiumMg: 1200 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,
@@ -323,6 +335,7 @@ export const recipes: Recipe[] = [
       '닭고기를 썰어 고구마, 브로콜리, 반으로 자른 달걀과 함께 그릇에 담는다.',
     ],
     cookMinutes: 25,
+    portionG: 380,
     nutrition: { kcal: 500, carbsG: 50, proteinG: 46, fatG: 12, saturatedFatG: 3, sugarG: 10, sodiumMg: 600 },
     storage: { freezable: false, fridgeDays: 3 },
     verified: false,

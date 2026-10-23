@@ -2,6 +2,7 @@
 
 // D5 매장 코너
 export type Corner = '채소' | '육류·달걀' | '수산' | '두부·콩' | '곡류' | '양념'
+export const CORNERS: Corner[] = ['채소', '육류·달걀', '수산', '두부·콩', '곡류', '양념']
 
 export type Ingredient = {
   name: string

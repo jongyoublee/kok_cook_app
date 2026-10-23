@@ -1,17 +1,21 @@
-// B1~B3 추천 메뉴 화면 (와이어프레임 2). 예상 금액 막대는 4단계, 예산 안 조합(F1)은 6단계에서 추가한다
+// B1~B3 추천 메뉴 화면 (와이어프레임 2). 메뉴는 App이 들고 있어 레시피 상세에 다녀와도 유지된다.
+// 예상 금액 막대와 예산 안 조합(F1)은 6단계에서 추가한다
 import { useMemo, useState } from 'react'
 import { config } from '../config'
 import { mealCount, type Conditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { formatDay, fromISO, type ISODate } from '../lib/dates'
-import { addMenu, assignDays, buildMenu, filterCandidates, maxMenus, sharedIngredients, swapMenu } from '../lib/menu'
+import type { Recipe } from '../data/recipes'
+import { addMenu, assignDays, filterCandidates, maxMenus, sharedIngredients, swapMenu } from '../lib/menu'
 import { primaryButton } from '../ui'
 
 type Props = {
   conditions: Conditions
+  menu: Recipe[]
+  onChange: (menu: Recipe[]) => void
+  onOpenRecipe: (r: Recipe) => void
+  onConfirm: () => void
   onBack: () => void
-  // A4 사용자가 추가·삭제로 바꾼 메뉴 개수. 다음 주에 이 개수로 시작한다
-  onMenuCountChange: (n: number) => void
 }
 
 // 한 주 안이면 요일만, 넘어가면 날짜까지 표시
@@ -20,12 +24,10 @@ function dayLabel(days: ISODate[], all: ISODate[]) {
   return days.map((d) => (oneWeek ? '일월화수목금토'[fromISO(d).getDay()] : formatDay(d))).join(', ')
 }
 
-export default function MenuScreen({ conditions: c, onBack, onMenuCountChange }: Props) {
+export default function MenuScreen({ conditions: c, menu, onChange: setMenu, onOpenRecipe, onConfirm, onBack }: Props) {
   const candidates = useMemo(() => filterCandidates(c), [c])
   const limit = maxMenus(c, candidates)
-  const [menu, setMenu] = useState(() => buildMenu(candidates, Math.min(c.menuCount, limit), c.pantry))
   const [shown, setShown] = useState<string[][]>([])
-  const [confirmed, setConfirmed] = useState(false)
 
   if (!menu.length)
     return (
@@ -47,7 +49,6 @@ export default function MenuScreen({ conditions: c, onBack, onMenuCountChange }:
   // B3 메뉴 삭제. 최소 개수 아래로는 줄이지 않는다
   const remove = (i: number) => {
     setMenu(menu.filter((_, j) => j !== i))
-    onMenuCountChange(menu.length - 1)
     setShown((s) => s.filter((_, j) => j !== i))
   }
 
@@ -67,16 +68,18 @@ export default function MenuScreen({ conditions: c, onBack, onMenuCountChange }:
       <ul className="flex flex-col gap-3">
         {menu.map((r, i) => (
           <li key={r.id} className="relative flex gap-3 rounded-xl border border-gray-200 p-3 pr-9">
-            <div className="h-20 w-20 shrink-0 rounded-lg bg-gray-100" aria-hidden />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <p className="font-semibold">{r.name}</p>
-              <p className="text-sm text-gray-600">
-                단백질 {r.nutrition.proteinG}g, {r.nutrition.kcal}kcal
-              </p>
-              <p className="text-sm text-gray-600">
-                {dayLabel(days[i], c.dates)} {days[i].length}끼
-              </p>
-            </div>
+            <button type="button" onClick={() => onOpenRecipe(r)} className="flex min-w-0 flex-1 gap-3 text-left">
+              <div className="h-20 w-20 shrink-0 rounded-lg bg-gray-100" aria-hidden />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <p className="font-semibold underline-offset-4 hover:underline">{r.name}</p>
+                <p className="text-sm text-gray-600">
+                  단백질 {r.nutrition.proteinG}g, {r.nutrition.kcal}kcal
+                </p>
+                <p className="text-sm text-gray-600">
+                  {dayLabel(days[i], c.dates)} {days[i].length}끼
+                </p>
+              </div>
+            </button>
             <button
               type="button"
               onClick={() => swap(i)}
@@ -101,11 +104,7 @@ export default function MenuScreen({ conditions: c, onBack, onMenuCountChange }:
 
       <button
         type="button"
-        onClick={() => {
-          const next = addMenu(menu, candidates, c.pantry)
-          setMenu(next)
-          onMenuCountChange(next.length)
-        }}
+        onClick={() => setMenu(addMenu(menu, candidates, c.pantry))}
         disabled={menu.length >= limit}
         className="rounded-xl border border-dashed border-gray-300 py-3 text-sm disabled:opacity-40"
       >
@@ -116,10 +115,11 @@ export default function MenuScreen({ conditions: c, onBack, onMenuCountChange }:
         <p className="text-sm text-gray-600">겹치는 재료: {shared.map((id) => ingredients[id].name).join(', ')}</p>
       )}
 
-      <div className="mt-auto flex flex-col gap-2">
-        {confirmed && <p className="text-center text-sm text-gray-500">레시피와 장보기 목록은 다음 단계에서 준비 중이에요.</p>}
-        <button type="button" onClick={() => setConfirmed(true)} className={primaryButton}>
-          메뉴 확정
+      <p className="text-sm text-gray-500">메뉴를 누르면 레시피를 볼 수 있어요.</p>
+
+      <div className="mt-auto">
+        <button type="button" onClick={onConfirm} className={primaryButton}>
+          메뉴 확정하고 장보기 목록 보기
         </button>
       </div>
     </main>

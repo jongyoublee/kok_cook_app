@@ -1,0 +1,58 @@
+// D4, H4 재료 가격. 판매 단위 1개 기준 원. 참가격 연동 전까지 가짜 데이터를 쓴다.
+// 실제 연동은 priceOf만 바꾸면 된다. 화면에는 "예상 금액"으로만 표시한다
+import type { IngredientId } from './ingredients'
+
+export type PriceSource = (id: IngredientId) => number | undefined
+
+const FAKE_PRICES = {
+  greenOnion: 2500,
+  onion: 3500,
+  garlic: 4000,
+  carrot: 2500,
+  zucchini: 1800,
+  potato: 3500,
+  sweetPotato: 6000,
+  tomato: 5000,
+  cabbage: 2500,
+  broccoli: 2500,
+  kimchi: 6000,
+  porkShoulder: 9000,
+  beefBulgogi: 13000,
+  chickenBreast: 8000,
+  egg: 4000,
+  mackerel: 7000,
+  tofu: 1800,
+  cookedRice: 3500,
+  pasta: 2500,
+  soySauce: 5000,
+  gochujang: 7000,
+  doenjang: 6000,
+  chiliPowder: 9000,
+  sesameOil: 7000,
+  sugar: 2500,
+  salt: 2000,
+  blackPepper: 3500,
+  cookingOil: 5000,
+  oliveOil: 9000,
+  perillaOil: 9000,
+  sesameSeeds: 3500,
+  vinegar: 2500,
+  mirin: 4000,
+  oligosaccharide: 4000,
+  oysterSauce: 5000,
+  fishSauce: 4500,
+  plumSyrup: 8000,
+  tunaSauce: 7000,
+  butter: 9000,
+  ketchup: 3000,
+  mayonnaise: 4500,
+  mustard: 4000,
+  balsamic: 6000,
+  honey: 10000,
+  basil: 3500,
+  oregano: 3500,
+  paprikaPowder: 4000,
+  chickenStock: 5000,
+} satisfies Record<IngredientId, number>
+
+export const priceOf: PriceSource = (id) => FAKE_PRICES[id]

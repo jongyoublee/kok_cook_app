@@ -102,3 +102,9 @@ export function addMenu(menu: Recipe[], candidates: Recipe[], pantry: Ingredient
 // 날짜 순서대로 메뉴를 돌아가며 배정한다(1, 2, 1, 2, 1). 결과는 메뉴별 먹는 날짜
 export const assignDays = (menu: Recipe[], dates: ISODate[]): ISODate[][] =>
   menu.map((_, i) => [...dates].sort().filter((_, d) => d % menu.length === i))
+
+// 조건으로 처음 보여줄 메뉴. 개수는 지난번 개수(c.menuCount)로 시작하되 상한을 넘지 않는다
+export function initialMenu(c: Conditions): Recipe[] {
+  const candidates = filterCandidates(c)
+  return buildMenu(candidates, Math.min(c.menuCount, maxMenus(c, candidates)), c.pantry)
+}

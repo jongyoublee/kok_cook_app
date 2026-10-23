@@ -12,6 +12,7 @@ import { ADVICE, primaryButton } from '../ui'
 type Props = {
   today: ISODate
   initial: Conditions
+  onOpenShopping?: () => void // 확정한 메뉴가 있을 때만
   onSubmit: (c: Conditions) => void
 }
 
@@ -32,7 +33,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-export default function InputScreen({ today, initial, onSubmit }: Props) {
+export default function InputScreen({ today, initial, onOpenShopping, onSubmit }: Props) {
   const [c, setC] = useState(initial)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const set = (patch: Partial<Conditions>) => setC((cur) => ({ ...cur, ...patch }))
@@ -42,7 +43,14 @@ export default function InputScreen({ today, initial, onSubmit }: Props) {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 bg-white px-5 pt-6">
-      <h1 className="text-[26px] font-bold">이번 식단 조건</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-[26px] font-bold">이번 식단 조건</h1>
+        {onOpenShopping && (
+          <button type="button" onClick={onOpenShopping} className="text-sm font-medium underline underline-offset-4">
+            장보기 목록
+          </button>
+        )}
+      </div>
 
       <Section title="먹을 날짜">
         <div className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3">

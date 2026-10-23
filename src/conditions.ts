@@ -69,9 +69,9 @@ export const defaultConditions = (today: ISODate): Conditions => ({
 })
 
 const KEY = 'kokcook.conditions'
-type KV = Pick<Storage, 'getItem' | 'setItem'>
+export type KV = Pick<Storage, 'getItem' | 'setItem'>
 
-const storageOrNull = (): KV | null => {
+export const storageOrNull = (): KV | null => {
   try {
     return globalThis.localStorage ?? null
   } catch {

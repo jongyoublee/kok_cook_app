@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { config } from '../config'
+import { CARB_OPTIONS, PROTEIN_OPTIONS } from '../conditions'
 import { ingredients } from './ingredients'
 import { recipes } from './recipes'
 
@@ -39,5 +40,14 @@ describe('레시피 데이터 (H1, H2, C1, C2, C4)', () => {
     const highProtein = recipes.filter((r) => r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= maxKcal)
     expect(recipes.filter((r) => r.korean).length).toBeGreaterThanOrEqual(config.menuCount.max)
     expect(highProtein.length).toBeGreaterThanOrEqual(config.menuCount.max)
+  })
+
+  // A8, A10 어떤 선택지 하나만 골라도 후보가 0개가 되지 않는다
+  it.each(PROTEIN_OPTIONS)('단백질 $label: 후보 레시피가 2개 이상 있다', ({ sources }) => {
+    expect(recipes.filter((r) => sources.includes(r.proteinSource)).length).toBeGreaterThanOrEqual(2)
+  })
+
+  it.each(CARB_OPTIONS)('탄수화물 $label: 후보 레시피가 2개 이상 있다', ({ value }) => {
+    expect(recipes.filter((r) => r.carb === value).length).toBeGreaterThanOrEqual(2)
   })
 })

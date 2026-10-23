@@ -42,7 +42,13 @@ describe('먹고 싶은 단백질 (A8)', () => {
 
   it('베이스 탄수화물로도 거른다 (A10)', () => {
     const c = filterCandidates({ ...highProtein, carbs: ['noodle', 'sweetPotato'] })
-    expect(c.map((r) => r.id).sort()).toEqual(['chicken-tomato-pasta', 'sweet-potato-chicken-bowl'])
+    expect(c.map((r) => r.id).sort()).toEqual([
+      'chicken-tomato-pasta',
+      'seafood-udon',
+      'shrimp-garlic-pasta',
+      'sweet-potato-chicken-bowl',
+      'tofu-scramble-sweet-potato',
+    ])
   })
 
   it('전부 고르면 단백질·탄수화물로 거르지 않는다', () => {

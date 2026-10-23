@@ -12,7 +12,7 @@ import { budgetOf, budgetVersion, menuCost } from '../lib/budget'
 import { summarizeMenu } from '../lib/nutrition'
 import { OPTION_LABEL, suggestAddition, type MenuOption } from '../lib/options'
 import { servingsOf } from '../lib/shopping'
-import { primaryButton } from '../ui'
+import { primaryButton, won } from '../ui'
 
 type Props = {
   conditions: Conditions
@@ -25,7 +25,6 @@ type Props = {
 }
 
 const sameMenu = (a: Recipe[], b: Recipe[]) => a.map((r) => r.id).sort().join() === b.map((r) => r.id).sort().join()
-const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
 const optionDesc = (o: MenuOption) =>
   o.kind === 'cheap'
     ? `약 ${won(o.cost)}`

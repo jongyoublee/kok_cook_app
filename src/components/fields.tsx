@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { budgetOf, budgetRange } from '../lib/budget'
 import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions } from '../conditions'
 import { ingredients, type IngredientId } from '../data/ingredients'
-import { toggle } from '../ui'
+import { toggle, won } from '../ui'
 
 export type FieldProps = { c: Conditions; set: (patch: Partial<Conditions>) => void }
 
@@ -113,7 +113,6 @@ export function PantryField({ c, set }: FieldProps) {
   )
 }
 
-const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
 
 // A7 예산 슬라이더와 F1 "가장 싸게 구성". 버전 B는 cheapest 없이 슬라이더만 쓴다
 // 범위는 조건에 따라 바뀐다(budgetRange). 아직 정하지 않았으면 범위 중간을 보여준다

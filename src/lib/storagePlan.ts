@@ -1,7 +1,7 @@
 // E1~E3 날짜별 냉장·냉동 분배와 해동 할 일, 조리일 변경
 import { config } from '../config'
 import type { Recipe } from '../data/recipes'
-import { addDays, cookDay, daysBetween, type ISODate } from './dates'
+import { addDays, daysBetween, type ISODate } from './dates'
 import { assignDays } from './menu'
 
 export type Slot = {
@@ -39,6 +39,3 @@ export function cookDateOptions(today: ISODate, dates: ISODate[]): ISODate[] {
   return options
 }
 
-// 저장한 조리일이 지금 날짜 조건에서 고를 수 없으면 기본값(첫 식사일 전날)
-export const effectiveCookDate = (saved: ISODate | undefined, today: ISODate, dates: ISODate[]): ISODate =>
-  saved && cookDateOptions(today, dates).includes(saved) ? saved : cookDay(dates)!

@@ -23,7 +23,8 @@ export const config = {
   coupang: { partners: false },
   // A7 예산 슬라이더 (원). 범위는 조건마다 계산한다: 최소는 가장 싼 조합 금액(step 단위 내림),
   // 최대는 그 금액 × maxMultiplier(step 단위 올림). 처음 값은 범위의 중간. 후보가 없을 때만 fallback 범위
-  budget: { step: 5_000, maxMultiplier: 2.5, fallbackMin: 50_000, fallbackMax: 300_000 },
+  // cheapPool: 가장 싼 조합을 찾을 때 볼 레시피 수(혼자 만들 때 금액이 싼 순). 12개면 메뉴 5개도 792가지
+  budget: { step: 5_000, maxMultiplier: 2.5, fallbackMin: 50_000, fallbackMax: 300_000, cheapPool: 12 },
   // E1 냉장·냉동 분배 방식 (미결). byDate: 날짜 기준안, byMealCount: 끼니 수 기준 초안
   storageSplit: 'byDate' as 'byDate' | 'byMealCount',
   // E4 식품 안전 수치. 공식 기준 확인 전 임시값이므로 화면에 임시값 표시를 붙인다

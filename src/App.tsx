@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { defaultConditions, loadConditions, saveConditions, type Conditions } from './conditions'
 import type { Recipe } from './data/recipes'
 import { followingPeriod, toISO } from './lib/dates'
@@ -6,8 +6,7 @@ import { filterCandidates, maxMenus } from './lib/menu'
 import { budgetOf, budgetVersion } from './lib/budget'
 import { buildMenuOptions, type MenuOption } from './lib/options'
 import { servingsOf } from './lib/shopping'
-import { effectiveCookDate } from './lib/storagePlan'
-import { loadPlan, savePlan, type Plan } from './plan'
+import { confirmPlan, loadPlan, planConditions, planCookDate, savePlan, type Plan } from './plan'
 import InputScreen from './screens/InputScreen'
 import MenuScreen from './screens/MenuScreen'
 import RecipeScreen from './screens/RecipeScreen'
@@ -15,17 +14,27 @@ import SetupScreen from './screens/SetupScreen'
 import ShoppingScreen from './screens/ShoppingScreen'
 import { toggle } from './ui'
 
-const today = toISO(new Date())
 // U02 저장된 조건이 있으면 불러와 조건 화면으로(U03), 없으면 처음 설정부터(U04) (I2)
-const saved = loadConditions(today)
-// I2 확정한 메뉴와 구매 체크
-const savedPlan = loadPlan()
+const openedOn = toISO(new Date())
+const saved = loadConditions(openedOn)
+// I2 확정한 메뉴와 구매 체크. 날짜가 없는 예전 저장값은 지금 조건으로 채운다
+const savedPlan = loadPlan(saved ?? defaultConditions(openedOn))
 
 type Screen = 'setup' | 'input' | 'menu' | 'recipe' | 'shopping'
-const sameMenu = (a: Recipe[], b: Recipe[]) => a.map((r) => r.id).join() === b.map((r) => r.id).join()
 
 export default function App() {
-  const [conditions, setConditions] = useState(saved ?? defaultConditions(today))
+  // 자정을 넘겨 열어 둔 탭도 맞도록, 탭으로 돌아올 때 오늘을 다시 구한다
+  const [today, setToday] = useState(openedOn)
+  useEffect(() => {
+    const refresh = () => setToday(toISO(new Date()))
+    document.addEventListener('visibilitychange', refresh)
+    window.addEventListener('focus', refresh)
+    return () => {
+      document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('focus', refresh)
+    }
+  }, [])
+  const [conditions, setConditions] = useState(saved ?? defaultConditions(openedOn))
   const [screen, setScreen] = useState<Screen>(saved ? 'input' : 'setup')
   const [menu, setMenu] = useState<Recipe[]>(savedPlan?.menu ?? []) // 추천 메뉴 화면에서 고치는 중인 메뉴
   const [options, setOptions] = useState<MenuOption[]>([]) // B1 추천안 3개
@@ -60,8 +69,10 @@ export default function App() {
     )
 
   if (screen === 'recipe' && recipe) {
-    const list = recipe.back === 'shopping' && plan ? plan.menu : menu
-    return <RecipeScreen recipe={recipe.r} servings={servingsOf(list, conditions)[list.indexOf(recipe.r)] ?? conditions.people} onBack={() => setScreen(recipe.back)} />
+    const fromPlan = recipe.back === 'shopping' && plan
+    const list = fromPlan ? plan.menu : menu
+    const c = fromPlan ? planConditions(plan, conditions) : conditions
+    return <RecipeScreen recipe={recipe.r} servings={servingsOf(list, c)[list.indexOf(recipe.r)] ?? c.people} onBack={() => setScreen(recipe.back)} />
   }
 
   if (screen === 'menu')
@@ -77,8 +88,8 @@ export default function App() {
           // A4 사용자가 추가·삭제로 개수를 바꿨을 때만 다음에 그 개수로 시작한다(끼니 수 상한으로 줄어든 경우 제외)
           const start = Math.min(conditions.menuCount, maxMenus(conditions, filterCandidates(conditions)))
           if (menu.length !== start) save({ ...conditions, menuCount: menu.length })
-          // 메뉴가 그대로면 구매 체크를 이어 쓰고, 바뀌었으면 비운다
-          updatePlan({ menu, checked: plan && sameMenu(plan.menu, menu) ? plan.checked : [], cookDate: plan?.cookDate })
+          // 메뉴와 날짜·인원이 그대로면 구매 체크와 조리일을 이어 쓰고, 바뀌었으면 비운다
+          updatePlan(confirmPlan(plan, menu, conditions))
           setScreen('shopping')
         }}
       />
@@ -88,8 +99,8 @@ export default function App() {
     return (
       <ShoppingScreen
         today={today}
-        conditions={conditions}
-        cookDate={effectiveCookDate(plan.cookDate, today, conditions.dates)}
+        conditions={planConditions(plan, conditions)}
+        cookDate={planCookDate(plan)}
         onCookDateChange={(cookDate) => updatePlan({ ...plan, cookDate })}
         menu={plan.menu}
         checked={plan.checked}
@@ -106,7 +117,7 @@ export default function App() {
           setScreen('menu')
         }}
         onPlanNext={() => {
-          setDraft({ ...conditions, dates: followingPeriod(conditions.dates, today) })
+          setDraft({ ...conditions, dates: followingPeriod(plan.dates, today) })
           setScreen('input')
         }}
       />

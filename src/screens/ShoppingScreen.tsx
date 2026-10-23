@@ -11,6 +11,7 @@ import { budgetOf, budgetVersion, suggestSwap } from '../lib/budget'
 import { COUPANG_NOTICE, coupangLink } from '../lib/coupang'
 import { formatDay, type ISODate } from '../lib/dates'
 import { buildShoppingList, servingsOf } from '../lib/shopping'
+import { num } from '../ui'
 
 type Props = {
   today: ISODate
@@ -27,7 +28,6 @@ type Props = {
   onPlanNext: () => void // U33 다음 주 계획하기
 }
 
-const num = (n: number) => n.toLocaleString('ko-KR')
 
 export default function ShoppingScreen(props: Props) {
   const { today, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, onBack, onPlanNext } = props

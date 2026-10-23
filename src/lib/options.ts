@@ -10,6 +10,7 @@ import type { Recipe } from '../data/recipes'
 import {
   combinationCount,
   filterCandidates,
+  forEachCombo,
   fitsSpread,
   greedyCombos,
   maxMenus,
@@ -20,6 +21,7 @@ import {
   scoreOf,
   topCombosBy,
   type Rng,
+  type Spread,
 } from './menu'
 import { buildShoppingList, servingsOf } from './shopping'
 
@@ -73,7 +75,19 @@ const ORDER: Record<MenuOptionKind, (a: Evaluated, b: Evaluated) => number> = {
 // B6·조리법 분산 규칙에 맞는 조합만 쓰고, 맞는 조합이 없으면 규칙을 차례로 푼다.
 // 모두 비교할 수 있으면 한 번 돌면서 겹침 상위, 새로 살 양념이 적은 상위, 고급 재료가 많은 상위를 함께 모으고,
 // 조합이 너무 많으면 탐욕 조합을 쓴다
-function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng: Rng): Recipe[][] {
+// F1, A7 싼 조합 후보: 혼자 만들 때 금액이 싼 레시피 config.budget.cheapPool개 안에서 분산 규칙(spread)에 맞는 모든 조합.
+// 모든 조합의 금액을 다 계산하지 않고도 가장 싼 조합을 거의 정확히 찾는다(예산 범위의 최소와 예산 버전 A 후보에 쓴다).
+// 싼 레시피만으로는 규칙을 지킬 수 없으면 빈 목록
+export function cheapCombos(candidates: Recipe[], count: number, c: Conditions, spread: Spread): Recipe[][] {
+  const soloCost = new Map(candidates.map((r) => [r, buildShoppingList([r], servingsOf([r], c), c.pantry, priceOf).total]))
+  const pool = [...candidates].sort((a, b) => soloCost.get(a)! - soloCost.get(b)!).slice(0, config.budget.cheapPool)
+  const out: Recipe[][] = []
+  forEachCombo(pool, count, c.pantry, (menu) => void out.push([...menu]), spread)
+  return out
+}
+
+// withCheap면(예산 버전 A) 싼 조합 후보도 넣는다. 예산 범위의 최소(lib/budget.budgetRange)가 그 후보 기준이라서다
+function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng: Rng, withCheap: boolean): Recipe[][] {
   const { maxCombos, keep } = config.menuSearch
   const exhaustive = combinationCount(candidates.length, count) <= maxCombos
   for (const spread of relaxations(menuSpread(c.proteins, count))) {
@@ -83,7 +97,9 @@ function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng
           (overlap, missing) => overlap / 100 - missing,
           // 한 주 플렉스 후보: 고급 재료 메뉴가 많은 조합
           (overlap, _, menu) => menu.filter((r) => premiumOf(r).length).length * 100 + overlap,
-        ], spread).flatMap((list) => list.map((x) => x.menu))
+        ], spread)
+          .flatMap((list) => list.map((x) => x.menu))
+          .concat(withCheap ? cheapCombos(candidates, count, c, spread) : [])
       : greedyCombos(candidates, count, c.pantry, rng, spread)
     const fit = combos.filter((m) => m.length === count && fitsSpread(m, spread))
     if (fit.length) return [...new Map(fit.map((m) => [key(m), m])).values()]
@@ -98,7 +114,7 @@ export function buildMenuOptions(c: Conditions, budget?: number, rng: Rng = Math
   const count = Math.min(c.menuCount, maxMenus(c, candidates))
   if (!count) return { options: [], overBudget: false }
   // 같은 순위끼리는 무작위 순서가 되도록 먼저 섞는다 (매번 같은 메뉴만 나오지 않게)
-  const pool = candidateCombos(candidates, count, c, rng)
+  const pool = candidateCombos(candidates, count, c, rng, budget !== undefined)
     .map((m) => ({ m, r: rng() }))
     .sort((a, b) => a.r - b.r)
     .map(({ m }) => evaluate(m, c))

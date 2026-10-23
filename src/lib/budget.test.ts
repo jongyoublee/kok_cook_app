@@ -52,17 +52,19 @@ describe('버전 전환과 쿠팡 링크 (F3, G1)', () => {
 })
 
 describe('예산 범위 (A7)', () => {
-  const cheapestCost = (cond: typeof c) => buildMenuOptions({ ...cond, cheapest: true }, undefined, () => 0).options[0].cost
-  const { step, maxMultiplier } = config.budget
+  const { step } = config.budget
 
-  it('가장 싼 조합 금액(내림)부터 그 배수(올림)까지', () => {
-    const r = budgetRange(c)
-    const cheapest = cheapestCost(c)
-    expect(r.min).toBe(Math.floor(cheapest / step) * step)
-    expect(r.max).toBe(Math.ceil((cheapest * maxMultiplier) / step) * step)
-    expect(r.min).toBeLessThanOrEqual(cheapest)
+  // 메뉴 5개는 싼 레시피만으로 분산 규칙을 못 지켜 느린 길(추천안 전체 계산)로 간다
+  it.each([2, 3, 5])('메뉴 %i개: 최소는 가장 싼 조합 금액(올림) 이하이고, 최소 예산으로도 예산 안 추천안이 나온다', (menuCount) => {
+    const cond = { ...c, menuCount }
+    const r = budgetRange(cond)
+    const cheapest = buildMenuOptions({ ...cond, cheapest: true }, undefined, () => 0).options[0].cost
+    // 싼 조합 후보가 추천안 전체보다 더 싼 조합을 찾으면 최소가 더 낮을 수는 있다
+    expect(r.min).toBeLessThanOrEqual(Math.ceil(cheapest / step) * step)
     expect(r.min % step).toBe(0)
     expect(r.max % step).toBe(0)
+    expect(r.max).toBeGreaterThan(r.min)
+    expect(buildMenuOptions(cond, r.min, () => 0).overBudget).toBe(false)
   })
 
   it('인원이 늘면 범위도 커진다', () => {

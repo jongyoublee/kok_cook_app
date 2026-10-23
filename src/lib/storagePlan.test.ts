@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { config } from '../config'
 import { recipes } from '../data/recipes'
 import { nextWeek } from './dates'
-import { cookDateOptions, effectiveCookDate, fridgeLimit, schedule, thawDate } from './storagePlan'
+import { cookDateOptions, fridgeLimit, schedule, thawDate } from './storagePlan'
 
 const today = '2026-10-22'
 const weekdays = nextWeek(today, true) // 10/26(월)~10/30(금)
@@ -67,9 +67,4 @@ describe('해동과 조리일 (E1, E3)', () => {
     expect(cookDateOptions('2026-10-26', weekdays)).toEqual([])
   })
 
-  it('저장한 조리일을 고를 수 없게 되면 첫 식사일 전날', () => {
-    expect(effectiveCookDate('2026-10-23', today, weekdays)).toBe('2026-10-23')
-    expect(effectiveCookDate('2026-10-27', today, weekdays)).toBe(cook)
-    expect(effectiveCookDate(undefined, today, weekdays)).toBe(cook)
-  })
 })

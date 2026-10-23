@@ -2,6 +2,7 @@
 import { config } from '../config'
 import { ingredients } from '../data/ingredients'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
+import { num } from '../ui'
 
 type Props = {
   recipe: Recipe
@@ -9,7 +10,6 @@ type Props = {
   onBack: () => void
 }
 
-const num = (n: number) => n.toLocaleString('ko-KR')
 
 export default function RecipeScreen({ recipe: r, servings, onBack }: Props) {
   const n = r.nutrition

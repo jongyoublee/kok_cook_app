@@ -10,7 +10,7 @@ import { addMenu, assignDays, filterCandidates, maxMenus, sharedIngredients, swa
 import { CostBar, Tile } from '../components/fields'
 import { budgetVersion, menuCost } from '../lib/budget'
 import { summarizeMenu } from '../lib/nutrition'
-import { OPTION_LABEL, type MenuOption } from '../lib/options'
+import { OPTION_LABEL, suggestAddition, type MenuOption } from '../lib/options'
 import { servingsOf } from '../lib/shopping'
 import { primaryButton } from '../ui'
 
@@ -39,6 +39,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
   const candidates = useMemo(() => filterCandidates(c), [c])
   const limit = maxMenus(c, candidates)
   const [shown, setShown] = useState<string[][]>([])
+  const [dismissed, setDismissed] = useState<string[]>([]) // '괜찮아요'를 누른 추가 제안 (메뉴 조합별)
 
   if (!menu.length)
     return (
@@ -51,6 +52,9 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
   const days = assignDays(menu, c.dates)
   const shared = sharedIngredients(menu)
   // A6 1인 기준 칼로리 요약. 메뉴별 1인 끼니 수 = 만들 인분 ÷ 인원
+  // B3, D3 확정 전 추가 제안. 버전 A면 예산 안에서만
+  const suggestion = suggestAddition(menu, c, budgetVersion() === 'A')
+  const suggestionKey = suggestion ? `${menu.map((r) => r.id).join()}+${suggestion.recipe.id}` : ''
   const kcal = summarizeMenu(menu, servingsOf(menu, c).map((n) => n / c.people))
 
   const swap = (i: number) => {
@@ -163,6 +167,34 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
       )}
 
       <p className="text-sm text-gray-500">메뉴를 누르면 레시피를 볼 수 있어요.</p>
+
+      {suggestion && !dismissed.includes(suggestionKey) && (
+        <section className="rounded-xl border border-black p-4">
+          <p className="text-sm font-semibold">이 레시피는 어떤가요?</p>
+          <button type="button" onClick={() => onOpenRecipe(suggestion.recipe)} className="mt-2 text-left">
+            <p className="font-semibold underline underline-offset-4">{suggestion.recipe.name}</p>
+            <p className="text-xs text-gray-400">
+              {FLAVOR_LABEL[suggestion.recipe.flavor]} · {METHOD_LABEL[suggestion.recipe.method]}
+            </p>
+          </button>
+          {suggestion.leftovers.length > 0 && (
+            <p className="mt-1 text-sm text-gray-600">
+              남는 {suggestion.leftovers.map((l) => `${l.name} ${l.amount.toLocaleString('ko-KR')}${l.unit}`).join(', ')}을 써요
+            </p>
+          )}
+          <p className="text-sm text-gray-600">
+            {suggestion.extraCost > 0 ? `추가 예상 금액 약 ${won(suggestion.extraCost)}` : '예상 금액이 늘지 않아요'}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button type="button" onClick={() => setMenu([...menu, suggestion.recipe])} className="flex-1 rounded-lg bg-black py-2 text-sm font-semibold text-white">
+              메뉴에 추가
+            </button>
+            <button type="button" onClick={() => setDismissed([...dismissed, suggestionKey])} className="rounded-lg border border-gray-200 px-4 py-2 text-sm">
+              괜찮아요
+            </button>
+          </div>
+        </section>
+      )}
 
       <div className="mt-auto">
         <button type="button" onClick={onConfirm} className={primaryButton}>

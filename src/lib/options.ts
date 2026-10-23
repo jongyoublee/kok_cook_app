@@ -74,3 +74,41 @@ export function buildMenuOptions(c: Conditions, useBudget: boolean, rng: Rng = M
   }
   return { options, overBudget: false }
 }
+
+export type AddSuggestion = {
+  recipe: Recipe
+  extraCost: number // 메뉴를 더했을 때 예상 금액이 늘어나는 양 (남는 재료를 쓰면 작아진다)
+  leftovers: { name: string; amount: number; unit: string }[] // 지금 장보기에서 남는데 이 메뉴가 쓰는 주재료
+}
+
+// 주재료 코너. 양념·채소는 남는 재료 안내에서 뺀다
+const MAIN_CORNERS = new Set(['육류·달걀', '수산', '두부·콩'])
+
+// B3, D3, F1 "이 레시피는 어떤가요?" 지금 메뉴와 같은 단백질을 쓰면서 맛 계열이 다른 메뉴 하나를 더해 보자고 제안한다.
+// 메뉴를 더했다고 보고 장보기와 먹는 날짜를 다시 계산해 늘어나는 금액이 가장 적은 메뉴를 고른다.
+// useBudget이면(버전 A) 더한 뒤에도 예산 안이어야 한다. 더할 수 없으면 null
+export function suggestAddition(menu: Recipe[], c: Conditions, useBudget: boolean): AddSuggestion | null {
+  const candidates = filterCandidates(c)
+  if (!menu.length || menu.length >= maxMenus(c, candidates)) return null
+  const now = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
+  const proteins = new Set(menu.map((r) => r.proteinSource))
+  const flavors = new Set(menu.map((r) => r.flavor))
+
+  const scored = candidates
+    .filter((r) => !menu.includes(r) && proteins.has(r.proteinSource) && !flavors.has(r.flavor))
+    .map((r) => {
+      const next = [...menu, r]
+      const cost = buildShoppingList(next, servingsOf(next, c), c.pantry, priceOf).total
+      return { r, cost, extraCost: cost - now.total, overlap: overlapScore(next) }
+    })
+    .filter((x) => !useBudget || c.cheapest || x.cost <= c.budget)
+    .sort((a, b) => a.extraCost - b.extraCost || b.overlap - a.overlap)
+  const pick = scored[0]
+  if (!pick) return null
+
+  const uses = new Set(pick.r.ingredients.map((i) => i.id))
+  const leftovers = now.items
+    .filter((it) => uses.has(it.id) && it.leftover > 0 && MAIN_CORNERS.has(it.corner))
+    .map((it) => ({ name: it.name, amount: it.leftover, unit: it.unit }))
+  return { recipe: pick.r, extraCost: pick.extraCost, leftovers }
+}

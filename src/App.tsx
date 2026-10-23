@@ -10,7 +10,7 @@ const today = toISO(new Date())
 const saved = loadConditions(today)
 
 export default function App() {
-  const [conditions, setConditions] = useState(saved ?? defaultConditions(today))
+  const [conditions, setConditions] = useState(saved ?? { ...defaultConditions(today), proteins: [] })
   const [hasProfile, setHasProfile] = useState(saved !== null)
   const [screen, setScreen] = useState<'setup' | 'input' | 'menu'>(saved ? 'input' : 'setup')
 

@@ -1,10 +1,10 @@
 // 이번 주 조건 화면 (와이어프레임 1-1): A2 식사 날짜, A3 끼니 수, A4 메뉴 개수.
-// 인원·식단·안 먹는 단백질·집에 있는 양념은 내 설정(SetupScreen)에서 받고 여기서는 요약만 보여준다.
+// 인원·식단·먹고 싶은 단백질·집에 있는 양념은 내 설정(SetupScreen)에서 받고 여기서는 요약만 보여준다.
 // 예산 입력(A7)은 6단계에서 추가한다
 import { useState } from 'react'
 import CalendarSheet from '../components/CalendarSheet'
 import { config } from '../config'
-import { mealCount, PROTEIN_OPTIONS, type Conditions } from '../conditions'
+import { ALL_PROTEINS, mealCount, PROTEIN_OPTIONS, type Conditions } from '../conditions'
 import { cookDay, formatDay, nextWeek, type ISODate } from '../lib/dates'
 import { ADVICE, chip, primaryButton } from '../ui'
 
@@ -24,11 +24,11 @@ function dateLabel(dates: ISODate[], today: ISODate) {
 }
 
 function profileSummary(c: Conditions) {
-  const excluded = PROTEIN_OPTIONS.filter((o) => o.sources.every((s) => c.excludeProteins.includes(s))).map((o) => o.label)
+  const proteins = PROTEIN_OPTIONS.filter((o) => o.sources.every((s) => c.proteins.includes(s))).map((o) => o.label)
   return [
     `${c.people}명`,
     `${c.diet === 'korean' ? '한식' : '고단백'} · 한 끼 ${c.maxKcal}kcal 이하`,
-    excluded.length ? `${excluded.join('·')} 빼고` : '단백질 다 먹어요',
+    c.proteins.length === ALL_PROTEINS.length ? '단백질 전부' : proteins.join('·'),
     `집에 있는 양념 ${c.pantry.length}개`,
   ]
 }

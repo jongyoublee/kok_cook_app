@@ -1,7 +1,7 @@
-// 내 설정: A1 인원, A5·A6 식단, A8 안 먹는 단백질, A9 집에 있는 양념.
+// 내 설정: A1 인원, A5·A6 식단, A8 먹고 싶은 단백질, A9 집에 있는 양념.
 // 처음 한 번 질문 하나씩 묻고 저장한다. 이후에는 이번 주 조건 화면에서 "변경"으로 다시 연다
 import { useState } from 'react'
-import { PANTRY_OPTIONS, PROTEIN_OPTIONS, type Conditions, type Diet } from '../conditions'
+import { ALL_PROTEINS, PANTRY_OPTIONS, PROTEIN_OPTIONS, type Conditions, type Diet } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { filterCandidates } from '../lib/menu'
 import { ADVICE, chip, primaryButton, toggle } from '../ui'
@@ -58,24 +58,26 @@ export default function SetupScreen({ initial, onDone, onCancel }: Props) {
       {step === 2 && (
         <section className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold">안 먹는 단백질이 있나요?</h1>
-            <p className="mt-1 text-sm text-gray-500">고른 재료가 들어간 메뉴는 빼고 추천해요.</p>
+            <h1 className="text-2xl font-bold">어떤 단백질을 먹고 싶나요?</h1>
+            <p className="mt-1 text-sm text-gray-500">고른 재료가 주재료인 메뉴로 추천해요. 여러 개 고를 수 있어요.</p>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {PROTEIN_OPTIONS.map(({ label, sources }) => {
-              const on = sources.every((s) => c.excludeProteins.includes(s))
-              const next = on ? c.excludeProteins.filter((p) => !sources.includes(p)) : [...c.excludeProteins, ...sources]
+              const on = sources.every((s) => c.proteins.includes(s))
+              const next = on ? c.proteins.filter((p) => !sources.includes(p)) : [...c.proteins, ...sources]
               return (
-                <button key={label} type="button" aria-pressed={on} onClick={() => set({ excludeProteins: next })} className={chip(on)}>
+                <button key={label} type="button" aria-pressed={on} onClick={() => set({ proteins: next })} className={chip(on)}>
                   {label}
                 </button>
               )
             })}
           </div>
-          <button type="button" aria-pressed={!c.excludeProteins.length} onClick={() => set({ excludeProteins: [] })} className={chip(!c.excludeProteins.length)}>
-            다 먹어요
+          <button type="button" aria-pressed={c.proteins.length === ALL_PROTEINS.length} onClick={() => set({ proteins: ALL_PROTEINS })} className={chip(c.proteins.length === ALL_PROTEINS.length)}>
+            전부 좋아요
           </button>
-          <p className={`text-sm ${candidates < 2 ? 'text-orange-600' : 'text-gray-500'}`}>조건에 맞는 메뉴 {candidates}개</p>
+          <p className={`text-sm ${candidates < 2 ? 'text-orange-600' : 'text-gray-500'}`}>
+            {c.proteins.length ? `조건에 맞는 메뉴 ${candidates}개` : '1개 이상 골라 주세요'}
+          </p>
         </section>
       )}
 
@@ -95,7 +97,12 @@ export default function SetupScreen({ initial, onDone, onCancel }: Props) {
         </section>
       )}
 
-      <button type="button" onClick={() => (step < STEPS - 1 ? setStep(step + 1) : onDone(c))} className={`${primaryButton} mt-auto`}>
+      <button
+        type="button"
+        onClick={() => (step < STEPS - 1 ? setStep(step + 1) : onDone(c))}
+        disabled={step === 2 && !candidates}
+        className={`${primaryButton} mt-auto`}
+      >
         {step < STEPS - 1 ? '다음' : '완료'}
       </button>
     </main>

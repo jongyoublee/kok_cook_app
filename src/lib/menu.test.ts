@@ -34,19 +34,14 @@ describe('후보 필터 (B4)', () => {
   })
 })
 
-describe('안 먹는 단백질 (A8)', () => {
-  it('주재료가 그 단백질이면 뺀다', () => {
-    const ids = filterCandidates({ ...korean, excludeProteins: ['pork', 'beef'] }).map((r) => r.id)
-    expect(ids).not.toContain('spicy-pork')
-    expect(ids).not.toContain('beef-bulgogi')
-    expect(ids).toContain('soy-chicken')
+describe('먹고 싶은 단백질 (A8)', () => {
+  it('고른 단백질이 주재료인 메뉴만 남는다', () => {
+    const c = filterCandidates({ ...korean, proteins: ['pork', 'chicken'] })
+    expect(c.map((r) => r.id).sort()).toEqual(['soy-chicken', 'spicy-pork'])
   })
 
-  it('주재료가 아니어도 재료에 들어 있으면 뺀다', () => {
-    const withEgg = filterCandidates(korean).filter((r) => r.ingredients.some((i) => i.id === 'egg'))
-    const noEgg = filterCandidates({ ...korean, excludeProteins: ['egg'] })
-    expect(withEgg.length).toBeGreaterThan(0)
-    for (const r of withEgg) expect(noEgg).not.toContain(r)
+  it('기본은 전부라 단백질로 거르지 않는다', () => {
+    expect(filterCandidates(korean)).toEqual(recipes.filter((r) => r.korean && r.nutrition.kcal <= korean.maxKcal))
   })
 })
 

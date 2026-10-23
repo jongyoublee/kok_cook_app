@@ -1,26 +1,18 @@
 // B1~B4 메뉴 자동 구성: 조건으로 후보를 거른 뒤(U09) 재료가 겹치는 조합을 우선 고른다(U10)
 import { config } from '../config'
 import { mealCount, type Conditions } from '../conditions'
-import { ingredients, type Ingredient, type IngredientId } from '../data/ingredients'
+import { ingredients, type IngredientId } from '../data/ingredients'
 import { recipes, type Recipe } from '../data/recipes'
 import type { ISODate } from './dates'
 
 export type Rng = () => number
-
-// A8 안 먹는 단백질이 주재료이거나 재료에 들어 있으면 뺀다
-const hasExcludedProtein = (r: Recipe, exclude: Conditions['excludeProteins']) =>
-  exclude.includes(r.proteinSource) ||
-  r.ingredients.some(({ id }) => {
-    const { protein: p }: Ingredient = ingredients[id]
-    return p !== undefined && exclude.includes(p)
-  })
 
 // B4 한식은 분류와 칼로리 상한, 고단백은 단백질·칼로리 기준으로 거른다
 export function filterCandidates(c: Conditions, pool: Recipe[] = recipes): Recipe[] {
   const { minProteinG, maxKcal } = config.highProtein
   return pool.filter(
     (r) =>
-      !hasExcludedProtein(r, c.excludeProteins) &&
+      c.proteins.includes(r.proteinSource) && // A8 먹고 싶은 단백질이 주재료인 메뉴만
       (c.diet === 'korean'
         ? r.korean && r.nutrition.kcal <= c.maxKcal
         : r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= Math.min(maxKcal, c.maxKcal)),

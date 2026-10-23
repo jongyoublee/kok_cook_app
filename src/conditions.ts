@@ -1,5 +1,5 @@
 // A1~A6, A8, A9 입력 조건과 I2 기기 저장.
-// 내 설정(인원, 식단, 안 먹는 단백질, 집에 있는 양념)은 처음 한 번 묻고, 날짜·메뉴 개수는 매주 묻는다
+// 내 설정(인원, 식단, 먹고 싶은 단백질, 집에 있는 양념)은 처음 한 번 묻고, 날짜·메뉴 개수는 매주 묻는다
 import { config } from './config'
 import { ingredients, type IngredientId } from './data/ingredients'
 import type { ProteinSource } from './data/recipes'
@@ -16,11 +16,11 @@ export type Conditions = {
   menuCount: number
   diet: Diet
   maxKcal: number
-  excludeProteins: ProteinSource[] // A8 안 먹는 단백질
+  proteins: ProteinSource[] // A8 먹고 싶은 단백질 (1개 이상)
   pantry: IngredientId[] // A9 집에 있는 양념
 }
 
-// A8 선택지. 두부·콩은 두 공급원을 함께 뺀다
+// A8 선택지. 두부·콩은 두 공급원을 함께 고른다
 export const PROTEIN_OPTIONS: { label: string; sources: ProteinSource[] }[] = [
   { label: '돼지고기', sources: ['pork'] },
   { label: '소고기', sources: ['beef'] },
@@ -30,6 +30,8 @@ export const PROTEIN_OPTIONS: { label: string; sources: ProteinSource[] }[] = [
   { label: '두부·콩', sources: ['tofu', 'legume'] },
   { label: '달걀', sources: ['egg'] },
 ]
+
+export const ALL_PROTEINS = PROTEIN_OPTIONS.flatMap((o) => o.sources)
 
 // A9 집에 있는지 묻는 재료: 양념 코너
 export const PANTRY_OPTIONS = (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === '양념')
@@ -44,7 +46,7 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   menuCount: config.menuCount.default,
   diet: 'korean',
   maxKcal: config.maxKcalPerMeal,
-  excludeProteins: [],
+  proteins: ALL_PROTEINS,
   pantry: [],
 })
 
@@ -80,8 +82,8 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   if (Number.isInteger(saved.people) && saved.people! >= 1) c.people = saved.people!
   if (Number.isInteger(saved.menuCount) && saved.menuCount! >= min && saved.menuCount! <= max) c.menuCount = saved.menuCount!
   if (saved.diet === 'korean' || saved.diet === 'highProtein') c.diet = saved.diet
-  const proteins = PROTEIN_OPTIONS.flatMap((o) => o.sources)
-  if (Array.isArray(saved.excludeProteins)) c.excludeProteins = saved.excludeProteins.filter((p) => proteins.includes(p))
+  const proteins = Array.isArray(saved.proteins) ? saved.proteins.filter((p) => ALL_PROTEINS.includes(p)) : []
+  if (proteins.length) c.proteins = proteins
   if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
   return c
 }

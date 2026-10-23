@@ -22,7 +22,7 @@ describe('입력 조건 (A1~A6, I2)', () => {
 
   it('저장 후 불러오면 같은 조건', () => {
     const s = fakeStorage()
-    const c = { ...defaultConditions(today), people: 3, menuCount: 4, diet: 'highProtein' as const, excludeProteins: ['pork' as const], pantry: ['soySauce' as const] }
+    const c = { ...defaultConditions(today), people: 3, menuCount: 4, diet: 'highProtein' as const, proteins: ['pork' as const], pantry: ['soySauce' as const] }
     saveConditions(c, s)
     expect(loadConditions(today, s)).toEqual(c)
   })
@@ -34,14 +34,16 @@ describe('입력 조건 (A1~A6, I2)', () => {
   })
 
   it('지난 날짜는 버리고, 모두 지났으면 기본 날짜, 잘못된 값은 기본값', () => {
-    const raw = JSON.stringify({ dates: ['2026-10-01', '2026-10-23'], people: 0, menuCount: 9, diet: 'x', excludeProteins: ['pork', 'x'], pantry: ['soySauce', 'tofu', 'x'] })
+    const raw = JSON.stringify({ dates: ['2026-10-01', '2026-10-23'], people: 0, menuCount: 9, diet: 'x', proteins: ['pork', 'x'], pantry: ['soySauce', 'tofu', 'x'] })
     const c = loadConditions(today, fakeStorage(raw))!
     expect(c.dates).toEqual(['2026-10-23'])
     expect(c.people).toBe(1)
     expect(c.menuCount).toBe(config.menuCount.default)
     expect(c.diet).toBe('korean')
-    expect(c.excludeProteins).toEqual(['pork'])
+    expect(c.proteins).toEqual(['pork'])
     expect(c.pantry).toEqual(['soySauce']) // 두부는 양념이 아니라 버린다
-    expect(loadConditions(today, fakeStorage(JSON.stringify({ dates: ['2026-10-01'] })))!.dates).toEqual(defaultConditions(today).dates)
+    const old = loadConditions(today, fakeStorage(JSON.stringify({ dates: ['2026-10-01'], proteins: ['x'] })))!
+    expect(old.dates).toEqual(defaultConditions(today).dates)
+    expect(old.proteins).toEqual(defaultConditions(today).proteins) // 남는 단백질이 없으면 전부
   })
 })

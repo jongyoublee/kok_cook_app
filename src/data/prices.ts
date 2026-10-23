@@ -44,7 +44,7 @@ const FAKE_PRICES = {
   doenjang: 6000,
   chiliPowder: 9000,
   sesameOil: 7000,
-  sugar: 2500,
+  allulose: 5000,
   salt: 2000,
   blackPepper: 3500,
   cookingOil: 5000,

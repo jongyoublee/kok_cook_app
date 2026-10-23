@@ -12,7 +12,7 @@ const byId = (id: string) => recipes.find((r) => r.id === id)!
 const pork = byId('spicy-pork') // 냉동 가능, 냉장 3일
 const bulgogi = byId('beef-bulgogi') // 냉동 가능, 냉장 3일
 const mackerel = byId('mackerel-kimchi') // 냉동 가능, 냉장 2일
-const stew = byId('tofu-doenjang-stew') // 냉동 비추천, 냉장 3일
+const stew = byId('braised-tofu') // 냉동 비추천, 냉장 3일
 
 describe('냉장·냉동 분배, 날짜 기준안 (E1)', () => {
   it('조리일부터 냉장 일수 안은 냉장, 넘으면 냉동', () => {

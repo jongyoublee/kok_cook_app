@@ -52,7 +52,7 @@ export const ingredients = {
   doenjang: { name: '된장', unit: 'g', corner: '양념', saleUnit: { amount: 500, label: '1통(500g)' } },
   chiliPowder: { name: '고춧가루', unit: 'g', corner: '양념', saleUnit: { amount: 200, label: '1봉(200g)' } },
   sesameOil: { name: '참기름', unit: 'ml', corner: '양념', saleUnit: { amount: 160, label: '1병(160ml)' } },
-  sugar: { name: '설탕', unit: 'g', corner: '양념', saleUnit: { amount: 1000, label: '1봉(1kg)' } },
+  allulose: { name: '알룰로스', unit: 'g', corner: '양념', saleUnit: { amount: 500, label: '1병(500g)' } },
   salt: { name: '소금', unit: 'g', corner: '양념', saleUnit: { amount: 500, label: '1봉(500g)' } },
   blackPepper: { name: '후추', unit: 'g', corner: '양념', saleUnit: { amount: 50, label: '1통(50g)' } },
   cookingOil: { name: '식용유', unit: 'ml', corner: '양념', saleUnit: { amount: 900, label: '1병(900ml)' } },

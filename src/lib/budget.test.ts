@@ -3,12 +3,17 @@ import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { recipes } from '../data/recipes'
 import { budgetVersion, buildMenuInBudget, menuCost, suggestSwap } from './budget'
 import { coupangSearchUrl } from './coupang'
-import { filterCandidates, greedyCombos } from './menu'
+import { filterCandidates, greedyCombos, searchCombos } from './menu'
 
 const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }
 const first = () => 0
-const costs = (cond: typeof c) => greedyCombos(filterCandidates(cond), cond.menuCount, cond.pantry, first).map((m) => menuCost(m, cond))
+// buildMenuInBudget과 같은 후보 조합(점수 상위 + 탐욕)의 예상 금액
+const costs = (cond: typeof c) => {
+  const pool = filterCandidates(cond)
+  return [...searchCombos(pool, cond.menuCount, cond.pantry, first), ...greedyCombos(pool, cond.menuCount, cond.pantry, first)].map((m) => menuCost(m, cond))
+}
+const greedyCosts = (cond: typeof c) => greedyCombos(filterCandidates(cond), cond.menuCount, cond.pantry, first).map((m) => menuCost(m, cond))
 
 describe('예산 버전 A (F1)', () => {
   it('예산 안에 드는 조합을 고른다', () => {
@@ -27,6 +32,8 @@ describe('예산 버전 A (F1)', () => {
   it('가장 싸게 구성은 예산과 상관없이 가장 싼 조합', () => {
     const { menu } = buildMenuInBudget({ ...c, cheapest: true, budget: 300_000 }, first)
     expect(menuCost(menu, c)).toBe(Math.min(...costs(c)))
+    // 모든 조합을 비교하므로 탐욕 선택만 쓸 때보다 비싸지지 않는다 (B1)
+    expect(menuCost(menu, c)).toBeLessThanOrEqual(Math.min(...greedyCosts(c)))
   })
 
   it('집에 있는 양념은 예상 금액에서 빠진다', () => {

@@ -114,8 +114,8 @@ export function PantryField({ c, set }: FieldProps) {
 }
 
 const DIETS: { value: Diet; label: string; desc: string }[] = [
-  { value: 'korean', label: '한식', desc: '집밥 같은 한식 메뉴' },
-  { value: 'highProtein', label: '고단백', desc: '1인분 단백질 30g 이상' },
+  { value: 'hearty', label: '든든한 한 끼', desc: '모든 메뉴에서 골라요' },
+  { value: 'light', label: '가벼운 한 끼', desc: `단백질 ${config.highProtein.minProteinG}g 이상 메뉴만` },
 ]
 
 // A5, A6

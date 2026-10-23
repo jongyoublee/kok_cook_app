@@ -1,11 +1,14 @@
 // 설정값은 모두 여기서 읽는다 (CLAUDE.md "설정값으로 분리할 것").
 export const config = {
-  // B4 고단백 기준: 1인분 단백질 30g 이상, 600kcal 이하
+  // B4 고단백 기준: 1인분 단백질 30g 이상, 600kcal 이하. '가벼운 한 끼'(A5)가 이 기준으로 거른다
   highProtein: { minProteinG: 30, maxKcal: 600 },
   // C2 밥과 함께 먹는 메뉴(베이스 탄수화물이 밥)는 영양정보에 쌀밥을 이만큼 더한다
   riceWithMeal: { grams: 150 },
   // A6 한 끼 칼로리 상한. 선택 구간 값은 미결
   maxKcalPerMeal: 600,
+  // B1 메뉴 조합 탐색. 조합 수가 maxCombos 이하면 모두 비교하고, 넘으면 탐욕 선택으로 돌아간다.
+  // keep: 예산 계산(F1)에 넘길 상위 조합 수. missingSeasoningPenalty: 새로 살 양념 1종당 깎는 점수(A9)
+  menuSearch: { maxCombos: 1_000_000, keep: 300, missingSeasoningPenalty: 0.01 },
   // A4 메뉴 개수
   menuCount: { min: 1, default: 2, max: 5 },
   // A2 식사 날짜 최대 선택 기간 (제안 단계)

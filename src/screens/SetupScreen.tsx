@@ -89,7 +89,7 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
           {step === 5 && (
             <>
               <DietField c={c} set={set} />
-              <p className="text-sm text-gray-500">한 끼 {c.maxKcal}kcal 이하 메뉴로 골라요.</p>
+              <p className="text-sm text-gray-500">모든 메뉴는 한 끼 {c.maxKcal}kcal 이하 기준으로 만들었어요.</p>
               <p className="text-xs text-gray-400">{ADVICE}</p>
             </>
           )}

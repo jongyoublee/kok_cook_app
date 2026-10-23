@@ -5,7 +5,8 @@ import { ingredients, type IngredientId } from './data/ingredients'
 import type { CarbBase, ProteinSource } from './data/recipes'
 import { nextWeek, type ISODate } from './lib/dates'
 
-export type Diet = 'korean' | 'highProtein'
+// A5 식단 분류 (2026-10-23 변경: 한식/고단백 → 든든한 한 끼/가벼운 한 끼)
+export type Diet = 'hearty' | 'light'
 // MVP는 저녁만. 점심을 더해 하루 2끼까지 담을 수 있게 배열로 둔다
 export type Meal = 'dinner' | 'lunch'
 
@@ -49,7 +50,7 @@ export const ALL_CARBS = CARB_OPTIONS.map((o) => o.value)
 // A9 집에 있는지 묻는 재료: 양념 코너. 기본 10개를 먼저 보여주고 나머지는 더보기로
 export const PANTRY_OPTIONS = (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === '양념')
 export const PANTRY_GROUPS: { title: string; ids: IngredientId[] }[] = [
-  { title: '기본 양념', ids: ['soySauce', 'gochujang', 'doenjang', 'chiliPowder', 'sugar', 'salt', 'blackPepper', 'cookingOil', 'sesameOil', 'vinegar'] },
+  { title: '기본 양념', ids: ['soySauce', 'gochujang', 'doenjang', 'chiliPowder', 'allulose', 'salt', 'blackPepper', 'cookingOil', 'sesameOil', 'vinegar'] },
   { title: '한식 양념', ids: ['perillaOil', 'sesameSeeds', 'mirin', 'oligosaccharide', 'fishSauce', 'tunaSauce', 'plumSyrup', 'oysterSauce'] },
   { title: '양식 양념', ids: ['oliveOil', 'butter', 'ketchup', 'mayonnaise', 'mustard', 'balsamic', 'honey', 'basil', 'oregano', 'paprikaPowder', 'chickenStock'] },
 ]
@@ -62,7 +63,7 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   meals: ['dinner'],
   people: 1,
   menuCount: config.menuCount.default,
-  diet: 'korean',
+  diet: 'hearty',
   maxKcal: config.maxKcalPerMeal,
   // 재료 선택 칸은 빈칸으로 시작한다
   proteins: [],
@@ -103,7 +104,10 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   if (dates.length) c.dates = dates
   if (Number.isInteger(saved.people) && saved.people! >= 1) c.people = saved.people!
   if (Number.isInteger(saved.menuCount) && saved.menuCount! >= min && saved.menuCount! <= max) c.menuCount = saved.menuCount!
-  if (saved.diet === 'korean' || saved.diet === 'highProtein') c.diet = saved.diet
+  // 예전 분류(korean, highProtein)로 저장된 값은 새 분류로 옮긴다
+  const diet: unknown = saved.diet
+  if (diet === 'hearty' || diet === 'korean') c.diet = 'hearty'
+  else if (diet === 'light' || diet === 'highProtein') c.diet = 'light'
   const proteins = Array.isArray(saved.proteins) ? saved.proteins.filter((p) => ALL_PROTEINS.includes(p)) : []
   c.proteins = proteins
   const carbs = Array.isArray(saved.carbs) ? saved.carbs.filter((v) => ALL_CARBS.includes(v)) : []

@@ -7,15 +7,15 @@ import type { ISODate } from './dates'
 
 export type Rng = () => number
 
-// B4 한식은 분류와 칼로리 상한, 고단백은 단백질·칼로리 기준으로 거른다
+// B4 든든한 한 끼는 칼로리 상한만, 가벼운 한 끼는 단백질·칼로리 기준으로 거른다
 export function filterCandidates(c: Conditions, pool: Recipe[] = recipes): Recipe[] {
   const { minProteinG, maxKcal } = config.highProtein
   return pool.filter(
     (r) =>
       c.proteins.includes(r.proteinSource) && // A8 먹고 싶은 단백질이 주재료인 메뉴만
       c.carbs.includes(r.carb) && // A10 먹고 싶은 베이스 탄수화물
-      (c.diet === 'korean'
-        ? r.korean && r.nutrition.kcal <= c.maxKcal
+      (c.diet === 'hearty'
+        ? r.nutrition.kcal <= c.maxKcal
         : r.nutrition.proteinG >= minProteinG && r.nutrition.kcal <= Math.min(maxKcal, c.maxKcal)),
   )
 }
@@ -41,8 +41,9 @@ export const missingSeasonings = (menu: Recipe[], pantry: IngredientId[]) =>
     menu.flatMap((r) => r.ingredients.map((i) => i.id)).filter((id) => ingredients[id].corner === '양념' && !pantry.includes(id)),
   ).size
 
-// 겹침 점수가 먼저, 같으면 새로 살 양념이 적은 조합. 양념 종류는 100개보다 적으므로 겹침 1점을 넘지 않는다
-const menuScore = (menu: Recipe[], pantry: IngredientId[]) => overlapScore(menu) - missingSeasonings(menu, pantry) / 100
+// 겹침 점수에서 새로 살 양념 1종마다 설정한 만큼 뺀다(A9)
+const scoreOf = (overlap: number, missing: number) => overlap - missing * config.menuSearch.missingSeasoningPenalty
+const menuScore = (menu: Recipe[], pantry: IngredientId[]) => scoreOf(overlapScore(menu), missingSeasonings(menu, pantry))
 
 // 점수가 가장 높은 것 중 하나를 무작위로 (동점일 때 매번 같은 메뉴가 나오지 않게)
 function best<T>(options: T[], score: (x: T) => number, rng: Rng): T | undefined {
@@ -60,7 +61,7 @@ const pickNext = (menu: Recipe[], pool: Recipe[], pantry: IngredientId[], rng: R
   best(pool.filter((r) => !menu.includes(r)), (r) => menuScore([...menu, r], pantry), rng)
 
 // 후보마다 첫 메뉴로 두고 점수를 가장 올리는 레시피를 하나씩 더한 조합들.
-// ponytail: 탐욕 선택이라 최적 조합을 놓칠 수 있다. 전수 비교는 레시피 50개·5개 조합이면 약 200만 가지
+// 탐욕 선택이라 최적 조합을 놓칠 수 있어, 조합 수가 너무 많을 때만 쓴다(searchCombos)
 export function greedyCombos(candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[][] {
   return candidates.map((seed) => {
     const menu = [seed]
@@ -73,12 +74,100 @@ export function greedyCombos(candidates: Recipe[], count: number, pantry: Ingred
   })
 }
 
+export function combinationCount(n: number, k: number) {
+  let c = 1
+  for (let i = 0; i < k; i++) c = (c * (n - i)) / (i + 1)
+  return Math.round(c)
+}
+
+// k개 조합을 모두 돌며 visit(조합, 겹침 점수, 새로 살 양념 수)를 부른다.
+// 메뉴를 하나 넣고 뺄 때마다 재료별 개수를 더하고 빼서 점수를 다시 세지 않는다.
+// 조합 배열은 계속 바뀌므로 남겨 둘 때는 visit 안에서 복사한다
+export function forEachCombo(
+  candidates: Recipe[],
+  k: number,
+  pantry: IngredientId[],
+  visit: (menu: readonly Recipe[], overlap: number, missing: number) => void,
+) {
+  // 재료 id를 0부터 번호로 바꿔 배열로 센다(Map보다 빠르다)
+  const index = new Map<IngredientId, number>()
+  const num = (id: IngredientId) => index.get(id) ?? index.set(id, index.size).get(id)!
+  const ids = (r: Recipe, seasoning: boolean) =>
+    r.ingredients.map((i) => i.id).filter((id) => (ingredients[id].corner === '양념') === seasoning && !(seasoning && pantry.includes(id)))
+  const foods = candidates.map((r) => ids(r, false).map(num))
+  const seasonings = candidates.map((r) => ids(r, true).map(num))
+  const foodCount = new Int32Array(index.size)
+  const seasoningCount = new Int32Array(index.size)
+  const picked: Recipe[] = []
+  let overlap = 0
+  let missing = 0
+
+  const step = (i: number, d: 1 | -1) => {
+    for (const id of foods[i]) {
+      foodCount[id] += d
+      if (d === 1 && foodCount[id] === 2) overlap++
+      if (d === -1 && foodCount[id] === 1) overlap--
+    }
+    for (const id of seasonings[i]) {
+      seasoningCount[id] += d
+      if (d === 1 && seasoningCount[id] === 1) missing++
+      if (d === -1 && seasoningCount[id] === 0) missing--
+    }
+  }
+
+  const walk = (from: number) => {
+    if (picked.length === k) return visit(picked, overlap, missing)
+    for (let i = from; i <= candidates.length - (k - picked.length); i++) {
+      step(i, 1)
+      picked.push(candidates[i])
+      walk(i + 1)
+      picked.pop()
+      step(i, -1)
+    }
+  }
+  if (k > 0 && k <= candidates.length) walk(0)
+}
+
+export type ScoredCombo = { menu: Recipe[]; score: number }
+
+// 점수가 높은 조합 limit개 (높은 순)
+export function topCombos(
+  candidates: Recipe[],
+  k: number,
+  pantry: IngredientId[],
+  limit: number,
+  score: (overlap: number, missing: number) => number = scoreOf,
+): ScoredCombo[] {
+  let top: ScoredCombo[] = []
+  let floor = -Infinity // top이 limit개 찼을 때 가장 낮은 점수
+  const trim = () => {
+    top.sort((a, b) => b.score - a.score)
+    top = top.slice(0, limit)
+    floor = top.length >= limit ? top[top.length - 1].score : -Infinity
+  }
+  forEachCombo(candidates, k, pantry, (menu, o, m) => {
+    const s = score(o, m)
+    if (s < floor) return
+    top.push({ menu: [...menu], score: s })
+    if (top.length >= limit * 2) trim()
+  })
+  trim()
+  return top
+}
+
+// 조합 수가 설정 상한 이하면 모두 비교한 상위 조합, 넘으면 탐욕 선택 조합
+export function searchCombos(candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[][] {
+  const { maxCombos, keep } = config.menuSearch
+  if (combinationCount(candidates.length, count) > maxCombos) return greedyCombos(candidates, count, pantry, rng)
+  return topCombos(candidates, count, pantry, keep).map((c) => c.menu)
+}
+
 // 조합 중 점수가 가장 높은 것
 export const bestCombo = (combos: Recipe[][], pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[] =>
   best(combos, (m) => menuScore(m, pantry), rng) ?? []
 
 export const buildMenu = (candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[] =>
-  bestCombo(greedyCombos(candidates, count, pantry, rng), pantry, rng)
+  bestCombo(searchCombos(candidates, count, pantry, rng), pantry, rng)
 
 // B2 i번째 메뉴를 나머지와 가장 잘 겹치는 후보로 바꾼다. shown은 그 칸에서 이미 보여준 레시피 id로,
 // 다시 나오지 않게 하고 후보를 다 보면 비운다

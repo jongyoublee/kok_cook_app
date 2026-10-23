@@ -76,7 +76,7 @@ export default function InputScreen({ today, initial, onOpenShopping, onSubmit }
 
       <Section title="식단">
         <DietField c={c} set={set} />
-        <p className="mt-2 text-sm text-gray-500">한 끼 {c.maxKcal}kcal 이하 메뉴로 골라요.</p>
+        <p className="mt-2 text-sm text-gray-500">모든 메뉴는 한 끼 {c.maxKcal}kcal 이하 기준으로 만들었어요.</p>
       </Section>
 
       <Section title="먹고 싶은 단백질">

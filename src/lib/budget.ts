@@ -3,7 +3,7 @@ import { config } from '../config'
 import type { Conditions } from '../conditions'
 import { priceOf } from '../data/prices'
 import type { Recipe } from '../data/recipes'
-import { bestCombo, filterCandidates, greedyCombos, maxMenus, type Rng } from './menu'
+import { bestCombo, filterCandidates, greedyCombos, maxMenus, searchCombos, type Rng } from './menu'
 import { buildShoppingList, servingsOf } from './shopping'
 
 // F3 설정값으로 고르고, 주소에 ?budget=A 또는 ?budget=B가 있으면 그걸 쓴다(비교 시험용)
@@ -21,7 +21,9 @@ const cheapestOf = (combos: Recipe[][], c: Conditions) =>
 // F1 예산 안에 드는 조합 중 점수가 가장 높은 것. 없거나 "가장 싸게"면 가장 싼 조합
 export function buildMenuInBudget(c: Conditions, rng: Rng = Math.random): { menu: Recipe[]; overBudget: boolean } {
   const candidates = filterCandidates(c)
-  const combos = greedyCombos(candidates, Math.min(c.menuCount, maxMenus(c, candidates)), c.pantry, rng)
+  const count = Math.min(c.menuCount, maxMenus(c, candidates))
+  // 점수 상위 조합에 탐욕 조합을 더해, 점수는 낮아도 싼 조합이 후보에서 빠지지 않게 한다
+  const combos = [...searchCombos(candidates, count, c.pantry, rng), ...greedyCombos(candidates, count, c.pantry, rng)]
   if (c.cheapest) return { menu: cheapestOf(combos, c), overBudget: false }
   const fit = combos.filter((m) => menuCost(m, c) <= c.budget)
   if (fit.length) return { menu: bestCombo(fit, c.pantry, rng), overBudget: false }

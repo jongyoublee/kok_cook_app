@@ -30,13 +30,13 @@ describe('장보기 목록 (D1~D4)', () => {
   })
 
   it('판매 단위로 올림하고 남는 양을 계산한다 (D2)', () => {
-    const it = item('porkShoulder') // 150g × 3 = 450g, 1팩 600g
-    expect(it.need).toBe(450)
+    const it = item('porkShoulder') // 120g × 3 = 360g, 1팩 600g
+    expect(it.need).toBe(360)
     expect(it.packs).toBe(1)
-    expect(it.leftover).toBe(150)
-    const big = buildShoppingList([pork], [5], [], price).items.find((x) => x.id === 'porkShoulder')! // 750g
+    expect(it.leftover).toBe(240)
+    const big = buildShoppingList([pork], [6], [], price).items.find((x) => x.id === 'porkShoulder')! // 720g
     expect(big.packs).toBe(2)
-    expect(big.leftover).toBe(450)
+    expect(big.leftover).toBe(480)
   })
 
   it('예상 금액은 판매 단위 가격 × 개수, 합계는 항목 합 (D4)', () => {
@@ -48,9 +48,9 @@ describe('장보기 목록 (D1~D4)', () => {
   })
 
   it('집에 있는 양념은 목록에서 빼고 따로 알려준다 (A9)', () => {
-    const l = buildShoppingList([pork, bulgogi], [3, 2], ['soySauce', 'sugar'], price)
+    const l = buildShoppingList([pork, bulgogi], [3, 2], ['soySauce', 'allulose'], price)
     expect(l.items.map((it) => it.id)).not.toContain('soySauce')
-    expect(l.inPantry.sort()).toEqual(['soySauce', 'sugar'])
+    expect(l.inPantry.sort()).toEqual(['allulose', 'soySauce'])
   })
 
   it('코너 순서대로 정렬한다 (D5)', () => {

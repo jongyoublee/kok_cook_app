@@ -22,9 +22,14 @@ describe('입력 조건 (A1~A6, I2)', () => {
 
   it('저장 후 불러오면 같은 조건', () => {
     const s = fakeStorage()
-    const c = { ...defaultConditions(today), people: 3, menuCount: 4, diet: 'highProtein' as const, proteins: ['pork' as const], carbs: ['potato' as const], pantry: ['soySauce' as const], budget: 150_000, cheapest: true }
+    const c = { ...defaultConditions(today), people: 3, menuCount: 4, diet: 'light' as const, proteins: ['pork' as const], carbs: ['potato' as const], pantry: ['soySauce' as const], budget: 150_000, cheapest: true }
     saveConditions(c, s)
     expect(loadConditions(today, s)).toEqual(c)
+  })
+
+  it('예전 분류(한식·고단백)로 저장된 값은 새 분류로 옮긴다 (A5)', () => {
+    expect(loadConditions(today, fakeStorage(JSON.stringify({ diet: 'korean' })))!.diet).toBe('hearty')
+    expect(loadConditions(today, fakeStorage(JSON.stringify({ diet: 'highProtein' })))!.diet).toBe('light')
   })
 
   it('저장값이 없거나 깨졌으면 null', () => {
@@ -39,7 +44,7 @@ describe('입력 조건 (A1~A6, I2)', () => {
     expect(c.dates).toEqual(['2026-10-23'])
     expect(c.people).toBe(1)
     expect(c.menuCount).toBe(config.menuCount.default)
-    expect(c.diet).toBe('korean')
+    expect(c.diet).toBe('hearty')
     expect(c.proteins).toEqual(['pork'])
     expect(c.pantry).toEqual(['soySauce']) // 두부는 양념이 아니라 버린다
     expect(c.budget).toBe(config.budget.default)

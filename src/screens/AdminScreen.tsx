@@ -5,6 +5,7 @@ import { CARB_OPTIONS, PROTEIN_OPTIONS } from '../conditions'
 import { CORNERS, ingredients, type IngredientId } from '../data/ingredients'
 import { priceOf } from '../data/prices'
 import { FLAVOR_LABEL, METHOD_LABEL, recipeData, type RecipeData } from '../data/recipes'
+import { candidates, draftFromCandidate, type Candidate } from '../lib/candidates'
 import { computeNutrition, proteinEnergyShare } from '../lib/nutrition'
 import { checkRecipe, checkRecipes } from '../lib/recipeCheck'
 import { perServingCost } from '../lib/shopping'
@@ -74,6 +75,15 @@ export default function AdminScreen() {
     setDirty(true)
   }
 
+  // 후보를 초안으로 목록 끝에 더한다. 분량·조리 단계를 채우고 저장해야 파일에 반영된다
+  function promote(c: Candidate) {
+    setList((l) => [...l, draftFromCandidate(c).draft])
+    setSelected(list.length)
+    setDirty(true)
+  }
+  const waiting = candidates.filter((c) => !list.some((x) => x.candidateId === c.id))
+  const candidate = r?.candidateId ? candidates.find((c) => c.id === r.candidateId) : undefined
+
   function removeRecipe() {
     if (!r || !confirm(`'${r.name || '새 레시피'}'를 목록에서 지울까요? 저장해야 파일에 반영돼요.`)) return
     setList((l) => l.filter((_, i) => i !== selected))
@@ -135,10 +145,26 @@ export default function AdminScreen() {
               </li>
             ))}
           </ul>
+
+          {/* H1 레시피 후보(data/recipe-candidates.json) 중 아직 올리지 않은 것 */}
+          <details className="mt-4">
+            <summary className="cursor-pointer text-sm font-semibold">레시피 후보 ({waiting.length})</summary>
+            <ul className="mt-2 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-200">
+              {waiting.map((c) => (
+                <li key={c.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <span>{c.name}</span>
+                  <button type="button" className={small} onClick={() => promote(c)}>
+                    올리기
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
         </nav>
 
         {r && (
           <main className="flex min-w-0 flex-1 flex-col gap-6">
+            {candidate && <CandidateNote c={candidate} />}
             <section className="grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1 text-sm">
                 이름
@@ -317,5 +343,30 @@ export default function AdminScreen() {
         )}
       </div>
     </div>
+  )
+}
+
+// 후보에서 올린 레시피의 참고 정보. 출처 글은 재료 구성만 참고하고 조리 단계는 직접 쓴다
+function CandidateNote({ c }: { c: Candidate }) {
+  const { unmatched } = draftFromCandidate(c)
+  return (
+    <section className="rounded-xl border border-black p-4 text-sm">
+      <h2 className="font-semibold">후보에서 올린 레시피 ({c.id})</h2>
+      <p className="mt-1">
+        참고한 재료 구성:{' '}
+        <a href={c.source} target="_blank" rel="noopener noreferrer" className="underline">
+          출처
+        </a>{' '}
+        · 글과 사진은 옮기지 말고 조리 순서는 직접 써 주세요.
+      </p>
+      {c.mealPrep && <p className="mt-1">밀프렙 메모: {c.mealPrep}</p>}
+      {c.note && <p className="mt-1">메모: {c.note}</p>}
+      {(c.protein === 'other' || c.carb === 'other') && <p className="mt-1">후보의 단백질이나 탄수화물이 '기타'라서 임시 값을 넣었어요. 맞게 골라 주세요.</p>}
+      {unmatched.length > 0 && (
+        <p className="mt-1">
+          재료 사전에 없어 빠진 재료: {unmatched.join(', ')}. 비슷한 재료로 고르거나 재료 사전(src/data/ingredients.ts)에 먼저 추가해 주세요.
+        </p>
+      )}
+    </section>
   )
 }

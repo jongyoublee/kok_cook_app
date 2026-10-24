@@ -46,6 +46,7 @@ export type Recipe = {
   // C4 보관 정보
   storage: { freezable: boolean; fridgeDays: number }
   verified: boolean // 사람 검수 여부
+  candidateId?: string // H1 레시피 후보(data/recipe-candidates.json)에서 올린 레시피면 그 후보 id
 }
 
 // H1 레시피 원본 값은 recipes.json에 두고 관리 화면(개발 서버 전용)에서 고친다.

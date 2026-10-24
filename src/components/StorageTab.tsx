@@ -41,7 +41,7 @@ export default function StorageTab({ today, dates, menu, cookDate, onCookDateCha
       </label>
 
       {tooLong.length > 0 && (
-        <p className="rounded-xl border border-ink px-4 py-3 text-sm">
+        <p className="rounded-xl border border-accent-mark bg-accent-tint px-4 py-3 text-sm text-warn-ink">
           냉동하기 어려운 메뉴가 냉장 보관 기간을 넘어요({tooLong.map((s) => formatDay(s.date)).join(', ')}). 메뉴를 바꾸거나 날짜를 줄여 주세요.
         </p>
       )}

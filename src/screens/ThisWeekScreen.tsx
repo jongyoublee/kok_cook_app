@@ -34,7 +34,7 @@ export default function ThisWeekScreen({ header, plan, onOpenRecipe, onPlanNext 
                   <button type="button" onClick={() => onOpenRecipe(r)} className="flex w-full items-center gap-3 px-4 py-3 text-left">
                     <div className="h-14 w-14 shrink-0 rounded-xl bg-bg" aria-hidden />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-sub">{days.length ? dayLabel(days, plan.dates) : '안 먹어요'}</p>
+                      <p className="text-xs font-bold text-accent-text">{days.length ? dayLabel(days, plan.dates) : '안 먹어요'}</p>
                       <p className="font-semibold">{r.name}</p>
                       <p className="text-xs text-sub">
                         단백질 {r.nutrition.proteinG}g · {r.nutrition.kcal}kcal

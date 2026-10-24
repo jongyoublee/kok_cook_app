@@ -176,9 +176,9 @@ export function BudgetMeter({ cost, budget }: { cost: number; budget: number }) 
   return (
     <>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg" role="meter" aria-valuemin={0} aria-valuemax={budget} aria-valuenow={cost} aria-label="예산 대비 예상 금액">
-        <div className={`h-2 rounded-full ${over ? 'bg-ink' : 'bg-sub'}`} style={{ width: `${Math.min(100, (cost / budget) * 100)}%` }} />
+        <div className={`h-2 rounded-full ${over ? 'bg-ink' : 'bg-accent-mark'}`} style={{ width: `${Math.min(100, (cost / budget) * 100)}%` }} />
       </div>
-      <p className={`mt-1 text-sm ${over ? 'font-semibold text-ink' : 'text-sub'}`}>
+      <p className={`mt-1 text-sm ${over ? 'font-semibold text-ink' : 'text-accent-text'}`}>
         예산 {won(budget)} {over ? `· ${won(cost - budget)} 넘어요` : `· ${won(budget - cost)} 남아요`}
       </p>
     </>
@@ -190,7 +190,7 @@ export function CheckCircle({ checked, onChange, label }: { checked: boolean; on
   return (
     <span className="relative mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center">
       <input type="checkbox" checked={checked} onChange={onChange} aria-label={label} className="peer absolute inset-0 cursor-pointer opacity-0" />
-      <span className={`flex h-6 w-6 items-center justify-center rounded-full border-2 peer-focus-visible:ring-2 peer-focus-visible:ring-ink ${checked ? 'border-ink bg-ink' : 'border-line'}`} aria-hidden>
+      <span className={`flex h-6 w-6 items-center justify-center rounded-full border-2 peer-focus-visible:ring-2 peer-focus-visible:ring-ink ${checked ? 'border-accent-mark bg-accent-mark' : 'border-line'}`} aria-hidden>
         {checked && (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12.5l4.5 4.5L19 7.5" />

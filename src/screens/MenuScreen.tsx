@@ -109,7 +109,7 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
         <p className="mt-1 text-[28px] font-bold tabular-nums">약 {won(cost)}</p>
         {meterBudget !== undefined && <BudgetMeter cost={cost} budget={meterBudget} />}
         <p className="mt-2 text-sm text-sub">
-          저녁 {mealCount(c)}끼 · {c.people}명 · {formatDay(cookDay(c.dates)!)} 장보기
+          저녁 {mealCount(c)}끼 · {c.people}명 · <span className="font-semibold text-accent-text">{formatDay(cookDay(c.dates)!)} 장보기</span>
         </p>
         <p className="text-sm text-sub">
           한 끼 평균 약 {num(kcal.avgKcal)}kcal · 단백질 {kcal.avgProteinG}g · {kcal.meals}끼 합계 약 {num(kcal.totalKcal)}kcal
@@ -147,12 +147,12 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
           {menu.map((r, i) => (
             <li key={r.id} className="relative flex items-center gap-3 py-3">
               <button type="button" onClick={() => onOpenRecipe(r)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-bg text-sub" aria-hidden>
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-bg text-accent-mark" aria-hidden>
                   <DishIcon />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1.5 text-[11px] font-bold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-sub" aria-hidden />
+                  <p className="flex items-center gap-1.5 text-[11px] font-bold text-accent-text">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent-mark" aria-hidden />
                     {dayLabel(days[i], c.dates)}
                   </p>
                   <p className="line-clamp-2 text-[15px] font-bold">{r.name}</p>
@@ -163,7 +163,7 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
                     <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-sub">
                       {FLAVOR_LABEL[r.flavor]} · {METHOD_LABEL[r.method]}
                     </span>
-                    {r.storage.freezable && <span className="rounded-full bg-bg px-2 py-0.5 text-[11px] font-semibold">냉동 가능</span>}
+                    {r.storage.freezable && <span className="rounded-full bg-accent-tint px-2 py-0.5 text-[11px] font-semibold text-accent-text">냉동 가능</span>}
                   </p>
                 </div>
               </button>

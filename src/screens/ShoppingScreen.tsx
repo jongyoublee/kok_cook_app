@@ -80,7 +80,7 @@ export default function ShoppingScreen(props: Props) {
         {/* D11 부제의 장보기 날짜(= 조리일)를 바로 고친다. 보관 탭의 조리일과 같은 값 */}
         <p className="mt-1 text-sm text-sub">
           {period} · {formatDay(c.dates[0])}~{formatDay(c.dates[c.dates.length - 1])} ·{' '}
-          <label className="relative inline-block font-semibold text-ink">
+          <label className="relative inline-block font-semibold text-accent-text">
             {formatDay(cookDate)} 장보기 ✎
             <select
               value={cookDate}
@@ -107,10 +107,10 @@ export default function ShoppingScreen(props: Props) {
             {list.items.length}개 중 {list.items.length - left}개 샀어요
           </p>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-bg" role="progressbar" aria-valuemin={0} aria-valuemax={list.items.length} aria-valuenow={list.items.length - left} aria-label="구매 진행">
-            <div className="h-full rounded-full bg-ink" style={{ width: `${list.items.length ? ((list.items.length - left) / list.items.length) * 100 : 0}%` }} />
+            <div className="h-full rounded-full bg-accent-mark" style={{ width: `${list.items.length ? ((list.items.length - left) / list.items.length) * 100 : 0}%` }} />
           </div>
           <details className="mt-3 text-sm">
-            <summary className="cursor-pointer font-semibold">가격은 이렇게 계산해요</summary>
+            <summary className="cursor-pointer font-semibold text-accent-text">가격은 이렇게 계산해요</summary>
             {/* D4 참가격 연동 전 가짜 가격, D8 정가 기준 추정, D7 양념은 여러 주, G2 수수료 고지 */}
             <p className="mt-2 text-sub">할인 전 정가 기준 추정치라 실제 결제 금액은 대개 이보다 적어요. 지금은 임시 가격 데이터예요.</p>
             {seasoningCost > 0 && <p className="mt-1 text-sub">이 중 양념 약 {num(seasoningCost)}원은 한 번 사면 여러 주 써요.</p>}
@@ -176,7 +176,7 @@ export default function ShoppingScreen(props: Props) {
                           <span className="font-medium">
                             {it.name}
                             {/* D7 양념은 한 번 사면 여러 주 쓴다 */}
-                            {it.corner === '양념' && <span className="ml-1.5 rounded-full border border-line px-1.5 py-0.5 text-[11px] font-normal text-sub">오래 써요</span>}
+                            {it.corner === '양념' && <span className="ml-1.5 rounded-full bg-accent-tint px-1.5 py-0.5 text-[11px] font-semibold text-accent-text">오래 써요</span>}
                           </span>
                           {it.price !== undefined && <span className="shrink-0">약 {num(it.price)}원</span>}
                         </span>
@@ -186,7 +186,7 @@ export default function ShoppingScreen(props: Props) {
                           {it.leftover > 0 && ` · ${num(it.leftover)}${it.unit} 남음`}
                         </span>
                         {/* D3 같은 재료를 여러 메뉴에 나눠 쓴다 */}
-                        {it.usedBy.length > 1 && <span className="block text-sm text-sub">{it.usedBy.join(', ')}에 함께 써요</span>}
+                        {it.usedBy.length > 1 && <span className="block text-sm text-accent-text">{it.usedBy.join(', ')}에 함께 써요</span>}
                       </span>
                     </label>
                     {/* G1 재료별 쿠팡 검색. 체크 상자와 겹치지 않게 label 밖에 둔다 */}

@@ -15,12 +15,12 @@ export function Tile({ on, onClick, label, desc }: { on: boolean; onClick: () =>
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={`flex min-h-12 flex-col justify-center rounded-xl border bg-white px-4 py-3 text-left text-gray-900 transition-colors ${
-        on ? 'border-black font-semibold ring-1 ring-black' : 'border-gray-200'
+      className={`flex min-h-12 flex-col justify-center rounded-xl border bg-surface px-4 py-3 text-left text-ink transition-colors ${
+        on ? 'border-ink font-semibold ring-1 ring-ink' : 'border-line'
       }`}
     >
       <span>{label}</span>
-      {desc && <span className="mt-0.5 text-sm font-normal text-gray-500">{desc}</span>}
+      {desc && <span className="mt-0.5 text-sm font-normal text-sub">{desc}</span>}
     </button>
   )
 }
@@ -28,7 +28,7 @@ export function Tile({ on, onClick, label, desc }: { on: boolean; onClick: () =>
 // "전부 좋아요"처럼 묶음 선택에 쓰는 글자 버튼
 function TextButton({ onClick, disabled, children }: { onClick: () => void; disabled?: boolean; children: string }) {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className="text-sm font-medium text-gray-900 underline underline-offset-4 disabled:text-gray-300 disabled:no-underline">
+    <button type="button" onClick={onClick} disabled={disabled} className="text-sm font-medium text-ink underline underline-offset-4 disabled:text-sub/40 disabled:no-underline">
       {children}
     </button>
   )
@@ -37,13 +37,13 @@ function TextButton({ onClick, disabled, children }: { onClick: () => void; disa
 // A1
 export function PeopleField({ c, set }: FieldProps) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3">
-      <button type="button" aria-label="인원 줄이기" disabled={c.people <= 1} onClick={() => set({ people: c.people - 1 })} className="h-10 w-10 rounded-full border border-gray-200 text-xl disabled:opacity-30">−</button>
+    <div className="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3">
+      <button type="button" aria-label="인원 줄이기" disabled={c.people <= 1} onClick={() => set({ people: c.people - 1 })} className="h-10 w-10 rounded-full border border-line text-xl disabled:opacity-30">−</button>
       <span className="text-2xl font-bold">
         {c.people}
-        <span className="ml-1 text-base font-medium text-gray-500">명</span>
+        <span className="ml-1 text-base font-medium text-sub">명</span>
       </span>
-      <button type="button" aria-label="인원 늘리기" onClick={() => set({ people: c.people + 1 })} className="h-10 w-10 rounded-full border border-gray-200 text-xl">+</button>
+      <button type="button" aria-label="인원 늘리기" onClick={() => set({ people: c.people + 1 })} className="h-10 w-10 rounded-full border border-line text-xl">+</button>
     </div>
   )
 }
@@ -63,7 +63,7 @@ export function ProteinField({ c, set }: FieldProps) {
         <TextButton onClick={() => set({ proteins: ALL_PROTEINS })} disabled={c.proteins.length === ALL_PROTEINS.length}>전부 좋아요</TextButton>
       </div>
       {/* I5 */}
-      <p className="text-xs text-gray-400">{ALLERGY_NOTE}</p>
+      <p className="text-xs text-sub">{ALLERGY_NOTE}</p>
     </div>
   )
 }
@@ -103,12 +103,12 @@ export function PantryField({ c, set }: FieldProps) {
       {more &&
         rest.map((g) => (
           <div key={g.title} className="mt-2 flex flex-col gap-2">
-            <h3 className="text-sm font-semibold text-gray-500">{g.title}</h3>
+            <h3 className="text-sm font-semibold text-sub">{g.title}</h3>
             {grid(g.ids)}
           </div>
         ))}
-      <p className="text-sm text-gray-500">{c.pantry.length}개 선택</p>
-      <button type="button" onClick={() => setMore(!more)} aria-expanded={more} className="w-full rounded-xl border border-gray-200 py-3 text-sm font-medium">
+      <p className="text-sm text-sub">{c.pantry.length}개 선택</p>
+      <button type="button" onClick={() => setMore(!more)} aria-expanded={more} className="w-full rounded-xl border border-line py-3 text-sm font-medium">
         {more ? '접기' : `한식·양식 양념 더 보기 (${restCount})`}
       </button>
     </div>
@@ -125,7 +125,7 @@ export function BudgetField({ c, set, showCheapest = true }: FieldProps & { show
   const off = showCheapest && c.cheapest
   return (
     <div className="flex flex-col gap-3">
-      <div className={`rounded-xl border border-gray-200 px-4 py-3 ${off ? 'opacity-40' : ''}`}>
+      <div className={`rounded-xl border border-line px-4 py-3 ${off ? 'opacity-40' : ''}`}>
         <p className="text-center text-2xl font-bold">{won(value)}</p>
         <input
           type="range"
@@ -136,21 +136,21 @@ export function BudgetField({ c, set, showCheapest = true }: FieldProps & { show
           disabled={off}
           onChange={(e) => set({ budget: Number(e.target.value) })}
           aria-label="예산"
-          className="mt-2 w-full accent-black"
+          className="mt-2 w-full accent-ink"
         />
-        <div className="flex justify-between text-xs text-gray-400">
+        <div className="flex justify-between text-xs text-sub">
           <span>{won(min)}</span>
           <span>{won(max)}</span>
         </div>
-        <p className="mt-1 text-center text-xs text-gray-400">가장 싸게 구성한 금액부터 고를 수 있어요. 인원과 날짜에 따라 범위가 바뀌어요.</p>
+        <p className="mt-1 text-center text-xs text-sub">가장 싸게 구성한 금액부터 고를 수 있어요. 인원과 날짜에 따라 범위가 바뀌어요.</p>
       </div>
       {showCheapest && (
-        <label className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3">
+        <label className="flex items-center justify-between rounded-xl border border-line px-4 py-3">
           <span>
             <span className="block font-medium">가장 싸게 구성</span>
-            <span className="block text-sm text-gray-500">예산과 상관없이 예상 금액이 가장 적은 메뉴로 골라요</span>
+            <span className="block text-sm text-sub">예산과 상관없이 예상 금액이 가장 적은 메뉴로 골라요</span>
           </span>
-          <input type="checkbox" checked={c.cheapest} onChange={(e) => set({ cheapest: e.target.checked })} className="h-5 w-5 shrink-0 accent-black" />
+          <input type="checkbox" checked={c.cheapest} onChange={(e) => set({ cheapest: e.target.checked })} className="h-5 w-5 shrink-0 accent-ink" />
         </label>
       )}
     </div>
@@ -161,17 +161,17 @@ export function BudgetField({ c, set, showCheapest = true }: FieldProps & { show
 export function CostBar({ cost, budget }: { cost: number; budget?: number }) {
   const over = budget !== undefined && cost > budget
   return (
-    <div className="rounded-xl border border-gray-200 px-4 py-3">
+    <div className="rounded-xl border border-line px-4 py-3">
       <div className="flex items-baseline justify-between">
-        <span className="text-sm text-gray-500">예상 금액</span>
+        <span className="text-sm text-sub">예상 금액</span>
         <span className="font-bold">약 {won(cost)}</span>
       </div>
       {budget !== undefined && (
         <>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100" role="meter" aria-valuemin={0} aria-valuemax={budget} aria-valuenow={cost} aria-label="예산 대비 예상 금액">
-            <div className={`h-2 rounded-full ${over ? 'bg-black' : 'bg-gray-400'}`} style={{ width: `${Math.min(100, (cost / budget) * 100)}%` }} />
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg" role="meter" aria-valuemin={0} aria-valuemax={budget} aria-valuenow={cost} aria-label="예산 대비 예상 금액">
+            <div className={`h-2 rounded-full ${over ? 'bg-ink' : 'bg-sub'}`} style={{ width: `${Math.min(100, (cost / budget) * 100)}%` }} />
           </div>
-          <p className={`mt-1 text-sm ${over ? 'font-semibold text-black' : 'text-gray-500'}`}>
+          <p className={`mt-1 text-sm ${over ? 'font-semibold text-ink' : 'text-sub'}`}>
             예산 {won(budget)} {over ? `· ${won(cost - budget)} 넘어요` : `· ${won(budget - cost)} 남아요`}
           </p>
         </>

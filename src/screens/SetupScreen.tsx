@@ -2,6 +2,7 @@
 // 질문 하나씩 묻고 저장한다. 다음부터는 이번 식단 조건 화면(InputScreen)에서 바로 고친다
 import { useState, type ReactNode } from 'react'
 import Calendar from '../components/Calendar'
+import Logo from '../components/Logo'
 import { CarbField, PantryField, PeopleField, ProteinField } from '../components/fields'
 import { ALL_CARBS, ALL_PROTEINS, type Conditions } from '../conditions'
 import { cookDay, formatDay, type ISODate } from '../lib/dates'
@@ -28,7 +29,7 @@ function Question({ title, desc, children }: { title: string; desc?: string; chi
     <section className="flex flex-col gap-5">
       <div>
         <h1 className="text-[26px] leading-snug font-bold">{title}</h1>
-        {desc && <p className="mt-2 text-[15px] text-gray-500">{desc}</p>}
+        {desc && <p className="mt-2 text-[15px] text-sub">{desc}</p>}
       </div>
       {children}
     </section>
@@ -54,29 +55,35 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
   const showCount = step === 1 || step === 2
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col bg-white px-5 pt-4">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col bg-surface px-5 pt-4">
       <header className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => setStep(step - 1)}
           disabled={step === 0}
           aria-label="이전"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-xl disabled:invisible"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-xl disabled:invisible"
         >
           ‹
         </button>
         <div className="flex flex-1 gap-1" role="progressbar" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-label="설정 진행">
           {STEPS.map((s, i) => (
-            <div key={s.name} className={`h-1 flex-1 rounded-full ${i <= step ? 'bg-black' : 'bg-gray-200'}`} />
+            <div key={s.name} className={`h-1 flex-1 rounded-full ${i <= step ? 'bg-ink' : 'bg-line'}`} />
           ))}
         </div>
-        <span className="w-10 text-right text-sm text-gray-400">
+        <span className="w-10 text-right text-sm text-sub">
           {step + 1}/{STEPS.length}
         </span>
       </header>
 
       <div className="flex flex-1 flex-col justify-center py-8">
-        <p className="mb-2 text-sm font-semibold text-gray-400">{name}</p>
+        {/* I9 첫 화면에만 세로형 로고 */}
+        {step === 0 && (
+          <div className="mb-10 flex justify-center">
+            <Logo vertical />
+          </div>
+        )}
+        <p className="mb-2 text-sm font-semibold text-sub">{name}</p>
         <Question title={title} desc={desc}>
           {step === 0 && <PeopleField c={c} set={set} />}
           {step === 1 && <ProteinField c={c} set={set} />}
@@ -85,22 +92,22 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
           {step === 4 && (
             <>
               <Calendar today={today} selected={c.dates} onChange={(dates) => set({ dates })} />
-              {c.dates.length > 0 && <p className="-mt-2 text-sm text-gray-500">조리일은 {formatDay(cookDay(c.dates)!)}로 가정해요</p>}
-              <p className="text-sm text-gray-500">모든 메뉴는 한 끼 {config.maxKcalPerMeal}kcal 이하 기준으로 만들었어요.</p>
-              <p className="text-xs text-gray-400">{ADVICE}</p>
+              {c.dates.length > 0 && <p className="-mt-2 text-sm text-sub">조리일은 {formatDay(cookDay(c.dates)!)}로 가정해요</p>}
+              <p className="text-sm text-sub">모든 메뉴는 한 끼 {config.maxKcalPerMeal}kcal 이하 기준으로 만들었어요.</p>
+              <p className="text-xs text-sub">{ADVICE}</p>
             </>
           )}
           {showCount && picked && (
-            <p className={`text-sm ${candidates ? 'text-gray-500' : 'font-medium text-black'}`}>
+            <p className={`text-sm ${candidates ? 'text-sub' : 'font-medium text-ink'}`}>
               {candidates ? `조건에 맞는 메뉴 ${candidates}개` : '맞는 메뉴가 없어요. 더 골라 주세요'}
               {/* A11 */}
-              {hints.length > 0 && <span className="block font-medium text-black">{hintText(hints)}</span>}
+              {hints.length > 0 && <span className="block font-medium text-ink">{hintText(hints)}</span>}
             </p>
           )}
         </Question>
       </div>
 
-      <div className="sticky bottom-0 -mx-5 bg-gradient-to-t from-white from-70% px-5 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="sticky bottom-0 -mx-5 bg-gradient-to-t from-surface from-70% px-5 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <button
           type="button"
           onClick={() => (last ? onDone(c) : setStep(step + 1))}

@@ -13,3 +13,11 @@ export const num = (n: number) => n.toLocaleString('ko-KR')
 export const won = (n: number) => `${num(n)}원`
 
 export const toggle = <T,>(arr: T[], v: T) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v])
+
+// I9 셰프 모자 아이콘의 크기별 선 굵기(viewBox 24 단위, 몸통 / 띠). 작을수록 굵게 해 뭉개지지 않게 한다. 최소 18px
+export function hatStroke(size: number): [body: number, band: number] {
+  if (size >= 64) return [1.6, 2.1]
+  if (size >= 40) return [1.7, 2.1]
+  if (size > 24) return [1.9, 2.4]
+  return [2.2, 2.8]
+}

@@ -96,11 +96,11 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
         <button type="button" onClick={onBack} className="p-1 text-xl" aria-label="조건으로 돌아가기">‹</button>
         <h1 className="text-xl font-bold">다음 주 메뉴</h1>
       </div>
-      <p className="-mt-2 text-sm text-gray-500">
+      <p className="-mt-2 text-sm text-sub">
         저녁 {mealCount(c)}끼, {c.people}명
       </p>
       {limit < c.menuCount && (
-        <p className="text-sm font-medium text-black">조건에 맞게 만들 수 있는 메뉴가 {limit}개라 {limit}개로 구성했어요.</p>
+        <p className="text-sm font-medium text-ink">조건에 맞게 만들 수 있는 메뉴가 {limit}개라 {limit}개로 구성했어요.</p>
       )}
 
       {visibleOptions.length > 1 && (
@@ -122,18 +122,18 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
 
       <ul className="flex flex-col gap-3">
         {menu.map((r, i) => (
-          <li key={r.id} className="relative flex gap-3 rounded-xl border border-gray-200 p-3 pr-9">
+          <li key={r.id} className="relative flex gap-3 rounded-xl border border-line p-3 pr-9">
             <button type="button" onClick={() => onOpenRecipe(r)} className="flex min-w-0 flex-1 gap-3 text-left">
-              <div className="h-20 w-20 shrink-0 rounded-lg bg-gray-100" aria-hidden />
+              <div className="h-20 w-20 shrink-0 rounded-lg bg-bg" aria-hidden />
               <div className="flex min-w-0 flex-1 flex-col">
                 <p className="font-semibold underline-offset-4 hover:underline">{r.name}</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-sub">
                   {FLAVOR_LABEL[r.flavor]} · {METHOD_LABEL[r.method]}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-sub">
                   단백질 {r.nutrition.proteinG}g, {r.nutrition.kcal}kcal · 1인분 약 {won(perServingCost(r, c.pantry, priceOf))}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-sub">
                   {dayLabel(days[i], c.dates)} {days[i].length}끼
                 </p>
               </div>
@@ -143,12 +143,12 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
                 type="button"
                 onClick={() => swap(i)}
                 disabled={candidates.length <= menu.length}
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:opacity-30"
+                className="rounded-lg border border-line px-3 py-2 text-sm disabled:opacity-30"
               >
                 교체
               </button>
               {/* B10 */}
-              <button type="button" onClick={() => hide(i)} className="text-xs text-gray-400 underline underline-offset-2">
+              <button type="button" onClick={() => hide(i)} className="text-xs text-sub underline underline-offset-2">
                 다시 안 보기
               </button>
             </div>
@@ -157,7 +157,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
                 type="button"
                 onClick={() => remove(i)}
                 aria-label={`${r.name} 삭제`}
-                className="absolute top-1 right-1 flex h-8 w-8 items-center justify-center text-gray-400"
+                className="absolute top-1 right-1 flex h-8 w-8 items-center justify-center text-sub"
               >
                 ✕
               </button>
@@ -170,7 +170,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
         type="button"
         onClick={() => setMenu(addMenu(menu, candidates, c.pantry, Math.random, menuSpread(c.proteins, menu.length + 1)))}
         disabled={menu.length >= limit}
-        className="rounded-xl border border-dashed border-gray-300 py-3 text-sm disabled:opacity-40"
+        className="rounded-xl border border-dashed border-line py-3 text-sm disabled:opacity-40"
       >
         메뉴 추가 ({menu.length}/{config.menuCount.max})
       </button>
@@ -179,44 +179,44 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
       <CostBar cost={menuCost(menu, c)} budget={c.cheapest ? undefined : budget} />
 
       {/* A6 칼로리 요약 (추정치) */}
-      <section className="rounded-xl border border-gray-200 px-4 py-3">
+      <section className="rounded-xl border border-line px-4 py-3">
         <p className="font-semibold">
           저녁 {kcal.meals}끼 · 한 끼 평균 약 {kcal.avgKcal.toLocaleString('ko-KR')}kcal · 단백질 {kcal.avgProteinG}g
         </p>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-sub">
           {kcal.meals}끼 합계 약 {kcal.totalKcal.toLocaleString('ko-KR')}kcal · 1인 기준 추정치
         </p>
-        <p className="mt-1 text-xs text-gray-400">모든 메뉴는 밥을 포함해 한 끼 {config.maxKcalPerMeal}kcal 이하 기준으로 만들었어요.</p>
+        <p className="mt-1 text-xs text-sub">모든 메뉴는 밥을 포함해 한 끼 {config.maxKcalPerMeal}kcal 이하 기준으로 만들었어요.</p>
       </section>
 
       {shared.length > 0 && (
-        <p className="text-sm text-gray-600">겹치는 재료: {shared.map((id) => ingredients[id].name).join(', ')}</p>
+        <p className="text-sm text-sub">겹치는 재료: {shared.map((id) => ingredients[id].name).join(', ')}</p>
       )}
 
-      <p className="text-sm text-gray-500">메뉴를 누르면 레시피를 볼 수 있어요.</p>
+      <p className="text-sm text-sub">메뉴를 누르면 레시피를 볼 수 있어요.</p>
 
       {suggestion && !dismissed.includes(suggestionKey) && (
-        <section className="rounded-xl border border-black p-4">
+        <section className="rounded-xl border border-ink p-4">
           <p className="text-sm font-semibold">이 레시피는 어떤가요?</p>
           <button type="button" onClick={() => onOpenRecipe(suggestion.recipe)} className="mt-2 text-left">
             <p className="font-semibold underline underline-offset-4">{suggestion.recipe.name}</p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-sub">
               {FLAVOR_LABEL[suggestion.recipe.flavor]} · {METHOD_LABEL[suggestion.recipe.method]}
             </p>
           </button>
           {suggestion.leftovers.length > 0 && (
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-sub">
               남는 {suggestion.leftovers.map((l) => `${l.name} ${l.amount.toLocaleString('ko-KR')}${l.unit}`).join(', ')}을 써요
             </p>
           )}
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-sub">
             {suggestion.extraCost > 0 ? `추가 예상 금액 약 ${won(suggestion.extraCost)}` : '예상 금액이 늘지 않아요'}
           </p>
           <div className="mt-3 flex gap-2">
-            <button type="button" onClick={() => setMenu([...menu, suggestion.recipe])} className="flex-1 rounded-lg bg-black py-2 text-sm font-semibold text-white">
+            <button type="button" onClick={() => setMenu([...menu, suggestion.recipe])} className="flex-1 rounded-lg bg-ink py-2 text-sm font-semibold text-white">
               메뉴에 추가
             </button>
-            <button type="button" onClick={() => setDismissed([...dismissed, suggestionKey])} className="rounded-lg border border-gray-200 px-4 py-2 text-sm">
+            <button type="button" onClick={() => setDismissed([...dismissed, suggestionKey])} className="rounded-lg border border-line px-4 py-2 text-sm">
               괜찮아요
             </button>
           </div>

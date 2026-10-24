@@ -32,8 +32,8 @@ const blank = (): RecipeData => ({
   verified: false,
 })
 
-const input = 'w-full rounded-lg border border-gray-300 px-3 py-2'
-const small = 'rounded-lg border border-gray-300 px-3 py-1.5 text-sm'
+const input = 'w-full rounded-lg border border-line px-3 py-2'
+const small = 'rounded-lg border border-line px-3 py-1.5 text-sm'
 
 export default function AdminScreen() {
   const [list, setList] = useState<RecipeData[]>(() => structuredClone(recipeData))
@@ -96,24 +96,24 @@ export default function AdminScreen() {
   const setStep = (i: number, text: string) => update({ steps: r.steps.map((s, j) => (j === i ? text : s)) })
 
   return (
-    <div className="min-h-dvh bg-white text-black">
-      <header className="sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b border-gray-200 bg-white px-5 py-3">
+    <div className="min-h-dvh bg-surface text-ink">
+      <header className="sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b border-line bg-surface px-5 py-3">
         <h1 className="text-lg font-bold">레시피 관리</h1>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-sub">
           {list.length}개 · 검수 완료 {list.filter((x) => x.verified).length}개{dirty && ' · 저장 안 한 변경 있음'}
         </span>
         <div className="ml-auto flex gap-2">
           <button type="button" className={small} onClick={addRecipe}>
             새 레시피
           </button>
-          <button type="button" className="rounded-lg bg-black px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-40" disabled={!dirty} onClick={save}>
+          <button type="button" className="rounded-lg bg-ink px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-40" disabled={!dirty} onClick={save}>
             저장
           </button>
         </div>
       </header>
 
       {message.length > 0 && (
-        <ul className="mx-5 mt-3 rounded-lg border border-black px-4 py-2 text-sm">
+        <ul className="mx-5 mt-3 rounded-lg border border-ink px-4 py-2 text-sm">
           {message.map((m) => (
             <li key={m}>{m}</li>
           ))}
@@ -130,17 +130,17 @@ export default function AdminScreen() {
                 ['done', '검수 완료'],
               ] as const
             ).map(([v, label]) => (
-              <button key={v} type="button" onClick={() => setFilter(v)} className={`${small} ${filter === v ? 'border-2 border-black font-semibold' : ''}`}>
+              <button key={v} type="button" onClick={() => setFilter(v)} className={`${small} ${filter === v ? 'border-2 border-ink font-semibold' : ''}`}>
                 {label}
               </button>
             ))}
           </div>
-          <ul className="max-h-[40vh] overflow-y-auto rounded-lg border border-gray-200 md:max-h-[calc(100dvh-10rem)]">
+          <ul className="max-h-[40vh] overflow-y-auto rounded-lg border border-line md:max-h-[calc(100dvh-10rem)]">
             {shown.map(([x, i]) => (
               <li key={i}>
-                <button type="button" onClick={() => select(i)} className={`flex w-full justify-between px-3 py-2 text-left text-sm ${i === selected ? 'bg-gray-100 font-semibold' : ''}`}>
+                <button type="button" onClick={() => select(i)} className={`flex w-full justify-between px-3 py-2 text-left text-sm ${i === selected ? 'bg-bg font-semibold' : ''}`}>
                   <span>{x.name || '(이름 없음)'}</span>
-                  <span className="text-gray-400">{x.verified ? '검수' : ''}</span>
+                  <span className="text-sub">{x.verified ? '검수' : ''}</span>
                 </button>
               </li>
             ))}
@@ -149,7 +149,7 @@ export default function AdminScreen() {
           {/* H1 레시피 후보(data/recipe-candidates.json) 중 아직 올리지 않은 것 */}
           <details className="mt-4">
             <summary className="cursor-pointer text-sm font-semibold">레시피 후보 ({waiting.length})</summary>
-            <ul className="mt-2 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-200">
+            <ul className="mt-2 max-h-[40vh] overflow-y-auto rounded-lg border border-line">
               {waiting.map((c) => (
                 <li key={c.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                   <span>{c.name}</span>
@@ -237,7 +237,7 @@ export default function AdminScreen() {
                       ))}
                     </select>
                     <input type="number" min={0} className={`${input} w-24`} value={x.amount} onChange={(e) => setIngredient(i, { amount: Number(e.target.value) })} />
-                    <span className="w-6 text-sm text-gray-500">{ingredients[x.id]?.unit}</span>
+                    <span className="w-6 text-sm text-sub">{ingredients[x.id]?.unit}</span>
                     <button type="button" aria-label="재료 빼기" className={small} onClick={() => update({ ingredients: r.ingredients.filter((_, j) => j !== i) })}>
                       빼기
                     </button>
@@ -251,7 +251,7 @@ export default function AdminScreen() {
 
             <section>
               <h2 className="mb-2 font-semibold">조리 순서</h2>
-              <p className="mb-2 text-xs text-gray-500">외부 레시피 글을 옮기지 말고 직접 써 주세요.</p>
+              <p className="mb-2 text-xs text-sub">외부 레시피 글을 옮기지 말고 직접 써 주세요.</p>
               <ol className="flex flex-col gap-2">
                 {r.steps.map((s, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -294,7 +294,7 @@ export default function AdminScreen() {
               </label>
             </section>
 
-            <section className="rounded-xl border border-gray-200 p-4">
+            <section className="rounded-xl border border-line p-4">
               <h2 className="mb-2 font-semibold">계산 결과 (1인분{r.carb === 'rice' && `, 밥 ${config.riceWithMeal.grams}g 포함`})</h2>
               {nutrition ? (
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
@@ -311,13 +311,13 @@ export default function AdminScreen() {
                     ] as const
                   ).map(([label, value]) => (
                     <div key={label}>
-                      <dt className="text-gray-500">{label}</dt>
+                      <dt className="text-sub">{label}</dt>
                       <dd className="font-semibold">{value}</dd>
                     </div>
                   ))}
                 </dl>
               ) : (
-                <p className="text-sm text-gray-500">재료를 고치면 계산해요.</p>
+                <p className="text-sm text-sub">재료를 고치면 계산해요.</p>
               )}
               {errors.length > 0 ? (
                 <ul className="mt-3 list-disc pl-5 text-sm font-semibold">
@@ -326,7 +326,7 @@ export default function AdminScreen() {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-3 text-sm text-gray-500">검사 통과</p>
+                <p className="mt-3 text-sm text-sub">검사 통과</p>
               )}
             </section>
 
@@ -350,7 +350,7 @@ export default function AdminScreen() {
 function CandidateNote({ c }: { c: Candidate }) {
   const { unmatched } = draftFromCandidate(c)
   return (
-    <section className="rounded-xl border border-black p-4 text-sm">
+    <section className="rounded-xl border border-ink p-4 text-sm">
       <h2 className="font-semibold">후보에서 올린 레시피 ({c.id})</h2>
       <p className="mt-1">
         참고한 재료 구성:{' '}

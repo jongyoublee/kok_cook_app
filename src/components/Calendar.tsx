@@ -34,7 +34,7 @@ export default function Calendar({ today, selected, onChange }: Props) {
     <div>
       <div className="grid grid-cols-3 gap-2 text-sm">
         {quick.map(([label, dates]) => (
-          <button key={label} type="button" className="rounded-lg border border-gray-200 bg-white py-2 text-gray-700" onClick={() => onChange(dates)}>
+          <button key={label} type="button" className="rounded-lg border border-line bg-surface py-2 text-ink" onClick={() => onChange(dates)}>
             {label}
           </button>
         ))}
@@ -47,7 +47,7 @@ export default function Calendar({ today, selected, onChange }: Props) {
       </div>
 
       <div className="grid grid-cols-7 text-center text-sm">
-        {'월화수목금토일'.split('').map((w) => <div key={w} className="py-1 text-gray-400">{w}</div>)}
+        {'월화수목금토일'.split('').map((w) => <div key={w} className="py-1 text-sub">{w}</div>)}
         {days.map((d, i) => {
           if (!d) return <div key={i} />
           const on = selected.includes(d)
@@ -58,16 +58,16 @@ export default function Calendar({ today, selected, onChange }: Props) {
               disabled={!canSelect(d, selected, today)}
               aria-pressed={on}
               onClick={() => toggle(d)}
-              className={`m-0.5 flex h-11 flex-col items-center justify-center rounded-lg ${on ? 'bg-black text-white' : ''} ${d === today ? 'ring-1 ring-black' : ''} disabled:text-gray-300`}
+              className={`m-0.5 flex h-11 flex-col items-center justify-center rounded-lg ${on ? 'bg-ink text-white' : ''} ${d === today ? 'ring-1 ring-ink' : ''} disabled:text-sub/40`}
             >
               <span>{Number(d.slice(8))}</span>
-              {d === cook && <span className="text-[10px] leading-none text-gray-500">조리</span>}
+              {d === cook && <span className="text-[10px] leading-none text-sub">조리</span>}
             </button>
           )
         })}
       </div>
 
-      <p className="mt-3 text-sm text-gray-500">
+      <p className="mt-3 text-sm text-sub">
         {selected.length}일 선택, 최대 {config.maxSelectDays}일
       </p>
     </div>

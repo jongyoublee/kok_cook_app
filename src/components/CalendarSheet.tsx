@@ -29,12 +29,12 @@ export default function CalendarSheet({ open, today, selected, onClose, onDone }
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className="mx-auto mt-auto mb-0 w-full max-w-md rounded-t-2xl bg-white p-5 backdrop:bg-black/40"
+      className="mx-auto mt-auto mb-0 w-full max-w-md rounded-t-2xl bg-surface p-5 backdrop:bg-ink/40"
       aria-labelledby="calendar-title"
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 id="calendar-title" className="text-lg font-bold">먹을 날짜 선택</h2>
-        <button type="button" onClick={onClose} className="p-2 text-gray-500" aria-label="닫기">✕</button>
+        <button type="button" onClick={onClose} className="p-2 text-sub" aria-label="닫기">✕</button>
       </div>
       {/* 열 때마다 새로 그려 표시 월을 선택한 날짜에 맞춘다 */}
       {open && <Calendar today={today} selected={draft} onChange={setDraft} />}

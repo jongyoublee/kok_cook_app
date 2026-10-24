@@ -18,6 +18,7 @@ type Props = {
   onSubmit?: (c: Conditions) => void
   onChange?: (c: Conditions) => void // 내 설정: 고칠 때마다 저장
   onReset: () => void // I6 내 데이터 지우기
+  onTutorial?: () => void // I10 사용법 다시 보기(내 설정)
 }
 
 const sameDates = (a: ISODate[], b: ISODate[]) => a.join() === b.join()
@@ -37,7 +38,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-export default function InputScreen({ header, today, initial, onSubmit, onChange, onReset }: Props) {
+export default function InputScreen({ header, today, initial, onSubmit, onChange, onReset, onTutorial }: Props) {
   const [c, setC] = useState(initial)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const set = (patch: Partial<Conditions>) => {
@@ -110,6 +111,13 @@ export default function InputScreen({ header, today, initial, onSubmit, onChange
             모두 되돌리기
           </button>
         </p>
+      )}
+
+      {/* I10 */}
+      {onTutorial && (
+        <button type="button" onClick={onTutorial} className="rounded-xl border border-line py-3 text-sm font-medium">
+          사용법 보기
+        </button>
       )}
 
       {/* I6 */}

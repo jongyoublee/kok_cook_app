@@ -32,6 +32,8 @@ import RecipeScreen from './screens/RecipeScreen'
 import SetupScreen from './screens/SetupScreen'
 import ShoppingScreen from './screens/ShoppingScreen'
 import ThisWeekScreen from './screens/ThisWeekScreen'
+import TutorialScreen from './screens/TutorialScreen'
+import { markTutorialSeen, tutorialSeen } from './tutorial'
 import { NAV_SPACE, toggle } from './ui'
 
 // U02 저장된 조건이 있으면 불러와 홈으로(U03), 없으면 처음 설정부터(U04) (I2)
@@ -58,6 +60,8 @@ export default function App() {
   }, [])
   const [conditions, setConditions] = useState(saved ?? defaultConditions(openedOn))
   const [setup, setSetup] = useState(!saved)
+  // I10 사용법 안내: 처음 실행(저장된 조건 없음)에 본 적이 없으면 처음 설정 앞에, 이후에는 내 설정에서 연다
+  const [tutorial, setTutorial] = useState(!saved && !tutorialSeen())
   const [plans, setPlans] = useState(savedPlans)
   // I8 하단 메뉴 탭과, 어느 탭에서든 여는 레시피 상세(하위 화면)
   const [tab, setTab] = useState<Tab>('week')
@@ -112,6 +116,16 @@ export default function App() {
     setSetup(true)
   }
 
+  if (tutorial)
+    return (
+      <TutorialScreen
+        onDone={() => {
+          markTutorialSeen()
+          setTutorial(false)
+        }}
+      />
+    )
+
   if (setup)
     return (
       <SetupScreen
@@ -143,7 +157,7 @@ export default function App() {
   let page
   if (recipe) page = <RecipeScreen recipe={recipe.r} servings={recipe.servings} onBack={() => setRecipe(null)} />
   else if (tab === 'settings')
-    page = <InputScreen key="settings" today={today} initial={conditions} onChange={save} onReset={reset} />
+    page = <InputScreen key="settings" today={today} initial={conditions} onChange={save} onReset={reset} onTutorial={() => setTutorial(true)} />
   else if (tab === 'storage') {
     const p = pick(storeView)
     page = !p ? (

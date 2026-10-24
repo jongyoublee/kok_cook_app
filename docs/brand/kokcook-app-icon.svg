@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="KokCook 앱 아이콘">
+  <!-- 흰 바탕 둥근 사각형 + 셰프 모자. 스토어용은 바깥 테두리 없이 쓰고, 화면 안에서는 #E6E6E3 1px 테두리를 더한다 -->
+  <rect width="1024" height="1024" rx="230" fill="#FFFFFF"/>
+  <g transform="translate(170 140) scale(28.5)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.5 20h9a.5.5 0 0 0 .5-.5v-5.2a3.8 3.8 0 1 0-2.1-7.1 4 4 0 0 0-5.8 0A3.8 3.8 0 1 0 7 14.3v5.2a.5.5 0 0 0 .5.5z" stroke="#111214" stroke-width="1.6"/>
+    <path d="M7 16.6h10" stroke="#C8693F" stroke-width="2.1"/>
+  </g>
+</svg>

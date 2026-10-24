@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="KokCook">
+  <!-- KokCook 셰프 모자 (세 봉우리). 몸통은 검정 선, 띠만 강조색. 64px 이상 기준 선 굵기 -->
+  <path d="M7.5 20h9a.5.5 0 0 0 .5-.5v-5.2a3.8 3.8 0 1 0-2.1-7.1 4 4 0 0 0-5.8 0A3.8 3.8 0 1 0 7 14.3v5.2a.5.5 0 0 0 .5.5z" stroke="#111214" stroke-width="1.6"/>
+  <path d="M7 16.6h10" stroke="#C8693F" stroke-width="2.1"/>
+</svg>

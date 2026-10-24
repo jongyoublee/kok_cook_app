@@ -173,8 +173,11 @@ export default function App() {
         <ShoppingScreen
           key={p.dates[0]}
           top={switchFor(p === current ? 'this' : 'next', setShopView)}
+          today={today}
+          period={p === current ? '이번 주' : '다음 주'}
           conditions={pc}
           cookDate={planCookDate(p)}
+          onCookDateChange={(cookDate) => replacePlan(p, { ...p, cookDate })}
           menu={p.menu}
           checked={p.checked}
           onToggle={(id) => replacePlan(p, { ...p, checked: toggle(p.checked, id) })}

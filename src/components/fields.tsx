@@ -184,3 +184,19 @@ export function BudgetMeter({ cost, budget }: { cost: number; budget: number }) 
     </>
   )
 }
+
+// D11 원형 구매 체크. 체크하면 채운 원과 흰 체크 표시
+export function CheckCircle({ checked, onChange, label }: { checked: boolean; onChange: () => void; label?: string }) {
+  return (
+    <span className="relative mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center">
+      <input type="checkbox" checked={checked} onChange={onChange} aria-label={label} className="peer absolute inset-0 cursor-pointer opacity-0" />
+      <span className={`flex h-6 w-6 items-center justify-center rounded-full border-2 peer-focus-visible:ring-2 peer-focus-visible:ring-ink ${checked ? 'border-ink bg-ink' : 'border-line'}`} aria-hidden>
+        {checked && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+          </svg>
+        )}
+      </span>
+    </span>
+  )
+}

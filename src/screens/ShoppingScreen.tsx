@@ -1,7 +1,7 @@
 // D1~D6 장보기 목록 (와이어프레임 4), G1~G3 쿠팡 링크, F2 예산 확인 (버전 B, 와이어프레임 5).
-// I8 하단 메뉴의 장보기 탭. 보관 방법은 보관 탭으로 옮겼다
+// I8 하단 메뉴의 장보기 탭. 보관 방법은 보관 탭으로 옮겼다. D11 위쪽 요약 카드(하단 고정 합계 대신)
 import { useState, type ReactNode } from 'react'
-import { BudgetField, CostBar } from '../components/fields'
+import { BudgetField, CheckCircle, CostBar } from '../components/fields'
 import type { Conditions } from '../conditions'
 import { CORNERS, ingredients, type IngredientId } from '../data/ingredients'
 import { priceOf } from '../data/prices'
@@ -10,13 +10,17 @@ import { budgetOf, budgetVersion, suggestSwap } from '../lib/budget'
 import { COUPANG_NOTICE, coupangLink } from '../lib/coupang'
 import { formatDay, type ISODate } from '../lib/dates'
 import { buildShoppingList, servingsOf, shoppingText } from '../lib/shopping'
+import { cookDateOptions } from '../lib/storagePlan'
 import type { Extra } from '../plan'
-import { ABOVE_NAV, num } from '../ui'
+import { EYEBROW, num } from '../ui'
 
 type Props = {
   top?: ReactNode // B13 이번 주·다음 주 계획 고르기
+  today: ISODate
+  period: string // '이번 주' 또는 '다음 주'
   conditions: Conditions
   cookDate: ISODate
+  onCookDateChange: (d: ISODate) => void
   menu: Recipe[]
   checked: IngredientId[]
   onToggle: (id: IngredientId) => void
@@ -27,9 +31,8 @@ type Props = {
   onExtrasChange: (extras: Extra[]) => void
 }
 
-
 export default function ShoppingScreen(props: Props) {
-  const { top, conditions: c, cookDate, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, extras, onExtrasChange } = props
+  const { top, today, period, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, extras, onExtrasChange } = props
   const [keep, setKeep] = useState(false) // F2 "그대로 진행"을 누르면 교체 제안을 닫는다
   const [draftExtra, setDraftExtra] = useState('') // D9 입력 중인 항목
   const [shared, setShared] = useState('') // D10 공유 결과 안내
@@ -38,6 +41,7 @@ export default function ShoppingScreen(props: Props) {
   const seasoningCost = list.items.filter((it) => it.corner === '양념').reduce((s, it) => s + (it.price ?? 0), 0)
   const versionB = budgetVersion() === 'B'
   const budget = budgetOf(c)
+  const cookOptions = cookDateOptions(today, c.dates)
   const suggestion = versionB && onApplySwap && !keep && list.total > budget ? suggestSwap(menu, c) : null
 
   const share = async () => {
@@ -65,15 +69,55 @@ export default function ShoppingScreen(props: Props) {
       {top}
 
       <section>
-        <h1 className="text-[26px] font-bold">장보기</h1>
-        <p className="mt-1 text-sub">
-          {formatDay(cookDate)} 조리 전까지 구매 · {left}개 남음
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">장보기</h1>
+          {/* D10 공유 기능이 있으면 공유 창, 없으면 복사 */}
+          <button type="button" onClick={share} className="rounded-full border border-line px-3 py-1.5 text-sm">
+            목록 공유
+          </button>
+        </div>
+        {shared && <p className="text-right text-sm text-sub">{shared}</p>}
+        {/* D11 부제의 장보기 날짜(= 조리일)를 바로 고친다. 보관 탭의 조리일과 같은 값 */}
+        <p className="mt-1 text-sm text-sub">
+          {period} · {formatDay(c.dates[0])}~{formatDay(c.dates[c.dates.length - 1])} ·{' '}
+          <label className="relative inline-block font-semibold text-ink">
+            {formatDay(cookDate)} 장보기 ✎
+            <select
+              value={cookDate}
+              onChange={(e) => onCookDateChange(e.target.value)}
+              aria-label="장보기 날짜"
+              className="absolute inset-0 cursor-pointer opacity-0"
+            >
+              {(cookOptions.includes(cookDate) ? cookOptions : [cookDate, ...cookOptions]).map((d) => (
+                <option key={d} value={d}>
+                  {formatDay(d)}
+                </option>
+              ))}
+            </select>
+          </label>
         </p>
-        {/* D10 공유 기능이 있으면 공유 창, 없으면 복사 */}
-        <button type="button" onClick={share} className="mt-3 rounded-lg border border-line px-3 py-1.5 text-sm">
-          목록 공유
-        </button>
-        {shared && <span className="ml-2 text-sm text-sub">{shared}</span>}
+
+        {/* D11 요약 카드: 큰 예상 금액, 구매 진행, 가격 계산 방법 */}
+        <div className="mt-4 rounded-2xl border border-line bg-surface p-4 shadow-card">
+          <p className={EYEBROW}>
+            {formatDay(c.dates[0])} ~ {formatDay(c.dates[c.dates.length - 1])}
+          </p>
+          <p className="mt-1 text-[28px] font-bold tabular-nums">약 {num(list.total)}원</p>
+          <p className="mt-2 text-sm text-sub">
+            {list.items.length}개 중 {list.items.length - left}개 샀어요
+          </p>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-bg" role="progressbar" aria-valuemin={0} aria-valuemax={list.items.length} aria-valuenow={list.items.length - left} aria-label="구매 진행">
+            <div className="h-full rounded-full bg-ink" style={{ width: `${list.items.length ? ((list.items.length - left) / list.items.length) * 100 : 0}%` }} />
+          </div>
+          <details className="mt-3 text-sm">
+            <summary className="cursor-pointer font-semibold">가격은 이렇게 계산해요</summary>
+            {/* D4 참가격 연동 전 가짜 가격, D8 정가 기준 추정, D7 양념은 여러 주, G2 수수료 고지 */}
+            <p className="mt-2 text-sub">할인 전 정가 기준 추정치라 실제 결제 금액은 대개 이보다 적어요. 지금은 임시 가격 데이터예요.</p>
+            {seasoningCost > 0 && <p className="mt-1 text-sub">이 중 양념 약 {num(seasoningCost)}원은 한 번 사면 여러 주 써요.</p>}
+            {COUPANG_NOTICE && <p className="mt-1 text-sub">{COUPANG_NOTICE}</p>}
+          </details>
+        </div>
+
         <div className="mt-4 flex flex-wrap gap-2">
           {menu.map((r) => (
             <button key={r.id} type="button" onClick={() => onOpenRecipe(r)} className="rounded-full border border-line px-3 py-1 text-sm">
@@ -116,14 +160,17 @@ export default function ShoppingScreen(props: Props) {
         if (!items.length) return null
         return (
           <section key={corner}>
-            <h2 className="mb-2 text-sm font-semibold text-sub">{corner}</h2>
+            <h2 className={`${EYEBROW} mb-2`}>
+              {corner}
+              {corner === '양념' && <span className="ml-2 font-semibold tracking-normal">한 번 사면 오래 써요</span>}
+            </h2>
             <ul className="divide-y divide-line rounded-xl border border-line">
               {items.map((it) => {
                 const done = checked.includes(it.id)
                 return (
                   <li key={it.id} className="flex items-start">
                     <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3 py-3 pl-4">
-                      <input type="checkbox" checked={done} onChange={() => onToggle(it.id)} className="mt-1 h-5 w-5 shrink-0 accent-ink" />
+                      <CheckCircle checked={done} onChange={() => onToggle(it.id)} />
                       <span className={`min-w-0 flex-1 ${done ? 'text-sub line-through' : ''}`}>
                         <span className="flex justify-between gap-2">
                           <span className="font-medium">
@@ -162,18 +209,12 @@ export default function ShoppingScreen(props: Props) {
 
       {/* D9 메뉴와 관계없이 살 물건 */}
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-sub">직접 추가</h2>
+        <h2 className={`${EYEBROW} mb-2`}>직접 추가</h2>
         {extras.length > 0 && (
           <ul className="mb-2 divide-y divide-line rounded-xl border border-line">
             {extras.map((e, i) => (
               <li key={i} className="flex items-center gap-3 py-3 pr-2 pl-4">
-                <input
-                  type="checkbox"
-                  checked={e.done}
-                  onChange={() => onExtrasChange(extras.with(i, { ...e, done: !e.done }))}
-                  aria-label={`${e.name} 샀어요`}
-                  className="h-5 w-5 shrink-0 accent-ink"
-                />
+                <CheckCircle checked={e.done} onChange={() => onExtrasChange(extras.with(i, { ...e, done: !e.done }))} label={`${e.name} 샀어요`} />
                 <span className={`min-w-0 flex-1 ${e.done ? 'text-sub line-through' : ''}`}>{e.name}</span>
                 <button type="button" onClick={() => onExtrasChange(extras.filter((_, j) => j !== i))} aria-label={`${e.name} 지우기`} className="p-2 text-sub">
                   ✕
@@ -209,17 +250,6 @@ export default function ShoppingScreen(props: Props) {
         </details>
       )}
 
-      <div className={`sticky ${ABOVE_NAV} -mx-5 mt-auto rounded-2xl border border-line bg-surface px-5 py-3 shadow-card`}>
-        <div className="flex items-baseline justify-between">
-          <span className="font-semibold">예상 금액 합계</span>
-          <span className="text-xl font-bold">약 {num(list.total)}원</span>
-        </div>
-        {/* D7 처음 사는 양념은 여러 주 쓰므로 첫 주 합계가 높게 보이는 이유를 알린다 */}
-        {seasoningCost > 0 && <p className="mt-1 text-sm text-sub">이 중 양념 약 {num(seasoningCost)}원은 한 번 사면 여러 주 써요.</p>}
-        {/* D4 참가격 연동 전 가짜 가격, D8 정가 기준 추정, G2 수수료 고지 */}
-        <p className="mt-1 text-xs text-sub">할인 전 정가 기준 추정치라 실제 결제 금액은 대개 이보다 적어요. 지금은 임시 가격 데이터예요.</p>
-        {COUPANG_NOTICE && <p className="mt-1 text-xs text-sub">{COUPANG_NOTICE}</p>}
-      </div>
     </main>
   )
 }

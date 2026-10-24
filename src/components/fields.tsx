@@ -159,23 +159,28 @@ export function BudgetField({ c, set, showCheapest = true }: FieldProps & { show
 
 // 예상 금액과 예산 비교 막대. budget이 없으면 금액만
 export function CostBar({ cost, budget }: { cost: number; budget?: number }) {
-  const over = budget !== undefined && cost > budget
   return (
     <div className="rounded-xl border border-line px-4 py-3">
       <div className="flex items-baseline justify-between">
         <span className="text-sm text-sub">예상 금액</span>
         <span className="font-bold">약 {won(cost)}</span>
       </div>
-      {budget !== undefined && (
-        <>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg" role="meter" aria-valuemin={0} aria-valuemax={budget} aria-valuenow={cost} aria-label="예산 대비 예상 금액">
-            <div className={`h-2 rounded-full ${over ? 'bg-ink' : 'bg-sub'}`} style={{ width: `${Math.min(100, (cost / budget) * 100)}%` }} />
-          </div>
-          <p className={`mt-1 text-sm ${over ? 'font-semibold text-ink' : 'text-sub'}`}>
-            예산 {won(budget)} {over ? `· ${won(cost - budget)} 넘어요` : `· ${won(budget - cost)} 남아요`}
-          </p>
-        </>
-      )}
+      {budget !== undefined && <BudgetMeter cost={cost} budget={budget} />}
     </div>
+  )
+}
+
+// F1, F2 예산 대비 예상 금액 막대와 남는·넘는 금액
+export function BudgetMeter({ cost, budget }: { cost: number; budget: number }) {
+  const over = cost > budget
+  return (
+    <>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg" role="meter" aria-valuemin={0} aria-valuemax={budget} aria-valuenow={cost} aria-label="예산 대비 예상 금액">
+        <div className={`h-2 rounded-full ${over ? 'bg-ink' : 'bg-sub'}`} style={{ width: `${Math.min(100, (cost / budget) * 100)}%` }} />
+      </div>
+      <p className={`mt-1 text-sm ${over ? 'font-semibold text-ink' : 'text-sub'}`}>
+        예산 {won(budget)} {over ? `· ${won(cost - budget)} 넘어요` : `· ${won(budget - cost)} 남아요`}
+      </p>
+    </>
   )
 }

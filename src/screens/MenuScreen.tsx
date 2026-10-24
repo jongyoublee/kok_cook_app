@@ -4,16 +4,16 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { config } from '../config'
 import { mealCount, type Conditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
-import { dayLabel } from '../lib/dates'
+import { cookDay, dayLabel, formatDay } from '../lib/dates'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
 import { addMenu, assignDays, filterCandidates, maxMenus, menuSpread, sharedIngredients, swapMenu } from '../lib/menu'
-import { CostBar, Tile } from '../components/fields'
+import { BudgetMeter } from '../components/fields'
 import { budgetOf, budgetVersion, menuCost } from '../lib/budget'
 import { summarizeMenu } from '../lib/nutrition'
 import { OPTION_LABEL, suggestAddition, type MenuOption } from '../lib/options'
 import { perServingCost, servingsOf } from '../lib/shopping'
 import { priceOf } from '../data/prices'
-import { ABOVE_NAV, primaryButton, won } from '../ui'
+import { ABOVE_NAV, EYEBROW, num, primaryButton, won } from '../ui'
 
 type Props = {
   header?: ReactNode
@@ -44,6 +44,7 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
   const limit = maxMenus(c, candidates)
   const [shown, setShown] = useState<string[][]>([])
   const [dismissed, setDismissed] = useState<string[]>([]) // '괜찮아요'를 누른 추가 제안 (메뉴 조합별)
+  const [moreOpen, setMoreOpen] = useState<number | null>(null) // B14 … 메뉴를 연 행
 
   if (!menu.length)
     return (
@@ -86,82 +87,134 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
     setShown((s) => s.filter((_, j) => j !== i))
   }
 
+  const cost = menuCost(menu, c)
+  const meterBudget = c.cheapest ? undefined : budget
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-4">
       {header}
       <div className="flex items-center gap-2">
         <button type="button" onClick={onBack} className="p-1 text-xl" aria-label="조건으로 돌아가기">‹</button>
-        <h1 className="text-xl font-bold">다음 주 메뉴</h1>
+        <h1 className="text-2xl font-bold">다음 주 메뉴</h1>
       </div>
-      <p className="-mt-2 text-sm text-sub">
-        저녁 {mealCount(c)}끼, {c.people}명
-      </p>
       {limit < c.menuCount && (
         <p className="text-sm font-medium text-ink">조건에 맞게 만들 수 있는 메뉴가 {limit}개라 {limit}개로 구성했어요.</p>
       )}
 
+      {/* B13 요약 카드: D4·F1 예상 금액과 예산, 끼니·인원·장보기 날짜, A6 칼로리 요약(추정치) */}
+      <section className="rounded-2xl border border-line bg-surface p-4 shadow-card">
+        <p className={EYEBROW}>
+          {formatDay(c.dates[0])} ~ {formatDay(c.dates[c.dates.length - 1])}
+        </p>
+        <p className="mt-1 text-[28px] font-bold tabular-nums">약 {won(cost)}</p>
+        {meterBudget !== undefined && <BudgetMeter cost={cost} budget={meterBudget} />}
+        <p className="mt-2 text-sm text-sub">
+          저녁 {mealCount(c)}끼 · {c.people}명 · {formatDay(cookDay(c.dates)!)} 장보기
+        </p>
+        <p className="text-sm text-sub">
+          한 끼 평균 약 {num(kcal.avgKcal)}kcal · 단백질 {kcal.avgProteinG}g · {kcal.meals}끼 합계 약 {num(kcal.totalKcal)}kcal
+        </p>
+      </section>
+
+      {/* B1 추천안 칩 */}
       {visibleOptions.length > 1 && (
-        <div className={`grid gap-2 ${visibleOptions.length === 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          {visibleOptions.map((o) => (
-            <Tile
-              key={o.kind}
-              on={sameMenu(o.menu, menu)}
-              onClick={() => {
-                setMenu(o.menu)
-                setShown([])
-              }}
-              label={OPTION_LABEL[o.kind]}
-              desc={optionDesc(o)}
-            />
-          ))}
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+          {visibleOptions.map((o) => {
+            const on = sameMenu(o.menu, menu)
+            return (
+              <button
+                key={o.kind}
+                type="button"
+                aria-pressed={on}
+                onClick={() => {
+                  setMenu(o.menu)
+                  setShown([])
+                }}
+                className={`shrink-0 rounded-full bg-surface px-4 py-2 text-left text-sm ${on ? 'border-2 border-ink font-bold' : 'border border-line'}`}
+              >
+                {OPTION_LABEL[o.kind]}
+                <span className="ml-1.5 font-normal text-sub">{optionDesc(o)}</span>
+              </button>
+            )
+          })}
         </div>
       )}
 
-      <ul className="flex flex-col gap-3">
-        {menu.map((r, i) => (
-          <li key={r.id} className="relative flex gap-3 rounded-xl border border-line p-3 pr-9">
-            <button type="button" onClick={() => onOpenRecipe(r)} className="flex min-w-0 flex-1 gap-3 text-left">
-              <div className="h-20 w-20 shrink-0 rounded-lg bg-bg" aria-hidden />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <p className="font-semibold underline-offset-4 hover:underline">{r.name}</p>
-                <p className="text-xs text-sub">
-                  {FLAVOR_LABEL[r.flavor]} · {METHOD_LABEL[r.method]}
-                </p>
-                <p className="text-sm text-sub">
-                  단백질 {r.nutrition.proteinG}g, {r.nutrition.kcal}kcal · 1인분 약 {won(perServingCost(r, c.pantry, priceOf))}
-                </p>
-                <p className="text-sm text-sub">
-                  {dayLabel(days[i], c.dates)} {days[i].length}끼
-                </p>
-              </div>
-            </button>
-            <div className="flex shrink-0 flex-col items-center justify-center gap-1">
+      {/* B14 메뉴 행 */}
+      <section>
+        <h2 className={`${EYEBROW} border-b-2 border-ink pb-1.5 text-ink`}>다음 주 저녁</h2>
+        <ul className="divide-y divide-line">
+          {menu.map((r, i) => (
+            <li key={r.id} className="relative flex items-center gap-3 py-3">
+              <button type="button" onClick={() => onOpenRecipe(r)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-bg text-sub" aria-hidden>
+                  <DishIcon />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1.5 text-[11px] font-bold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sub" aria-hidden />
+                    {dayLabel(days[i], c.dates)}
+                  </p>
+                  <p className="line-clamp-2 text-[15px] font-bold">{r.name}</p>
+                  <p className="text-xs text-sub">
+                    1인분 약 {won(perServingCost(r, c.pantry, priceOf))} · 단백질 {r.nutrition.proteinG}g · {r.nutrition.kcal}kcal
+                  </p>
+                  <p className="mt-1 flex flex-wrap gap-1">
+                    <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-sub">
+                      {FLAVOR_LABEL[r.flavor]} · {METHOD_LABEL[r.method]}
+                    </span>
+                    {r.storage.freezable && <span className="rounded-full bg-bg px-2 py-0.5 text-[11px] font-semibold">냉동 가능</span>}
+                  </p>
+                </div>
+              </button>
               <button
                 type="button"
                 onClick={() => swap(i)}
                 disabled={candidates.length <= menu.length}
-                className="rounded-lg border border-line px-3 py-2 text-sm disabled:opacity-30"
+                className="mt-4 shrink-0 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-semibold disabled:opacity-30"
               >
                 교체
               </button>
-              {/* B10 */}
-              <button type="button" onClick={() => hide(i)} className="text-xs text-sub underline underline-offset-2">
-                다시 안 보기
-              </button>
-            </div>
-            {menu.length > config.menuCount.min && (
+              {/* B10 다시 안 보기, B3 삭제는 … 메뉴로 */}
               <button
                 type="button"
-                onClick={() => remove(i)}
-                aria-label={`${r.name} 삭제`}
-                className="absolute top-1 right-1 flex h-8 w-8 items-center justify-center text-sub"
+                onClick={() => setMoreOpen(moreOpen === i ? null : i)}
+                aria-label={`${r.name} 더 보기`}
+                aria-expanded={moreOpen === i}
+                className="absolute top-1 right-0 flex h-8 w-8 items-center justify-center text-sub"
               >
-                ✕
+                …
               </button>
-            )}
-          </li>
-        ))}
-      </ul>
+              {moreOpen === i && (
+                <div className="absolute top-9 right-0 z-10 flex flex-col rounded-xl border border-line bg-surface py-1 text-sm shadow-float">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMoreOpen(null)
+                      hide(i)
+                    }}
+                    className="px-4 py-2 text-left"
+                  >
+                    다시 안 보기
+                  </button>
+                  {menu.length > config.menuCount.min && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMoreOpen(null)
+                        remove(i)
+                      }}
+                      className="px-4 py-2 text-left"
+                    >
+                      메뉴에서 빼기
+                    </button>
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <button
         type="button"
@@ -172,25 +225,10 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
         메뉴 추가 ({menu.length}/{config.menuCount.max})
       </button>
 
-      {/* D4, F1 예상 금액 */}
-      <CostBar cost={menuCost(menu, c)} budget={c.cheapest ? undefined : budget} />
-
-      {/* A6 칼로리 요약 (추정치) */}
-      <section className="rounded-xl border border-line px-4 py-3">
-        <p className="font-semibold">
-          저녁 {kcal.meals}끼 · 한 끼 평균 약 {kcal.avgKcal.toLocaleString('ko-KR')}kcal · 단백질 {kcal.avgProteinG}g
-        </p>
-        <p className="mt-1 text-sm text-sub">
-          {kcal.meals}끼 합계 약 {kcal.totalKcal.toLocaleString('ko-KR')}kcal · 1인 기준 추정치
-        </p>
-        <p className="mt-1 text-xs text-sub">모든 메뉴는 밥을 포함해 한 끼 {config.maxKcalPerMeal}kcal 이하 기준으로 만들었어요.</p>
-      </section>
-
       {shared.length > 0 && (
         <p className="text-sm text-sub">겹치는 재료: {shared.map((id) => ingredients[id].name).join(', ')}</p>
       )}
-
-      <p className="text-sm text-sub">메뉴를 누르면 레시피를 볼 수 있어요.</p>
+      <p className="text-xs text-sub">메뉴를 누르면 레시피를 볼 수 있어요. 모든 메뉴는 밥을 포함해 한 끼 {config.maxKcalPerMeal}kcal 이하 기준이고, 칼로리는 1인 기준 추정치예요.</p>
 
       {suggestion && !dismissed.includes(suggestionKey) && (
         <section className="rounded-xl border border-ink p-4">
@@ -226,5 +264,15 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
         </button>
       </div>
     </main>
+  )
+}
+
+// B14 사진 자리의 단색 접시 아이콘(사진이 생기기 전까지)
+function DishIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.5 13h17a8.5 8.5 0 0 1-17 0z" />
+      <path d="M9 9.5c0-1.2 1-1.5 1-2.7M13 9.5c0-1.2 1-1.5 1-2.7" />
+    </svg>
   )
 }

@@ -25,3 +25,6 @@ export function hatStroke(size: number): [body: number, band: number] {
 // I8 떠 있는 하단 메뉴 자리. 화면 아래 여백과, 하단 고정 버튼을 메뉴 바로 위에 쌓는 위치
 export const NAV_SPACE = 'pb-[calc(96px+env(safe-area-inset-bottom))]'
 export const ABOVE_NAV = 'bottom-[calc(74px+env(safe-area-inset-bottom))]'
+
+// 소제목(eyebrow, docs/design.md 2절): 11px 굵게, 넓은 자간
+export const EYEBROW = 'text-[11px] font-extrabold tracking-[0.12em] text-sub'

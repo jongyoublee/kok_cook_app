@@ -1,7 +1,7 @@
-// A1~A6, A8~A10 입력 조건과 I2 기기 저장.
-// 내 설정(인원, 식단, 먹고 싶은 단백질·탄수화물, 집에 있는 양념)은 처음 한 번 묻고, 날짜·메뉴 개수는 매주 묻는다
+// A1~A6, A8~A10, A12 입력 조건과 I2 기기 저장.
+// 내 설정(인원, 먹고 싶은 단백질·탄수화물, 집에 있는 양념)은 처음 한 번 묻고, 날짜와 집에 있는 재료(A12)는 매주 묻는다
 import { config } from './config'
-import { ingredients, type IngredientId } from './data/ingredients'
+import { CORNERS, ingredients, type IngredientId } from './data/ingredients'
 import { recipes, type CarbBase, type ProteinSource } from './data/recipes'
 import { nextWeek, type ISODate } from './lib/dates'
 
@@ -16,6 +16,7 @@ export type Conditions = {
   proteins: ProteinSource[] // A8 먹고 싶은 단백질 (1개 이상)
   carbs: CarbBase[] // A10 먹고 싶은 베이스 탄수화물 (1개 이상)
   pantry: IngredientId[] // A9 집에 있는 양념
+  owned: IngredientId[] // A12 집에 있는 재료(양념 제외). 매주 바뀌어 확정한 계획에도 저장한다(plan.ts)
   budget: number | null // A7 예산(원). 사용자가 슬라이더를 움직이기 전에는 null(범위 중간을 쓴다, lib/budget.budgetOf)
   cheapest: boolean // F1 예산과 상관없이 가장 싸게 구성
   hidden: string[] // B10 '다시 안 보기'로 뺀 레시피 id (오래된 것부터)
@@ -53,6 +54,36 @@ export const PANTRY_GROUPS: { title: string; ids: IngredientId[] }[] = [
   { title: '양식 양념', ids: ['oliveOil', 'butter', 'ketchup', 'mayonnaise', 'mustard', 'balsamic', 'honey', 'basil', 'oregano', 'paprikaPowder', 'chickenStock'] },
 ]
 
+// A12 집에 있는지 묻는 재료: 양념을 뺀 모든 코너. 코너별로 묶어 보여준다
+export const OWNED_GROUPS: { title: string; ids: IngredientId[] }[] = CORNERS.filter((corner) => corner !== '양념').map((corner) => ({
+  title: corner,
+  ids: (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === corner),
+}))
+export const OWNED_OPTIONS = OWNED_GROUPS.flatMap((g) => g.ids)
+
+// A12 집에 있는 고기·생선·두부로 먹고 싶은 단백질(A8)을 미리 채울 때 쓰는 짝
+const OWNED_PROTEIN: Partial<Record<IngredientId, ProteinSource[]>> = {
+  porkShoulder: ['pork'],
+  porkTenderloin: ['pork'],
+  beefBulgogi: ['beef'],
+  beefRound: ['beef'],
+  chickenBreast: ['chicken'],
+  egg: ['egg'],
+  mackerel: ['fish'],
+  pollock: ['fish'],
+  salmon: ['fish'],
+  tunaCan: ['fish'],
+  squid: ['seafood'],
+  shrimp: ['seafood'],
+  tofu: ['tofu', 'legume'],
+  softTofu: ['tofu', 'legume'],
+  chickpeas: ['tofu', 'legume'],
+}
+export const proteinsFromOwned = (owned: IngredientId[]): ProteinSource[] => [...new Set(owned.flatMap((id) => OWNED_PROTEIN[id] ?? []))]
+
+// 장보기·금액·메뉴 점수에서 '집에 있는 것'으로 보는 재료: 양념(A9)과 재료(A12)
+export const homeOf = (c: Conditions): IngredientId[] => [...c.pantry, ...c.owned]
+
 // A3 끼니 수는 선택한 날짜로 자동 계산
 export const mealCount = (c: Conditions) => c.dates.length * c.meals.length
 
@@ -65,6 +96,7 @@ export const defaultConditions = (today: ISODate): Conditions => ({
   proteins: [],
   carbs: [],
   pantry: [],
+  owned: [],
   budget: null,
   cheapest: false,
   hidden: [],
@@ -112,6 +144,7 @@ export function loadConditions(today: ISODate, storage = storageOrNull()): Condi
   if (typeof saved.cheapest === 'boolean') c.cheapest = saved.cheapest
   if (Array.isArray(saved.hidden)) c.hidden = saved.hidden.filter((id) => recipes.some((r) => r.id === id)).slice(-config.hiddenMax)
   if (Array.isArray(saved.pantry)) c.pantry = saved.pantry.filter((id) => PANTRY_OPTIONS.includes(id))
+  if (Array.isArray(saved.owned)) c.owned = saved.owned.filter((id) => OWNED_OPTIONS.includes(id))
   return c
 }
 

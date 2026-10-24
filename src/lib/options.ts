@@ -1,9 +1,9 @@
 // B1, A9, F1 추천안 3개. 무엇이 좋은지가 다른 조합을 하나씩 골라 사용자가 고르게 한다.
 // 장보기 간단: 장볼 품목이 가장 적은 조합(같으면 겹침 점수) / 가장 저렴: 예상 금액이 가장 낮은 조합 /
-// 집 양념으로: 새로 살 양념이 가장 적은 조합 / 한 주 플렉스(예산 버전 A만): 예산 안에서 고급 재료 끼니 비중이 가장 높은 조합.
+// 집 양념으로: 새로 살 양념이 가장 적은 조합 / 있는 재료로(A12, 집에 있는 재료를 골랐을 때): 집에 있는 재료를 가장 많이 쓰는 조합 / 한 주 플렉스(예산 버전 A만): 예산 안에서 고급 재료 끼니 비중이 가장 높은 조합.
 // 서로 같으면 다음 순위로 채워 서로 다른 조합을 보여준다
 import { config } from '../config'
-import type { Conditions } from '../conditions'
+import { homeOf, type Conditions } from '../conditions'
 import { priceOf } from '../data/prices'
 import { ingredients, type Ingredient } from '../data/ingredients'
 import type { Recipe } from '../data/recipes'
@@ -16,6 +16,7 @@ import {
   maxMenus,
   missingSeasonings,
   overlapScore,
+  ownedUsed,
   menuSpread,
   relaxations,
   scoreOf,
@@ -25,7 +26,7 @@ import {
 } from './menu'
 import { buildShoppingList, servingsOf } from './shopping'
 
-export type MenuOptionKind = 'simple' | 'cheap' | 'pantry' | 'flex'
+export type MenuOptionKind = 'owned' | 'simple' | 'cheap' | 'pantry' | 'flex'
 
 export type MenuOption = {
   kind: MenuOptionKind
@@ -33,10 +34,11 @@ export type MenuOption = {
   cost: number // D4 예상 금액
   items: number // 장보기 목록 품목 수 (집에 있는 양념 제외)
   missing: number // A9 새로 살 양념 종류
+  owned: number // A12 쓰는 집에 있는 재료 종류
   premium: string[] // 들어가는 고급 재료의 짧은 이름 (한 주 플렉스 표시용)
 }
 
-export const OPTION_LABEL: Record<MenuOptionKind, string> = { simple: '장보기 간단', cheap: '가장 저렴', pantry: '집 양념으로', flex: '한 주 플렉스' }
+export const OPTION_LABEL: Record<MenuOptionKind, string> = { owned: '있는 재료로', simple: '장보기 간단', cheap: '가장 저렴', pantry: '집 양념으로', flex: '한 주 플렉스' }
 
 // 레시피별 고급 재료 이름은 바뀌지 않으므로 한 번만 계산한다
 const premiumCache = new WeakMap<Recipe, string[]>()
@@ -50,19 +52,22 @@ const key = (menu: Recipe[]) => menu.map((r) => r.id).sort().join()
 
 function evaluate(menu: Recipe[], c: Conditions) {
   const servings = servingsOf(menu, c)
-  const list = buildShoppingList(menu, servings, c.pantry, priceOf)
-  const missing = missingSeasonings(menu, c.pantry)
-  const score = overlapScore(menu) - missing * config.menuSearch.missingSeasoningPenalty
+  const home = homeOf(c)
+  const list = buildShoppingList(menu, servings, home, priceOf)
+  const missing = missingSeasonings(menu, home)
+  const owned = ownedUsed(menu, home)
+  const score = overlapScore(menu) - missing * config.menuSearch.missingSeasoningPenalty + owned * config.menuSearch.ownedBonus
   // 고급 재료가 들어간 끼니 비중과, 남는 재료를 금액으로 친 값(판매 단위 가격 × 남는 비율)
   const meals = servings.reduce((a, b) => a + b, 0)
   const premiumShare = meals ? menu.reduce((s, r, i) => s + (premiumOf(r).length ? servings[i] : 0), 0) / meals : 0
   const waste = list.items.reduce((s, it) => s + (it.price ? (it.price / it.packs) * (it.leftover / ingredients[it.id].saleUnit.amount) : 0), 0)
   const premium = [...new Set(menu.flatMap(premiumOf))]
-  return { menu, cost: list.total, items: list.items.length, missing, score, premiumShare, waste, premium }
+  return { menu, cost: list.total, items: list.items.length, missing, owned, score, premiumShare, waste, premium }
 }
 type Evaluated = ReturnType<typeof evaluate>
 
 const ORDER: Record<MenuOptionKind, (a: Evaluated, b: Evaluated) => number> = {
+  owned: (a, b) => b.owned - a.owned || a.items - b.items || b.score - a.score || a.cost - b.cost,
   // 겹침 점수는 겹치는 재료 수만 세서 전체 품목이 많은 조합도 높게 나온다. 그래서 품목 수를 먼저 본다
   simple: (a, b) => a.items - b.items || b.score - a.score || a.cost - b.cost,
   cheap: (a, b) => a.cost - b.cost || b.score - a.score,
@@ -79,10 +84,10 @@ const ORDER: Record<MenuOptionKind, (a: Evaluated, b: Evaluated) => number> = {
 // 모든 조합의 금액을 다 계산하지 않고도 가장 싼 조합을 거의 정확히 찾는다(예산 범위의 최소와 예산 버전 A 후보에 쓴다).
 // 싼 레시피만으로는 규칙을 지킬 수 없으면 빈 목록
 export function cheapCombos(candidates: Recipe[], count: number, c: Conditions, spread: Spread): Recipe[][] {
-  const soloCost = new Map(candidates.map((r) => [r, buildShoppingList([r], servingsOf([r], c), c.pantry, priceOf).total]))
+  const soloCost = new Map(candidates.map((r) => [r, buildShoppingList([r], servingsOf([r], c), homeOf(c), priceOf).total]))
   const pool = [...candidates].sort((a, b) => soloCost.get(a)! - soloCost.get(b)!).slice(0, config.budget.cheapPool)
   const out: Recipe[][] = []
-  forEachCombo(pool, count, c.pantry, (menu) => void out.push([...menu]), spread)
+  forEachCombo(pool, count, homeOf(c), (menu) => void out.push([...menu]), spread)
   return out
 }
 
@@ -90,17 +95,19 @@ export function cheapCombos(candidates: Recipe[], count: number, c: Conditions, 
 function candidateCombos(candidates: Recipe[], count: number, c: Conditions, rng: Rng, withCheap: boolean): Recipe[][] {
   const { maxCombos, keep } = config.menuSearch
   const exhaustive = combinationCount(candidates.length, count) <= maxCombos
+  const home = homeOf(c)
   for (const spread of relaxations(menuSpread(c.proteins, count))) {
     const combos = exhaustive
-      ? topCombosBy(candidates, count, c.pantry, keep, [
-          scoreOf,
+      ? topCombosBy(candidates, count, home, keep, [
+          // 겹침 점수에 집에 있는 재료 점수(A12)를 더한다. 고르지 않았으면 0이라 그대로다
+          (overlap, missing, menu) => scoreOf(overlap, missing) + (c.owned.length ? ownedUsed(menu, home) * config.menuSearch.ownedBonus : 0),
           (overlap, missing) => overlap / 100 - missing,
           // 한 주 플렉스 후보: 고급 재료 메뉴가 많은 조합
           (overlap, _, menu) => menu.filter((r) => premiumOf(r).length).length * 100 + overlap,
         ], spread)
           .flatMap((list) => list.map((x) => x.menu))
           .concat(withCheap ? cheapCombos(candidates, count, c, spread) : [])
-      : greedyCombos(candidates, count, c.pantry, rng, spread)
+      : greedyCombos(candidates, count, home, rng, spread)
     const fit = combos.filter((m) => m.length === count && fitsSpread(m, spread))
     if (fit.length) return [...new Map(fit.map((m) => [key(m), m])).values()]
   }
@@ -122,19 +129,21 @@ export function buildMenuOptions(c: Conditions, budget?: number, rng: Rng = Math
   const fit = useBudget && !c.cheapest ? pool.filter((x) => x.cost <= budget) : pool
   if (!fit.length) {
     const cheapest = [...pool].sort(ORDER.cheap)[0]
-    return { options: [{ kind: 'cheap', menu: cheapest.menu, cost: cheapest.cost, items: cheapest.items, missing: cheapest.missing, premium: cheapest.premium }], overBudget: true }
+    return { options: [{ kind: 'cheap', menu: cheapest.menu, cost: cheapest.cost, items: cheapest.items, missing: cheapest.missing, owned: cheapest.owned, premium: cheapest.premium }], overBudget: true }
   }
 
   const kinds: MenuOptionKind[] = c.cheapest ? ['cheap', 'simple', 'pantry'] : ['simple', 'cheap', 'pantry']
+  // A12 집에 있는 재료를 골랐으면 '있는 재료로'를 맨 앞에 둬 그 조합으로 시작한다('가장 싸게 구성'이 켜져 있으면 가장 저렴 다음)
+  if (c.owned.length) kinds.splice(c.cheapest ? 1 : 0, 0, 'owned')
   // 한 주 플렉스는 예산을 받은 버전 A에서, '가장 싸게 구성'이 꺼져 있을 때만
   if (useBudget && !c.cheapest) kinds.push('flex')
   const used = new Set<string>()
   const options: MenuOption[] = []
   for (const kind of kinds) {
-    const pick = [...fit].sort(ORDER[kind]).find((x) => !used.has(key(x.menu)) && (kind !== 'flex' || x.premiumShare > 0))
+    const pick = [...fit].sort(ORDER[kind]).find((x) => !used.has(key(x.menu)) && (kind !== 'flex' || x.premiumShare > 0) && (kind !== 'owned' || x.owned > 0))
     if (!pick) continue
     used.add(key(pick.menu))
-    options.push({ kind, menu: pick.menu, cost: pick.cost, items: pick.items, missing: pick.missing, premium: pick.premium })
+    options.push({ kind, menu: pick.menu, cost: pick.cost, items: pick.items, missing: pick.missing, owned: pick.owned, premium: pick.premium })
   }
   return { options, overBudget: false }
 }
@@ -156,7 +165,7 @@ const MAIN_CORNERS = new Set(['육류·달걀', '수산', '두부·콩'])
 export function suggestAddition(menu: Recipe[], c: Conditions, budget?: number): AddSuggestion | null {
   const candidates = filterCandidates(c)
   if (!menu.length || menu.length >= maxMenus(c, candidates)) return null
-  const now = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
+  const now = buildShoppingList(menu, servingsOf(menu, c), homeOf(c), priceOf)
   const flavors = new Set(menu.map((r) => r.flavor))
 
   // 더한 뒤에도 분산 규칙 안. 맞는 메뉴가 없으면 규칙을 차례로 푼다
@@ -164,7 +173,7 @@ export function suggestAddition(menu: Recipe[], c: Conditions, budget?: number):
   const scored = (relaxations(menuSpread(c.proteins, menu.length + 1)).map((rules) => fresh.filter((r) => fitsSpread([...menu, r], rules))).find((x) => x.length) ?? [])
     .map((r) => {
       const next = [...menu, r]
-      const cost = buildShoppingList(next, servingsOf(next, c), c.pantry, priceOf).total
+      const cost = buildShoppingList(next, servingsOf(next, c), homeOf(c), priceOf).total
       return { r, cost, extraCost: cost - now.total, overlap: overlapScore(next) }
     })
     .filter((x) => budget === undefined || c.cheapest || x.cost <= budget)

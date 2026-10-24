@@ -20,7 +20,7 @@ const [a, b] = recipes
 describe('확정 메뉴와 구매 체크 저장 (I2, D6)', () => {
   it('저장 후 불러오면 같다', () => {
     const s = fakeStorage()
-    const plan = { ...basis, menu: [a, b], checked: ['onion' as const], cookDate: '2026-10-24', skipped: ['2026-10-27'], extras: [{ name: '휴지', done: true }] }
+    const plan = { ...basis, menu: [a, b], checked: ['onion' as const], cookDate: '2026-10-24', skipped: ['2026-10-27'], extras: [{ name: '휴지', done: true }], owned: ['porkShoulder' as const] }
     savePlans([plan], s)
     expect((loadPlans(basis, s)[0] ?? null)).toEqual(plan)
   })
@@ -142,7 +142,7 @@ describe('직접 추가한 항목 (D9)', () => {
 })
 
 describe('이번 주 / 다음 주 계획 (B13)', () => {
-  const mk = (dates: string[]): Plan => ({ menu: [a], dates, people: 1, meals: ['dinner'], checked: [], skipped: [], extras: [] })
+  const mk = (dates: string[]): Plan => ({ menu: [a], dates, people: 1, meals: ['dinner'], checked: [], skipped: [], extras: [], owned: [] })
   const thisWeek = mk(['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30'])
   const nextWk = mk(['2026-11-02', '2026-11-03', '2026-11-04'])
 
@@ -174,5 +174,19 @@ describe('이번 주 / 다음 주 계획 (B13)', () => {
     savePlans([thisWeek, nextWk], s)
     expect(loadPlans(basis, s).map((p) => p.dates)).toEqual([thisWeek.dates, nextWk.dates])
     expect(planOverlapping([thisWeek, nextWk], { dates: ['2026-11-03'], people: 1, meals: ['dinner'] })).toBe(nextWk)
+  })
+})
+
+describe('집에 있는 재료는 계획마다 (A12)', () => {
+  it('확정할 때의 재료를 계획에 남기고, 계획을 보여줄 때 그 값을 쓴다', () => {
+    const p = confirmPlan(null, [a], { ...c, owned: ['porkShoulder'] })
+    expect(p.owned).toEqual(['porkShoulder'])
+    expect(planConditions(p, { ...c, owned: [] }).owned).toEqual(['porkShoulder'])
+  })
+
+  it('저장값의 양념이나 없는 재료는 버리고, 예전 저장값은 빈 목록', () => {
+    const raw = JSON.stringify([{ recipeIds: [a.id], owned: ['tofu', 'soySauce', 'x'] }, { recipeIds: [b.id] }])
+    const s = { getItem: (k: string) => (k === 'kokcook.plans' ? raw : null), setItem: () => {} }
+    expect(loadPlans(basis, s).map((p) => p.owned)).toEqual([['tofu'], []])
   })
 })

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
+import { ALL_CARBS, ALL_PROTEINS, defaultConditions, homeOf } from '../conditions'
 import { ingredients, type Ingredient } from '../data/ingredients'
 import type { Recipe } from '../data/recipes'
 import { menuCost } from './budget'
-import { filterCandidates, fitsSpread, greedyCombos, menuSpread, missingSeasonings } from './menu'
+import { filterCandidates, fitsSpread, greedyCombos, menuSpread, missingSeasonings, ownedUsed } from './menu'
 import { buildMenuOptions, suggestAddition } from './options'
+import { buildShoppingList, servingsOf } from './shopping'
+import { priceOf } from '../data/prices'
 
 const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS, pantry: ['soySauce' as const, 'salt' as const] }
@@ -142,5 +144,31 @@ describe('한 주 플렉스 (B1, F1)', () => {
   it('고급 재료 메뉴를 고를 수 없으면 없다', () => {
     const noPremium = { ...c, proteins: ['pork' as const, 'egg' as const] }
     expect(buildMenuOptions(noPremium, budget, first).options.map((o) => o.kind)).not.toContain('flex')
+  })
+})
+
+describe('집에 있는 재료 (A12)', () => {
+  // 후보 레시피가 쓰는 양념 아닌 재료 하나를 집에 있다고 본다
+  const id = filterCandidates(c)[0].ingredients.map((i) => i.id).find((x) => ingredients[x].corner !== '양념')!
+  const owned = { ...c, owned: [id] }
+  const { options } = buildMenuOptions(owned, undefined, first)
+
+  it("'있는 재료로'가 맨 앞이고, 집에 있는 재료를 가장 많이 쓴다", () => {
+    expect(options[0].kind).toBe('owned')
+    expect(options[0].owned).toBeGreaterThan(0)
+    for (const o of options) expect(o.owned).toBe(ownedUsed(o.menu, homeOf(owned)))
+    expect(options[0].owned).toBeGreaterThanOrEqual(Math.max(...options.map((o) => o.owned)))
+  })
+
+  it('집에 있는 재료는 장보기와 예상 금액에서 뺀다', () => {
+    const menu = options[0].menu
+    const list = buildShoppingList(menu, servingsOf(menu, owned), homeOf(owned), priceOf)
+    expect(list.inPantry).toContain(id)
+    expect(list.items.some((it) => it.id === id)).toBe(false)
+    expect(menuCost(menu, owned)).toBeLessThanOrEqual(menuCost(menu, c))
+  })
+
+  it('집에 있는 재료를 고르지 않으면 지금과 같다', () => {
+    expect(buildMenuOptions(c, undefined, first).options.map((o) => o.kind)).toEqual(['simple', 'cheap', 'pantry'])
   })
 })

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { config } from './config'
-import { addHidden, defaultConditions, loadConditions, mealCount, PANTRY_GROUPS, PANTRY_OPTIONS, saveConditions } from './conditions'
+import { addHidden, defaultConditions, loadConditions, mealCount, OWNED_GROUPS, OWNED_OPTIONS, PANTRY_GROUPS, PANTRY_OPTIONS, proteinsFromOwned, saveConditions } from './conditions'
+import { recipes } from './data/recipes'
 
 const today = '2026-10-22'
 const fakeStorage = (init?: string) => {
@@ -78,3 +79,29 @@ describe('다시 안 보기 (B10)', () => {
   })
 })
 
+
+describe('집에 있는 재료 (A12)', () => {
+  it('양념을 뺀 재료를 코너별로 묻는다', () => {
+    expect(OWNED_OPTIONS.some((id) => PANTRY_OPTIONS.includes(id))).toBe(false)
+    expect(OWNED_OPTIONS).toContain('porkShoulder')
+    expect(OWNED_GROUPS[0].title).toBe('채소')
+  })
+
+  it('저장 후 불러오면 같고, 양념이나 없는 재료는 버린다', () => {
+    const s = fakeStorage(JSON.stringify({ owned: ['tofu', 'soySauce', 'x'] }))
+    expect(loadConditions(today, s)!.owned).toEqual(['tofu'])
+    expect(defaultConditions(today).owned).toEqual([])
+  })
+
+  it('고기·생선·두부로 먹고 싶은 단백질을 채운다', () => {
+    expect(proteinsFromOwned(['porkShoulder', 'porkTenderloin', 'onion'])).toEqual(['pork'])
+    expect(proteinsFromOwned(['softTofu', 'shrimp'])).toEqual(['tofu', 'legume', 'seafood'])
+    expect(proteinsFromOwned(['onion'])).toEqual([])
+  })
+})
+
+describe('재료와 단백질 짝 (A12)', () => {
+  it('레시피마다 주재료 단백질을 집에 있는 재료로 고를 수 있다', () => {
+    for (const r of recipes) expect(proteinsFromOwned(r.ingredients.map((i) => i.id)), r.name).toContain(r.proteinSource)
+  })
+})

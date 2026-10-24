@@ -99,9 +99,15 @@ export const missingSeasonings = (menu: Recipe[], pantry: IngredientId[]) =>
     menu.flatMap((r) => r.ingredients.map((i) => i.id)).filter((id) => ingredients[id].corner === '양념' && !pantry.includes(id)),
   ).size
 
+// A12 메뉴가 쓰는 집에 있는 재료(양념 제외) 종류. pantry에는 집에 있는 양념과 재료가 함께 들어온다(conditions.homeOf)
+export const ownedUsed = (menu: readonly Recipe[], pantry: IngredientId[]) =>
+  new Set(menu.flatMap((r) => r.ingredients.map((i) => i.id)).filter((id) => ingredients[id].corner !== '양념' && pantry.includes(id))).size
+
 // 겹침 점수에서 새로 살 양념 1종마다 설정한 만큼 뺀다(A9)
 export const scoreOf = (overlap: number, missing: number) => overlap - missing * config.menuSearch.missingSeasoningPenalty
-const menuScore = (menu: Recipe[], pantry: IngredientId[]) => scoreOf(overlapScore(menu), missingSeasonings(menu, pantry))
+// 집에 있는 재료를 쓰면 1종마다 더한다(A12)
+const menuScore = (menu: Recipe[], pantry: IngredientId[]) =>
+  scoreOf(overlapScore(menu), missingSeasonings(menu, pantry)) + ownedUsed(menu, pantry) * config.menuSearch.ownedBonus
 
 // 점수가 가장 높은 것 중 하나를 무작위로 (동점일 때 매번 같은 메뉴가 나오지 않게)
 function best<T>(options: T[], score: (x: T) => number, rng: Rng): T | undefined {

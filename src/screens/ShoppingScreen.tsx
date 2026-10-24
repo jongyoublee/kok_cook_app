@@ -185,7 +185,7 @@ export default function ShoppingScreen(props: Props) {
                         <a
                           href={coupangLink(it.id)}
                           target="_blank"
-                          rel="noopener noreferrer sponsored"
+                          rel="noopener sponsored"
                           aria-label={`${it.name} 쿠팡에서 찾기`}
                           className="m-2 mt-2.5 shrink-0 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium"
                         >

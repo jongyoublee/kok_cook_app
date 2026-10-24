@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { config } from '../config'
-import { recipeData, type RecipeData } from '../data/recipes'
-import { checkRecipe, checkRecipes } from './recipeCheck'
+import { config } from '../../config'
+import { recipeData, type RecipeData } from '../../data/recipes'
+import { checkRecipe, checkRecipes } from '../../lib/recipeCheck'
 
 const base = recipeData[0]
 const edit = (patch: Partial<RecipeData>) => ({ ...structuredClone(base), ...patch })

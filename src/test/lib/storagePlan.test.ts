@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { config } from '../config'
-import { recipes } from '../data/recipes'
-import { nextWeek } from './dates'
-import { cookDateOptions, fridgeLimit, schedule, thawDate } from './storagePlan'
+import { config } from '../../config'
+import { recipes } from '../../data/recipes'
+import { nextWeek } from '../../lib/dates'
+import { cookDateOptions, fridgeLimit, schedule, thawDate } from '../../lib/storagePlan'
 
 const today = '2026-10-22'
 const weekdays = nextWeek(today, true) // 10/26(월)~10/30(금)

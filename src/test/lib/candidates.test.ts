@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { candidates, draftFromCandidate } from './candidates'
-import { checkRecipe } from './recipeCheck'
+import { candidates, draftFromCandidate } from '../../lib/candidates'
+import { checkRecipe } from '../../lib/recipeCheck'
 
 const cand = candidates.find((c) => c.id === 'cand-01')! // 닭가슴살 카레 우동
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hatStroke } from './ui'
+import { hatStroke } from '../ui'
 
 describe('로고 선 굵기 (I9)', () => {
   it('design.md 9절 크기별 굵기를 따른다', () => {

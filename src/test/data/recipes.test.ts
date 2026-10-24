@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { CARB_OPTIONS, PROTEIN_OPTIONS } from '../conditions'
-import { checkRecipes } from '../lib/recipeCheck'
-import { recipeData, recipes } from './recipes'
+import { CARB_OPTIONS, PROTEIN_OPTIONS } from '../../conditions'
+import { checkRecipes } from '../../lib/recipeCheck'
+import { recipeData, recipes } from '../../data/recipes'
 
 describe('레시피 데이터 (H1, H2, C1, C2, C4)', () => {
   // 재료·분량·조리 단계·보관 정보·금지 표현·600kcal·id 중복 (lib/recipeCheck)

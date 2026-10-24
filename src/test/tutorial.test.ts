@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { clearSavedData } from './plan'
-import { markTutorialSeen, tutorialSeen } from './tutorial'
+import { clearSavedData } from '../plan'
+import { markTutorialSeen, tutorialSeen } from '../tutorial'
 
 const fakeStorage = () => {
   const m = new Map<string, string>()

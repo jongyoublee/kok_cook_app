@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { config } from './config'
-import { addHidden, defaultConditions, loadConditions, mealCount, OWNED_GROUPS, OWNED_OPTIONS, PANTRY_GROUPS, PANTRY_OPTIONS, proteinsFromOwned, saveConditions } from './conditions'
-import { recipes } from './data/recipes'
+import { config } from '../config'
+import { addHidden, defaultConditions, loadConditions, mealCount, OWNED_GROUPS, OWNED_OPTIONS, PANTRY_GROUPS, PANTRY_OPTIONS, proteinsFromOwned, saveConditions } from '../conditions'
+import { recipes } from '../data/recipes'
 
 const today = '2026-10-22'
 const fakeStorage = (init?: string) => {

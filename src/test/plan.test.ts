@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_CARBS, ALL_PROTEINS, defaultConditions, loadConditions, saveConditions } from './conditions'
-import { recipes } from './data/recipes'
-import { nextWeek } from './lib/dates'
-import { servingsOf } from './lib/shopping'
-import { schedule } from './lib/storagePlan'
-import { clearSavedData, conditionsAfterConfirm, confirmPlan, droppedChecks, droppedPlans, currentPlan, loadPlans, planConditions, planCookDate, planOverlapping, savePlans, storePlan, upcomingPlan, type Plan } from './plan'
+import { ALL_CARBS, ALL_PROTEINS, defaultConditions, loadConditions, saveConditions } from '../conditions'
+import { recipes } from '../data/recipes'
+import { nextWeek } from '../lib/dates'
+import { servingsOf } from '../lib/shopping'
+import { schedule } from '../lib/storagePlan'
+import { clearSavedData, conditionsAfterConfirm, confirmPlan, droppedChecks, droppedPlans, currentPlan, loadPlans, planConditions, planCookDate, planOverlapping, savePlans, storePlan, upcomingPlan, type Plan } from '../plan'
 
 const fakeStorage = (init?: string) => {
   const m = new Map<string, string>(init ? [['kokcook.plan', init]] : [])

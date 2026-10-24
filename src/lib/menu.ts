@@ -8,7 +8,7 @@ import type { ISODate } from './dates'
 export type Rng = () => number
 
 // A8 먹고 싶은 단백질이 주재료이고 A10 먹고 싶은 베이스 탄수화물인 메뉴만 남긴다.
-// 식단 분류(A5)는 2026-10-23 삭제. 한 끼 칼로리 기준은 레시피 데이터가 지킨다(recipes.test)
+// 식단 분류(A5)는 2026-10-23 삭제. 한 끼 칼로리 기준은 레시피 데이터가 지킨다(test/data/recipes.test)
 // B10 '다시 안 보기'로 뺀 메뉴도 뺀다
 export function filterCandidates(c: Conditions, pool: Recipe[] = recipes): Recipe[] {
   return pool.filter((r) => c.proteins.includes(r.proteinSource) && c.carbs.includes(r.carb) && !c.hidden.includes(r.id))

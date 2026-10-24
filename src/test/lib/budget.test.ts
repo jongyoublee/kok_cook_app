@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
-import { recipes } from '../data/recipes'
-import { config } from '../config'
-import { budgetOf, budgetRange, budgetVersion, menuCost, menuOptionsFor, suggestSwap } from './budget'
-import { coupangLink, coupangSearchUrl } from './coupang'
-import { filterCandidates } from './menu'
-import { buildMenuOptions } from './options'
+import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../../conditions'
+import { recipes } from '../../data/recipes'
+import { config } from '../../config'
+import { budgetOf, budgetRange, budgetVersion, menuCost, menuOptionsFor, suggestSwap } from '../../lib/budget'
+import { coupangLink, coupangSearchUrl } from '../../lib/coupang'
+import { filterCandidates } from '../../lib/menu'
+import { buildMenuOptions } from '../../lib/options'
 
 const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }

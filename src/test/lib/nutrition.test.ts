@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { config } from '../config'
-import { RICE_PER_100G } from '../data/nutrition'
-import { recipes } from '../data/recipes'
-import { computeNutrition, proteinEnergyShare, summarizeMenu } from './nutrition'
+import { config } from '../../config'
+import { RICE_PER_100G } from '../../data/nutrition'
+import { recipes } from '../../data/recipes'
+import { computeNutrition, proteinEnergyShare, summarizeMenu } from '../../lib/nutrition'
 
 describe('영양정보 계산 (H3, C2)', () => {
   it('g 재료는 100g 기준값에 분량 비율을 곱한다', () => {

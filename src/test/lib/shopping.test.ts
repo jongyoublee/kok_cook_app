@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
-import { CORNERS, ingredients } from '../data/ingredients'
-import { recipes } from '../data/recipes'
-import { buildShoppingList, perServingCost, servingsOf, shoppingText } from './shopping'
+import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../../conditions'
+import { CORNERS, ingredients } from '../../data/ingredients'
+import { recipes } from '../../data/recipes'
+import { buildShoppingList, perServingCost, servingsOf, shoppingText } from '../../lib/shopping'
 
 const today = '2026-10-22'
 const c = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS } // 다음 주 평일 5끼, 1인

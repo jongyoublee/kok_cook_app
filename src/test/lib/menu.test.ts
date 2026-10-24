@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { config } from '../config'
-import { ALL_CARBS, ALL_PROTEINS, defaultConditions, PROTEIN_OPTIONS } from '../conditions'
-import { ingredients } from '../data/ingredients'
-import { recipes, type Recipe } from '../data/recipes'
-import { addMenu, assignDays, combinationCount, filterCandidates, fitsSpread, forEachCombo, hintText, maxMenus, menuSpread, methodRule, missingSeasonings, overlapScore, proteinRule, relaxations, scoreOf, sharedIngredients, swapMenu, topCombosBy, widenHints } from './menu'
-import { buildMenuOptions } from './options'
+import { config } from '../../config'
+import { ALL_CARBS, ALL_PROTEINS, defaultConditions, PROTEIN_OPTIONS } from '../../conditions'
+import { ingredients } from '../../data/ingredients'
+import { recipes, type Recipe } from '../../data/recipes'
+import { addMenu, assignDays, combinationCount, filterCandidates, fitsSpread, forEachCombo, hintText, maxMenus, menuSpread, methodRule, missingSeasonings, overlapScore, proteinRule, relaxations, scoreOf, sharedIngredients, swapMenu, topCombosBy, widenHints } from '../../lib/menu'
+import { buildMenuOptions } from '../../lib/options'
 
 const today = '2026-10-22'
 const all = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }

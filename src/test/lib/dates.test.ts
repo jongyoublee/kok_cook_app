@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { config } from '../config'
-import { addDays, canSelect, cookDay, followingPeriod, formatDay, nextWeek } from './dates'
+import { config } from '../../config'
+import { addDays, canSelect, cookDay, followingPeriod, formatDay, nextWeek } from '../../lib/dates'
 
 // 와이어프레임 기준: 오늘 2026-10-22(목)
 const today = '2026-10-22'

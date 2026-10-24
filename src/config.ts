@@ -20,8 +20,9 @@ export const config = {
   maxSelectDays: 14,
   // A2 최대 기간 해석 (미결). span: 첫날~마지막 날 기간, count: 선택한 날짜 개수
   maxSelectMode: 'span' as 'span' | 'count',
-  // F3 예산 버전: A는 예산 먼저, B는 예산 마지막. 주소에 ?budget=A 또는 B를 붙여 바꿔 볼 수 있다
-  budgetVersion: 'A' as 'A' | 'B',
+  // F3 예산 버전: A는 예산 먼저, B는 예산 마지막, off는 예산을 묻지 않고 예상 금액만 보여준다(2026-10-24 기본값).
+  // 주소에 ?budget=A, B, off를 붙여 바꿔 볼 수 있다
+  budgetVersion: 'off' as 'A' | 'B' | 'off',
   // G2 쿠팡 파트너스를 쓸 때만 수수료 고지를 보인다
   coupang: { partners: false },
   // A7 예산 슬라이더 (원). 범위는 조건마다 계산한다: 최소는 가장 싼 조합 금액(step 단위 내림),

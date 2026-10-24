@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions } from '../conditions'
 import { recipes } from '../data/recipes'
 import { config } from '../config'
-import { budgetOf, budgetRange, budgetVersion, menuCost, suggestSwap } from './budget'
+import { budgetOf, budgetRange, budgetVersion, menuCost, menuOptionsFor, suggestSwap } from './budget'
 import { coupangLink, coupangSearchUrl } from './coupang'
 import { filterCandidates } from './menu'
 import { buildMenuOptions } from './options'
@@ -39,7 +39,20 @@ describe('버전 전환과 쿠팡 링크 (F3, G1)', () => {
   it('주소의 budget 값이 설정보다 먼저', () => {
     expect(budgetVersion('?budget=B')).toBe('B')
     expect(budgetVersion('?budget=A')).toBe('A')
-    expect(['A', 'B']).toContain(budgetVersion('?budget=x'))
+    expect(budgetVersion('?budget=off')).toBe('off')
+    expect(budgetVersion('?budget=x')).toBe(config.budgetVersion)
+  })
+
+  it('기본은 예산을 묻지 않는다 (2026-10-24)', () => {
+    expect(config.budgetVersion).toBe('off')
+  })
+
+  it('예산을 끄면 저장된 가장 싸게 구성을 무시하고 한 주 플렉스도 없다', () => {
+    const on = { ...c, cheapest: true }
+    const kinds = (v: 'A' | 'B' | 'off') => menuOptionsFor(on, v, () => 0).options.map((o) => o.kind)
+    expect(kinds('A')[0]).toBe('cheap')
+    expect(kinds('off')[0]).not.toBe('cheap')
+    expect(menuOptionsFor(c, 'off', () => 0).options.map((o) => o.kind)).not.toContain('flex')
   })
 
   it('재료마다 판매 단위를 넣은 검색어로 연결한다 (G1)', () => {

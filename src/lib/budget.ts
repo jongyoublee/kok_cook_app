@@ -7,10 +7,18 @@ import { filterCandidates, maxMenus, menuSpread } from './menu'
 import { buildMenuOptions, cheapCombos } from './options'
 import { buildShoppingList, servingsOf } from './shopping'
 
-// F3 설정값으로 고르고, 주소에 ?budget=A 또는 ?budget=B가 있으면 그걸 쓴다(비교 시험용)
-export function budgetVersion(search = globalThis.location?.search ?? ''): 'A' | 'B' {
+export type BudgetVersion = 'A' | 'B' | 'off'
+
+// F3 설정값으로 고르고, 주소에 ?budget=A, B, off가 있으면 그걸 쓴다(비교 시험용)
+export function budgetVersion(search = globalThis.location?.search ?? ''): BudgetVersion {
   const v = new URLSearchParams(search).get('budget')
-  return v === 'A' || v === 'B' ? v : config.budgetVersion
+  return v === 'A' || v === 'B' || v === 'off' ? v : config.budgetVersion
+}
+
+// U11 버전 A면 예산 안 조합(U12)으로, 아니면 예산 없이 추천안을 만든다.
+// '가장 싸게 구성'은 버전 A의 스위치라 다른 버전에서는 저장된 값이 남아 있어도 무시한다
+export function menuOptionsFor(c: Conditions, version = budgetVersion(), rng?: () => number) {
+  return version === 'A' ? buildMenuOptions(c, budgetOf(c), rng) : buildMenuOptions({ ...c, cheapest: false }, undefined, rng)
 }
 
 // 메뉴 조합의 예상 금액 = 장보기 목록 합계 (판매 단위, 집에 있는 양념 제외)

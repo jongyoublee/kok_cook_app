@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import BottomNav, { type Tab } from './components/BottomNav'
 import HomeHeader, { type View } from './components/HomeHeader'
 import PlanSwitch from './components/PlanSwitch'
@@ -33,8 +33,10 @@ import RecipeScreen from './screens/RecipeScreen'
 import SetupScreen from './screens/SetupScreen'
 import ShoppingScreen from './screens/ShoppingScreen'
 import ThisWeekScreen from './screens/ThisWeekScreen'
+import LoginScreen from './screens/LoginScreen'
+import SplashScreen from './screens/SplashScreen'
 import TutorialScreen from './screens/TutorialScreen'
-import { markTutorialSeen, tutorialSeen } from './tutorial'
+import { loginSkipped, markLoginSkipped, markTutorialSeen, tutorialSeen } from './tutorial'
 import { NAV_SPACE, toggle } from './ui'
 
 // U02 저장된 조건이 있으면 불러와 홈으로(U03), 없으면 처음 설정부터(U04) (I2)
@@ -63,6 +65,10 @@ export default function App() {
   const [setup, setSetup] = useState(!saved)
   // I10 사용법 안내: 처음 실행(저장된 조건 없음)에 본 적이 없으면 처음 설정 앞에, 이후에는 내 설정에서 연다
   const [tutorial, setTutorial] = useState(!saved && !tutorialSeen())
+  // I11 열 때마다 시작 화면, I12 처음 실행(저장된 조건 없음) 때 로그인 화면(화면만)
+  const [splash, setSplash] = useState(true)
+  const [login, setLogin] = useState(!saved && !loginSkipped())
+  const endSplash = useCallback(() => setSplash(false), [])
   const [plans, setPlans] = useState(savedPlans)
   // I8 하단 메뉴 탭과, 어느 탭에서든 여는 레시피 상세(하위 화면)
   const [tab, setTab] = useState<Tab>('week')
@@ -116,6 +122,18 @@ export default function App() {
     setTab('week')
     setSetup(true)
   }
+
+  if (splash) return <SplashScreen onDone={endSplash} />
+
+  if (login)
+    return (
+      <LoginScreen
+        onGuest={() => {
+          markLoginSkipped()
+          setLogin(false)
+        }}
+      />
+    )
 
   if (tutorial)
     return (

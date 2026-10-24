@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { clearSavedData } from '../plan'
-import { markTutorialSeen, tutorialSeen } from '../tutorial'
+import { loginSkipped, markLoginSkipped, markTutorialSeen, tutorialSeen } from '../tutorial'
 
 const fakeStorage = () => {
   const m = new Map<string, string>()
@@ -20,6 +20,15 @@ describe('사용법 안내 (I10)', () => {
     markTutorialSeen(s)
     clearSavedData(s)
     expect(tutorialSeen(s)).toBe(true)
+  })
+
+  it('로그인 없이 시작한 것은 따로 기억하고, 내 데이터 지우기로 지우지 않는다 (I12)', () => {
+    const s = fakeStorage()
+    markTutorialSeen(s)
+    expect(loginSkipped(s)).toBe(false)
+    markLoginSkipped(s)
+    clearSavedData(s)
+    expect(loginSkipped(s)).toBe(true)
   })
 
   it('저장 공간이 막혀도 멈추지 않는다', () => {

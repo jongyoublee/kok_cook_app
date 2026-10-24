@@ -14,6 +14,8 @@ export const config = {
   maxSameMethodRatio: 0.5,
   // B10 '다시 안 보기'로 뺄 수 있는 메뉴 수. 넘으면 오래된 것부터 되돌린다(후보가 모자라지 않게)
   hiddenMax: 10,
+  // I11 시작 화면 표시 시간(ms). 움직임 줄이기 설정이면 애니메이션 없이 reducedMs만
+  splash: { ms: 1500, reducedMs: 500 },
   // A4 메뉴 개수
   menuCount: { min: 1, default: 2, max: 5 },
   // A2 식사 날짜 최대 선택 기간 (제안 단계)

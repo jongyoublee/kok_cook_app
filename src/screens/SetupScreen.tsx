@@ -83,7 +83,7 @@ export default function SetupScreen({ today, initial, onDone }: Props) {
         </span>
       </header>
 
-      <div className="flex flex-1 flex-col justify-center py-8">
+      <div key={step} className="screen-in flex flex-1 flex-col justify-center py-8">
         {/* I9 첫 화면에만 세로형 로고 */}
         {step === 0 && (
           <div className="mb-10 flex justify-center">

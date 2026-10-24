@@ -108,7 +108,7 @@ export default function TutorialScreen({ onDone }: Props) {
         </button>
       </header>
 
-      <section className="flex flex-1 flex-col items-center justify-center gap-8 py-8 text-center" aria-live="polite" aria-label={`사용법 ${i + 1}/${CARDS.length}`}>
+      <section key={i} className="screen-in flex flex-1 flex-col items-center justify-center gap-8 py-8 text-center" aria-live="polite" aria-label={`사용법 ${i + 1}/${CARDS.length}`}>
         <div className="flex h-44 w-44 items-center justify-center rounded-full bg-bg">{art}</div>
         <div>
           <h1 className="text-[24px] leading-snug font-bold">{title}</h1>

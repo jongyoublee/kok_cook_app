@@ -39,6 +39,10 @@
 @keyframes splash-fade { from { opacity: 0; } }
 /* 움직임 줄이기 설정과 상관없이 보여 준다(2026-10-25 사용자 결정) */
 
+/* I13 화면 전환: 새 화면이 살짝 올라오며 서서히 나타난다. 끝나면 transform이 남지 않아 고정·sticky 요소에 영향이 없다 */
+.screen-in { animation: screen-in 0.28s ease-out both; }
+@keyframes screen-in { from { opacity: 0; transform: translateY(8px); } }
+
 body {
   color: var(--color-ink);
   background: var(--color-surface);

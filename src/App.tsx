@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import BottomNav, { type Tab } from './components/BottomNav'
 import HomeHeader, { type View } from './components/HomeHeader'
 import PlanSwitch from './components/PlanSwitch'
@@ -123,30 +123,41 @@ export default function App() {
     setSetup(true)
   }
 
-  if (splash) return <SplashScreen onDone={endSplash} />
+  // I13 화면이 바뀔 때 갑자기 바뀌지 않게, 화면마다 key를 달아 새로 그릴 때 서서히 나타나게 한다(index.css screen-in)
+  const screen = (key: string, el: ReactNode) => (
+    <div key={key} className="screen-in">
+      {el}
+    </div>
+  )
 
-  if (login)
-    return (
-      <LoginScreen
-        onGuest={() => {
-          markLoginSkipped()
-          setLogin(false)
-        }}
-      />
-    )
+  if (splash) return screen('splash', <SplashScreen onDone={endSplash} />)
 
+  // 처음 실행: 시작 화면 → 사용법 안내(I10) → 로그인(I12) → 처음 설정
   if (tutorial)
-    return (
+    return screen(
+      'tutorial',
       <TutorialScreen
         onDone={() => {
           markTutorialSeen()
           setTutorial(false)
         }}
-      />
+      />,
+    )
+
+  if (login)
+    return screen(
+      'login',
+      <LoginScreen
+        onGuest={() => {
+          markLoginSkipped()
+          setLogin(false)
+        }}
+      />,
     )
 
   if (setup)
-    return (
+    return screen(
+      'setup',
       <SetupScreen
         today={today}
         initial={conditions}
@@ -155,7 +166,7 @@ export default function App() {
           setSetup(false)
           setView('next')
         }}
-      />
+      />,
     )
 
   // 다음 주 조건 화면의 날짜: 먹는 계획이 있으면 그다음 기간(U33), 없으면 저장한 날짜
@@ -286,7 +297,14 @@ export default function App() {
 
   return (
     <div className={NAV_SPACE}>
-      {page}
+      {screen(
+        recipe
+          ? `recipe-${recipe.r.id}`
+          : tab === 'week'
+            ? `week-${view}-${next ? 'menu' : 'input'}`
+            : `${tab}-${tab === 'shopping' ? shopView : storeView}`,
+        page,
+      )}
       <BottomNav tab={tab} onChange={goTab} />
     </div>
   )

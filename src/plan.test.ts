@@ -4,7 +4,7 @@ import { recipes } from './data/recipes'
 import { nextWeek } from './lib/dates'
 import { servingsOf } from './lib/shopping'
 import { schedule } from './lib/storagePlan'
-import { clearSavedData, confirmPlan, droppedChecks, currentPlan, loadPlans, planConditions, planCookDate, planOverlapping, savePlans, storePlan, upcomingPlan, type Plan } from './plan'
+import { clearSavedData, conditionsAfterConfirm, confirmPlan, droppedChecks, droppedPlans, currentPlan, loadPlans, planConditions, planCookDate, planOverlapping, savePlans, storePlan, upcomingPlan, type Plan } from './plan'
 
 const fakeStorage = (init?: string) => {
   const m = new Map<string, string>(init ? [['kokcook.plan', init]] : [])
@@ -169,6 +169,13 @@ describe('이번 주 / 다음 주 계획 (B13)', () => {
     expect(storePlan([thisWeek, nextWk], later, '2026-10-29')).toEqual([thisWeek, later])
   })
 
+  it('겹치지 않는데도 빠지는 다음 계획을 알려 준다 (B8)', () => {
+    const later = mk(['2026-11-09'])
+    expect(droppedPlans([thisWeek, nextWk], later, '2026-10-29')).toEqual([nextWk])
+    expect(droppedPlans([thisWeek, nextWk], mk(['2026-11-02']), '2026-10-29')).toEqual([]) // 겹쳐서 바뀌는 계획은 B8 구매 체크 확인으로
+    expect(droppedPlans([thisWeek], later, '2026-10-29')).toEqual([])
+  })
+
   it('여러 계획을 저장하고 불러온다', () => {
     const s = fakeStorage()
     savePlans([thisWeek, nextWk], s)
@@ -178,6 +185,15 @@ describe('이번 주 / 다음 주 계획 (B13)', () => {
 })
 
 describe('집에 있는 재료는 계획마다 (A12)', () => {
+  it('확정하면 메뉴가 쓴 재료는 다음 주 조건에서 빼고, 바꾼 메뉴 개수를 기억한다 (A4)', () => {
+    const used = a.ingredients.find((i) => i.id !== 'soySauce')!.id
+    const saved = { ...c, owned: [used, 'chickpeas' as const].filter((id, i, l) => l.indexOf(id) === i) }
+    const after = conditionsAfterConfirm(saved, saved, [a, b, recipes[2]])!
+    expect(after.owned).not.toContain(used)
+    expect(after.menuCount).toBe(3)
+    expect(conditionsAfterConfirm({ ...c, owned: [] }, c, recipes.slice(0, c.menuCount))).toBeNull()
+  })
+
   it('확정할 때의 재료를 계획에 남기고, 계획을 보여줄 때 그 값을 쓴다', () => {
     const p = confirmPlan(null, [a], { ...c, owned: ['porkShoulder'] })
     expect(p.owned).toEqual(['porkShoulder'])

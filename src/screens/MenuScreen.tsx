@@ -189,16 +189,19 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
               </button>
               {moreOpen === i && (
                 <div className="absolute top-9 right-0 z-10 flex flex-col rounded-xl border border-line bg-surface py-1 text-sm shadow-float">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMoreOpen(null)
-                      hide(i)
-                    }}
-                    className="px-4 py-2 text-left"
-                  >
-                    다시 안 보기
-                  </button>
+                  {/* 바꿀 후보도 없고 뺄 수도 없으면 다시 안 볼 메뉴가 남으므로 숨긴다 */}
+                  {(candidates.length > menu.length || menu.length > config.menuCount.min) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMoreOpen(null)
+                        hide(i)
+                      }}
+                      className="px-4 py-2 text-left"
+                    >
+                      다시 안 보기
+                    </button>
+                  )}
                   {menu.length > config.menuCount.min && (
                     <button
                       type="button"

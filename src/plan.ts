@@ -5,6 +5,7 @@ import { CONDITIONS_KEY, OWNED_OPTIONS, storageOrNull, type Conditions, type Mea
 import { ingredients, type IngredientId } from './data/ingredients'
 import { recipes, type Recipe } from './data/recipes'
 import { cookDay, type ISODate } from './lib/dates'
+import { filterCandidates, maxMenus } from './lib/menu'
 
 export type PlanBasis = Pick<Conditions, 'dates' | 'people' | 'meals'>
 // skipped: B9 안 먹는 날, extras: D9 메뉴와 관계없이 직접 추가한 장보기 항목, owned: A12 계획을 짤 때 집에 있던 재료
@@ -86,6 +87,12 @@ export function storePlan(plans: Plan[], plan: Plan, today: ISODate): Plan[] {
   return [...other, plan].sort((a, b) => (start(a) < start(b) ? -1 : 1))
 }
 
+// B8 확정하면 기간이 겹치지 않는데도 빠지는 계획. 지금 먹는 계획과 다음 계획을 하나씩만 남기기 때문이다
+export function droppedPlans(plans: Plan[], plan: Plan, today: ISODate): Plan[] {
+  const kept = storePlan(plans, plan, today)
+  return plans.filter((p) => today <= end(p) && !overlaps(p, plan) && !kept.includes(p))
+}
+
 // 날짜가 지나 끝난 계획을 뺀다
 export const livePlans = (plans: Plan[], today: ISODate) => plans.filter((p) => today <= end(p))
 
@@ -102,6 +109,16 @@ export function confirmPlan(prev: Plan | null, menu: Recipe[], c: Conditions): P
   if (!prev || !sameBasis(prev, basis)) return { menu, ...basis, checked: [], skipped: [], extras: [], owned }
   const used = usedBy(menu)
   return { menu, ...basis, checked: prev.checked.filter((id) => used.has(id)), cookDate: prev.cookDate, skipped: prev.skipped, extras: prev.extras, owned }
+}
+
+// U16 확정 뒤 저장할 조건. A4 추가·삭제로 개수를 바꿨으면 그 개수로(끼니 수 상한으로 줄어든 경우 제외),
+// A12 이 메뉴가 쓰는 집에 있는 재료는 다 쓴다고 보고 다음 주 조건에서 뺀다. 바뀐 것이 없으면 null
+export function conditionsAfterConfirm(saved: Conditions, c: Conditions, menu: Recipe[]): Conditions | null {
+  const start = Math.min(c.menuCount, maxMenus(c, filterCandidates(c)))
+  const used = usedBy(menu)
+  const owned = saved.owned.filter((id) => !used.has(id))
+  if (menu.length === start && owned.length === saved.owned.length) return null
+  return { ...saved, owned, menuCount: menu.length !== start ? menu.length : saved.menuCount }
 }
 
 // B8 메뉴를 이렇게 바꾸면 쓸 곳이 없어지는 이미 산(구매 체크한) 재료

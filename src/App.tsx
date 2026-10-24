@@ -5,17 +5,18 @@ import PlanSwitch from './components/PlanSwitch'
 import StorageTab from './components/StorageTab'
 import { addHidden, defaultConditions, loadConditions, saveConditions, type Conditions } from './conditions'
 import type { Recipe } from './data/recipes'
-import { followingPeriod, toISO } from './lib/dates'
-import { filterCandidates, maxMenus } from './lib/menu'
+import { followingPeriod, formatDay, toISO } from './lib/dates'
 import { menuOptionsFor } from './lib/budget'
 import type { MenuOption } from './lib/options'
 import { servingsOf } from './lib/shopping'
 import { ingredients } from './data/ingredients'
 import {
   clearSavedData,
+  conditionsAfterConfirm,
   confirmPlan,
   currentPlan,
   droppedChecks,
+  droppedPlans,
   livePlans,
   loadPlans,
   planConditions,
@@ -234,15 +235,14 @@ export default function App() {
         }}
         onConfirm={() => {
           if (!okToDrop(d.menu, d.c)) return
-          // A4 사용자가 추가·삭제로 개수를 바꿨을 때만 다음에 그 개수로 시작한다(끼니 수 상한으로 줄어든 경우 제외)
-          const start = Math.min(d.c.menuCount, maxMenus(d.c, filterCandidates(d.c)))
-          // A12 이 메뉴에 쓰는 집에 있는 재료는 다 쓴다고 보고, 다음 주 조건에서 뺀다(안 쓰는 재료는 남긴다)
-          const used = new Set(d.menu.flatMap((r) => r.ingredients.map((i) => i.id)))
-          const owned = conditions.owned.filter((id) => !used.has(id))
-          if (d.menu.length !== start || owned.length !== conditions.owned.length)
-            save({ ...conditions, owned, menuCount: d.menu.length !== start ? d.menu.length : conditions.menuCount })
           // 날짜·인원이 그대로면 조리일과 새 메뉴가 쓰는 재료의 구매 체크를 이어 쓰고, 바뀌었으면 비운다
-          updatePlans(storePlan(live, confirmPlan(planOverlapping(live, d.c), d.menu, d.c), today))
+          const plan = confirmPlan(planOverlapping(live, d.c), d.menu, d.c)
+          // B8 기간이 겹치지 않아도 다음 계획은 하나만 두므로, 빠지는 계획이 있으면 확인을 받는다
+          const lost = droppedPlans(live, plan, today).map((p) => `${formatDay(p.dates[0])}~${formatDay(p.dates[p.dates.length - 1])}`)
+          if (lost.length && !window.confirm(`${lost.join(', ')} 계획(구매 체크 포함)이 지워져요. 이 계획으로 바꿀까요?`)) return
+          const after = conditionsAfterConfirm(conditions, d.c, d.menu)
+          if (after) save(after)
+          updatePlans(storePlan(live, plan, today))
           setShopView('next')
           goTab('shopping')
         }}

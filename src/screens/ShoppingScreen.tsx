@@ -43,7 +43,7 @@ export default function ShoppingScreen(props: Props) {
   const left = list.items.filter((it) => !checked.includes(it.id)).length
   const seasoningCost = list.items.filter((it) => it.corner === '양념').reduce((s, it) => s + (it.price ?? 0), 0)
   const versionB = budgetVersion() === 'B'
-  const budget = budgetOf(c)
+  const budget = versionB ? budgetOf(c) : 0 // 예산 범위 계산은 버전 B에서만 쓴다
   const cookOptions = cookDateOptions(today, c.dates)
   const suggestion = versionB && onApplySwap && !keep && list.total > budget ? suggestSwap(menu, c) : null
 

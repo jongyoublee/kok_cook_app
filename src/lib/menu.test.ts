@@ -3,13 +3,17 @@ import { config } from '../config'
 import { ALL_CARBS, ALL_PROTEINS, defaultConditions, PROTEIN_OPTIONS } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { recipes, type Recipe } from '../data/recipes'
-import { addMenu, assignDays, buildMenu, combinationCount, filterCandidates, fitsSpread, forEachCombo, greedyCombos, hintText, maxMenus, menuSpread, methodRule, missingSeasonings, overlapScore, proteinRule, relaxations, searchCombos, sharedIngredients, swapMenu, widenHints } from './menu'
+import { addMenu, assignDays, combinationCount, filterCandidates, fitsSpread, forEachCombo, hintText, maxMenus, menuSpread, methodRule, missingSeasonings, overlapScore, proteinRule, relaxations, scoreOf, sharedIngredients, swapMenu, topCombosBy, widenHints } from './menu'
+import { buildMenuOptions } from './options'
 
 const today = '2026-10-22'
 const all = { ...defaultConditions(today), proteins: ALL_PROTEINS, carbs: ALL_CARBS }
 const someProteins = { ...all, proteins: ['chicken', 'fish', 'seafood'] as typeof all.proteins }
 const first = () => 0
 const byId = (id: string) => recipes.find((r) => r.id === id)!
+// 앱이 메뉴를 만드는 길(추천안). 분산 규칙과 규칙 풀기까지 들어 있다
+const optionMenus = (c: typeof all, k: number) => buildMenuOptions({ ...c, menuCount: k }, undefined, first).options.map((o) => o.menu)
+const topMenu = (pool: Recipe[], k: number, pantry: string[] = []) => topCombosBy(pool, k, pantry as never, 1, [scoreOf])[0][0].menu
 
 function combos(pool: Recipe[], k: number): Recipe[][] {
   if (k === 0) return [[]]
@@ -48,11 +52,11 @@ describe('재료 겹침 점수 (B1)', () => {
     expect(overlapScore([pork, bulgogi])).toBeLessThan(shared.length)
   })
 
-  it.each([2, 3, 4])('메뉴 %i개: 고른 조합은 모든 조합 중 최고점', (k) => {
+  it.each([2, 3, 4])('메뉴 %i개: 겹침 상위 조합은 모든 조합 중 최고점', (k) => {
     for (const cond of [all, someProteins]) {
       const pool = filterCandidates(cond)
       const top = Math.max(...combos(pool, k).map(overlapScore))
-      const menu = buildMenu(pool, k, [], first)
+      const menu = topMenu(pool, k)
       expect(menu).toHaveLength(k)
       expect(new Set(menu).size).toBe(k)
       expect(overlapScore(menu)).toBe(top)
@@ -64,7 +68,7 @@ describe('집에 있는 양념 (A9)', () => {
   it('겹침 점수가 같으면 새로 살 양념이 적은 조합을 고른다', () => {
     const pool = filterCandidates(all)
     const pantry = ['soySauce', 'allulose', 'sesameOil'] as const
-    const menu = buildMenu(pool, 2, [...pantry], first)
+    const menu = topMenu(pool, 2, [...pantry])
     const top = Math.max(...combos(pool, 2).map(overlapScore))
     const fewest = Math.min(...combos(pool, 2).filter((c) => overlapScore(c) === top).map((c) => missingSeasonings(c, [...pantry])))
     expect(overlapScore(menu)).toBe(top)
@@ -76,7 +80,7 @@ describe('교체와 추가 (B2, B3)', () => {
   const pool = filterCandidates(all)
 
   it('교체하면 중복 없이 바뀌고, 그 칸에서 본 메뉴는 후보를 다 볼 때까지 다시 안 나온다', () => {
-    let menu = buildMenu(pool, 2, [], first)
+    let menu = pool.slice(0, 2)
     let shown: string[] = []
     const seen = [menu[0].id]
     for (let n = 0; n < pool.length - 2; n++) {
@@ -140,11 +144,11 @@ describe('모든 조합 비교 (B1)', () => {
     expect(n).toBe(combinationCount(8, 3))
   })
 
-  it('조합 수가 상한을 넘으면 탐욕 선택으로 돌아간다', () => {
+  it('조합 수가 상한을 넘으면 탐욕 선택으로도 추천안을 만든다', () => {
     const { maxCombos } = config.menuSearch
     config.menuSearch.maxCombos = 0
     try {
-      expect(searchCombos(pool, 2, [], first)).toEqual(greedyCombos(pool, 2, [], first))
+      for (const m of optionMenus(all, 3)) expect(new Set(m).size).toBe(3)
     } finally {
       config.menuSearch.maxCombos = maxCombos
     }
@@ -174,15 +178,14 @@ describe('단백질 분산 (B6)', () => {
   })
 
   it.each([2, 3, 4])('전부 골랐으면 메뉴 %i개가 모두 다른 단백질', (k) => {
-    const menu = buildMenu(pool, k, [], first, menuSpread(ALL_PROTEINS, k))
-    expect(menu).toHaveLength(k)
-    expect(Math.max(...groupCounts(menu))).toBe(1)
+    for (const menu of optionMenus(all, k)) {
+      expect(menu).toHaveLength(k)
+      expect(Math.max(...groupCounts(menu))).toBe(1)
+    }
   })
 
   it('두 개를 골랐고 메뉴가 3개면 한 단백질은 2개까지', () => {
-    const two = filterCandidates({ ...all, proteins: ['pork', 'chicken'] })
-    const menu = buildMenu(two, 3, [], first, menuSpread(['pork', 'chicken'], 3))
-    expect(groupCounts(menu).sort()).toEqual([1, 2])
+    for (const menu of optionMenus({ ...all, proteins: ['pork', 'chicken'] }, 3)) expect(groupCounts(menu).sort()).toEqual([1, 2])
   })
 
   it('규칙으로 조합을 만들 수 없으면 규칙 없이 만든다', () => {
@@ -192,12 +195,12 @@ describe('단백질 분산 (B6)', () => {
     expect(pool2.filter((r) => r.proteinSource === 'legume')).toHaveLength(1)
     const spread = [proteinRule(proteins, 4)!]
     expect(spread[0].cap).toBe(2)
-    expect(buildMenu(pool2, 4, [], first, spread)).toHaveLength(4)
+    expect(optionMenus({ ...all, proteins }, 4)[0]).toHaveLength(4)
   })
 
   it('교체와 추가도 규칙을 지킨다', () => {
     const spread = menuSpread(ALL_PROTEINS, 3)
-    let menu = buildMenu(pool, 3, [], first, spread)
+    let menu = optionMenus(all, 3)[0]
     for (let i = 0; i < 5; i++) menu = swapMenu(menu, 0, pool, [], [], first, spread).menu
     expect(fitsSpread(menu, spread)).toBe(true)
     const added = addMenu(menu, pool, [], first, menuSpread(ALL_PROTEINS, 4))
@@ -206,7 +209,6 @@ describe('단백질 분산 (B6)', () => {
 })
 
 describe('조리법 분산', () => {
-  const pool = filterCandidates(all)
   const maxSameMethod = (menu: Recipe[]) => Math.max(...menu.map((r) => menu.filter((x) => x.method === r.method).length))
 
   it('같은 조리법은 메뉴 수의 절반(올림)까지', () => {
@@ -215,9 +217,10 @@ describe('조리법 분산', () => {
   })
 
   it.each([2, 3, 4, 5])('메뉴 %i개도 조리법 규칙을 지킨다', (k) => {
-    const menu = buildMenu(pool, k, [], first, menuSpread(ALL_PROTEINS, k))
-    expect(menu).toHaveLength(k)
-    expect(maxSameMethod(menu)).toBeLessThanOrEqual(methodRule(k)!.cap)
+    for (const menu of optionMenus(all, k)) {
+      expect(menu).toHaveLength(k)
+      expect(maxSameMethod(menu)).toBeLessThanOrEqual(methodRule(k)!.cap)
+    }
   })
 
   it('규칙은 조리법 제한부터 1씩 풀고, 다음에 단백질만, 마지막에 규칙 없이', () => {

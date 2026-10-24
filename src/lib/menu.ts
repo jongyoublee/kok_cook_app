@@ -129,7 +129,7 @@ const pickNext = (menu: Recipe[], pool: Recipe[], pantry: IngredientId[], rng: R
   )
 
 // 후보마다 첫 메뉴로 두고 점수를 가장 올리는 레시피를 하나씩 더한 조합들.
-// 탐욕 선택이라 최적 조합을 놓칠 수 있어, 조합 수가 너무 많을 때만 쓴다(searchCombos)
+// 탐욕 선택이라 최적 조합을 놓칠 수 있어, 조합 수가 너무 많을 때만 쓴다(options.candidateCombos)
 // spread가 있으면 분산 규칙 때문에 다 채우지 못한 조합은 버린다
 export function greedyCombos(candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random, spread?: Spread): Recipe[][] {
   const combos = candidates.map((seed) => {
@@ -242,31 +242,6 @@ export function topCombosBy(candidates: Recipe[], k: number, pantry: IngredientI
   )
   return lists.map((l) => (trim(l), l.top))
 }
-
-// 점수가 높은 조합 limit개 (높은 순)
-export const topCombos = (candidates: Recipe[], k: number, pantry: IngredientId[], limit: number, score: ComboScore = scoreOf, spread?: Spread) =>
-  topCombosBy(candidates, k, pantry, limit, [score], spread)[0]
-
-// 조합 수가 설정 상한 이하면 모두 비교한 상위 조합, 넘으면 탐욕 선택 조합.
-// 분산 규칙으로 만들 수 있는 조합이 없으면 규칙을 차례로 풀어 다시 찾는다(relaxations)
-export function searchCombos(candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random, spread?: Spread): Recipe[][] {
-  const { maxCombos, keep } = config.menuSearch
-  for (const rules of relaxations(spread)) {
-    const found =
-      combinationCount(candidates.length, count) > maxCombos
-        ? greedyCombos(candidates, count, pantry, rng, rules)
-        : topCombos(candidates, count, pantry, keep, scoreOf, rules).map((c) => c.menu)
-    if (found.length) return found
-  }
-  return []
-}
-
-// 조합 중 점수가 가장 높은 것
-export const bestCombo = (combos: Recipe[][], pantry: IngredientId[] = [], rng: Rng = Math.random): Recipe[] =>
-  best(combos, (m) => menuScore(m, pantry), rng) ?? []
-
-export const buildMenu = (candidates: Recipe[], count: number, pantry: IngredientId[] = [], rng: Rng = Math.random, spread?: Spread): Recipe[] =>
-  bestCombo(searchCombos(candidates, count, pantry, rng, spread), pantry, rng)
 
 // B2 i번째 메뉴를 나머지와 가장 잘 겹치는 후보로 바꾼다. shown은 그 칸에서 이미 보여준 레시피 id로,
 // 다시 나오지 않게 하고 후보를 다 보면 비운다

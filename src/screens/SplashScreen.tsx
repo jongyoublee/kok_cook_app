@@ -19,7 +19,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
       </span>
       <h1 aria-label="KokCook" className="font-wordmark text-[34px] font-extrabold tracking-[-0.03em] text-ink">
         {'KokCook'.split('').map((ch, i) => (
-          <span key={i} aria-hidden className="splash-letter" style={{ animationDelay: `${0.8 + i * 0.05}s` }}>
+          <span key={i} aria-hidden className="splash-letter" style={{ animationDelay: `${1.15 + i * 0.06}s` }}>
             {ch}
           </span>
         ))}

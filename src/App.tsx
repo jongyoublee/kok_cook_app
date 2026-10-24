@@ -213,8 +213,8 @@ export default function App() {
         />
       )
   } else if (view === 'this') page = <ThisWeekScreen header={header} plan={current} onOpenRecipe={current ? openRecipe(current.menu, planConditions(current, conditions)) : () => {}} onPlanNext={() => setView('next')} />
-  else if (draft) {
-    const d = draft
+  else if (next) {
+    const d = next
     page = (
       <MenuScreen
         header={header}

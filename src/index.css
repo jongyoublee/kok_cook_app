@@ -37,9 +37,7 @@
 @keyframes splash-band { from { transform: scaleX(0); } }
 @keyframes splash-rise { from { opacity: 0; transform: translateY(8px); } }
 @keyframes splash-fade { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .splash-hat svg, .splash-hat path:last-child, .splash-letter, .splash-fade { animation: none; }
-}
+/* 움직임 줄이기 설정과 상관없이 보여 준다(2026-10-25 사용자 결정) */
 
 body {
   color: var(--color-ink);

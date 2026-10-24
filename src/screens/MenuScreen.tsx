@@ -1,10 +1,10 @@
 // B1~B3 추천 메뉴 화면 (와이어프레임 2). 메뉴는 App이 들고 있어 레시피 상세에 다녀와도 유지된다.
 // 예상 금액 막대는 버전 A면 예산과 비교한다
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { config } from '../config'
 import { mealCount, type Conditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
-import { formatDay, fromISO, type ISODate } from '../lib/dates'
+import { dayLabel } from '../lib/dates'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
 import { addMenu, assignDays, filterCandidates, maxMenus, menuSpread, sharedIngredients, swapMenu } from '../lib/menu'
 import { CostBar, Tile } from '../components/fields'
@@ -13,9 +13,10 @@ import { summarizeMenu } from '../lib/nutrition'
 import { OPTION_LABEL, suggestAddition, type MenuOption } from '../lib/options'
 import { perServingCost, servingsOf } from '../lib/shopping'
 import { priceOf } from '../data/prices'
-import { primaryButton, won } from '../ui'
+import { ABOVE_NAV, primaryButton, won } from '../ui'
 
 type Props = {
+  header?: ReactNode
   conditions: Conditions
   menu: Recipe[]
   options: MenuOption[] // B1 추천안. 고른 뒤에도 교체·추가·삭제로 고칠 수 있다
@@ -38,13 +39,7 @@ const optionDesc = (o: MenuOption) =>
         ? `${o.premium.join('·')} · 약 ${won(o.cost)}`
         : `재료 ${o.items}가지`
 
-// 한 주 안이면 요일만, 넘어가면 날짜까지 표시
-function dayLabel(days: ISODate[], all: ISODate[]) {
-  const oneWeek = fromISO(all[all.length - 1]).getTime() - fromISO(all[0]).getTime() < 7 * 86_400_000
-  return days.map((d) => (oneWeek ? '일월화수목금토'[fromISO(d).getDay()] : formatDay(d))).join(', ')
-}
-
-export default function MenuScreen({ conditions: c, menu, options, onChange: setMenu, onHide, onOpenRecipe, onConfirm, onBack }: Props) {
+export default function MenuScreen({ header, conditions: c, menu, options, onChange: setMenu, onHide, onOpenRecipe, onConfirm, onBack }: Props) {
   const candidates = useMemo(() => filterCandidates(c), [c])
   const limit = maxMenus(c, candidates)
   const [shown, setShown] = useState<string[][]>([])
@@ -53,7 +48,8 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
   if (!menu.length)
     return (
       <main className="mx-auto max-w-md p-4">
-        <p>조건에 맞는 메뉴가 없어요. 조건을 바꿔 보세요.</p>
+        {header}
+        <p className="mt-6">조건에 맞는 메뉴가 없어요. 조건을 바꿔 보세요.</p>
         <button type="button" className="mt-4 underline" onClick={onBack}>조건으로 돌아가기</button>
       </main>
     )
@@ -92,6 +88,7 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-4">
+      {header}
       <div className="flex items-center gap-2">
         <button type="button" onClick={onBack} className="p-1 text-xl" aria-label="조건으로 돌아가기">‹</button>
         <h1 className="text-xl font-bold">다음 주 메뉴</h1>
@@ -223,8 +220,8 @@ export default function MenuScreen({ conditions: c, menu, options, onChange: set
         </section>
       )}
 
-      <div className="mt-auto">
-        <button type="button" onClick={onConfirm} className={primaryButton}>
+      <div className={`sticky ${ABOVE_NAV} mt-auto`}>
+        <button type="button" onClick={onConfirm} className={`${primaryButton} shadow-float`}>
           메뉴 확정하고 장보기 목록 보기
         </button>
       </div>

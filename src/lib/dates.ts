@@ -55,3 +55,9 @@ export function canSelect(date: ISODate, selected: ISODate[], today: ISODate): b
   const all = [...selected, date].sort()
   return daysBetween(all[0], all[all.length - 1]) + 1 <= config.maxSelectDays
 }
+
+// B1, B13 메뉴의 먹는 날. 한 주 안이면 요일만, 넘어가면 날짜까지 표시
+export function dayLabel(days: ISODate[], all: ISODate[]) {
+  const oneWeek = fromISO(all[all.length - 1]).getTime() - fromISO(all[0]).getTime() < 7 * 86_400_000
+  return days.map((d) => (oneWeek ? '일월화수목금토'[fromISO(d).getDay()] : formatDay(d))).join(', ')
+}

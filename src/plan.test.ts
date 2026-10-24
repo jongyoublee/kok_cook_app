@@ -4,7 +4,7 @@ import { recipes } from './data/recipes'
 import { nextWeek } from './lib/dates'
 import { servingsOf } from './lib/shopping'
 import { schedule } from './lib/storagePlan'
-import { clearSavedData, confirmPlan, droppedChecks, loadPlan, planConditions, planCookDate, savePlan } from './plan'
+import { clearSavedData, confirmPlan, droppedChecks, currentPlan, loadPlans, planConditions, planCookDate, planOverlapping, savePlans, storePlan, upcomingPlan, type Plan } from './plan'
 
 const fakeStorage = (init?: string) => {
   const m = new Map<string, string>(init ? [['kokcook.plan', init]] : [])
@@ -21,22 +21,22 @@ describe('확정 메뉴와 구매 체크 저장 (I2, D6)', () => {
   it('저장 후 불러오면 같다', () => {
     const s = fakeStorage()
     const plan = { ...basis, menu: [a, b], checked: ['onion' as const], cookDate: '2026-10-24', skipped: ['2026-10-27'], extras: [{ name: '휴지', done: true }] }
-    savePlan(plan, s)
-    expect(loadPlan(basis, s)).toEqual(plan)
+    savePlans([plan], s)
+    expect((loadPlans(basis, s)[0] ?? null)).toEqual(plan)
   })
 
   it('없어진 레시피·재료는 거르고, 메뉴가 없거나 깨졌으면 null', () => {
-    const plan = loadPlan(basis, fakeStorage(JSON.stringify({ recipeIds: ['x', a.id], checked: ['onion', 'x', 3] })))!
+    const plan = (loadPlans(basis, fakeStorage(JSON.stringify({ recipeIds: ['x', a.id], checked: ['onion', 'x', 3] })))[0] ?? null)!
     expect(plan.menu).toEqual([a])
     expect(plan.checked).toEqual(['onion'])
     expect(plan.cookDate).toBeUndefined()
-    expect(loadPlan(basis, fakeStorage(JSON.stringify({ recipeIds: ['x'] })))).toBeNull()
-    expect(loadPlan(basis, fakeStorage('{oops'))).toBeNull()
-    expect(loadPlan(basis, fakeStorage())).toBeNull()
+    expect((loadPlans(basis, fakeStorage(JSON.stringify({ recipeIds: ['x'] })))[0] ?? null)).toBeNull()
+    expect(loadPlans(basis, fakeStorage('{oops'))[0] ?? null).toBeNull()
+    expect(loadPlans(basis, fakeStorage())[0] ?? null).toBeNull()
   })
 
   it('날짜·인원이 없는 예전 저장값은 지금 조건으로 채운다', () => {
-    const plan = loadPlan({ dates: ['2026-11-02'], people: 3, meals: ['dinner'] }, fakeStorage(JSON.stringify({ recipeIds: [a.id] })))!
+    const plan = (loadPlans({ dates: ['2026-11-02'], people: 3, meals: ['dinner'] }, fakeStorage(JSON.stringify({ recipeIds: [a.id] })))[0] ?? null)!
     expect(plan.dates).toEqual(['2026-11-02'])
     expect(plan.people).toBe(3)
   })
@@ -49,14 +49,14 @@ describe('식사 중간에 다시 열어도 계획이 그대로 (E1, I2)', () =>
     const condStorage = { getItem: (k: string) => condStore.get(k) ?? null, setItem: (k: string, v: string) => void condStore.set(k, v) }
     saveConditions(c, condStorage)
     const plan = confirmPlan(null, [a, b], c)
-    savePlan(plan, s)
+    savePlans([plan], s)
     const before = schedule(plan.menu, plan.dates, planCookDate(plan))
 
     // 수요일: 조건을 불러오면 지난 월·화가 빠지지만, 계획은 저장한 날짜를 쓴다
     const wednesday = '2026-10-28'
     const reopened = loadConditions(wednesday, condStorage)!
     expect(reopened.dates).toEqual(['2026-10-28', '2026-10-29', '2026-10-30'])
-    const again = loadPlan(reopened, s)!
+    const again = loadPlans(reopened, s)[0]!
     const pc = planConditions(again, reopened)
     expect(pc.dates).toEqual(weekdays)
     expect(planCookDate(again)).toBe(sunday)
@@ -136,7 +136,43 @@ describe('직접 추가한 항목 (D9)', () => {
   })
 
   it('이름이 빈 저장값은 버린다', () => {
-    const plan = loadPlan(basis, fakeStorage(JSON.stringify({ recipeIds: [a.id], extras: [{ name: ' ' }, { name: '우유', done: 'x' }, 3] })))!
+    const plan = (loadPlans(basis, fakeStorage(JSON.stringify({ recipeIds: [a.id], extras: [{ name: ' ' }, { name: '우유', done: 'x' }, 3] })))[0] ?? null)!
     expect(plan.extras).toEqual([{ name: '우유', done: false }])
+  })
+})
+
+describe('이번 주 / 다음 주 계획 (B13)', () => {
+  const mk = (dates: string[]): Plan => ({ menu: [a], dates, people: 1, meals: ['dinner'], checked: [], skipped: [], extras: [] })
+  const thisWeek = mk(['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30'])
+  const nextWk = mk(['2026-11-02', '2026-11-03', '2026-11-04'])
+
+  it('먹기 시작한 계획은 이번 주, 아직 시작 안 한 계획은 다음 주', () => {
+    expect(currentPlan([thisWeek], '2026-10-22')).toBeNull()
+    expect(upcomingPlan([thisWeek], '2026-10-22')).toBe(thisWeek)
+    expect(currentPlan([thisWeek], '2026-10-26')).toBe(thisWeek)
+    expect(upcomingPlan([thisWeek], '2026-10-26')).toBeNull()
+  })
+
+  it('먹는 중에 다음 계획을 확정해도 이번 주 계획이 남는다', () => {
+    const plans = storePlan([thisWeek], nextWk, '2026-10-29')
+    expect(plans).toEqual([thisWeek, nextWk])
+  })
+
+  it('기간이 겹치는 계획은 바꾸고, 끝난 계획은 뺀다', () => {
+    const again = mk(['2026-11-02', '2026-11-03'])
+    expect(storePlan([thisWeek, nextWk], again, '2026-10-29')).toEqual([thisWeek, again])
+    expect(storePlan([thisWeek], nextWk, '2026-10-31')).toEqual([nextWk])
+  })
+
+  it('다음 계획은 하나만 둔다', () => {
+    const later = mk(['2026-11-09'])
+    expect(storePlan([thisWeek, nextWk], later, '2026-10-29')).toEqual([thisWeek, later])
+  })
+
+  it('여러 계획을 저장하고 불러온다', () => {
+    const s = fakeStorage()
+    savePlans([thisWeek, nextWk], s)
+    expect(loadPlans(basis, s).map((p) => p.dates)).toEqual([thisWeek.dates, nextWk.dates])
+    expect(planOverlapping([thisWeek, nextWk], { dates: ['2026-11-03'], people: 1, meals: ['dinner'] })).toBe(nextWk)
   })
 })

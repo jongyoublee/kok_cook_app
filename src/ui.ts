@@ -1,5 +1,5 @@
 // 화면 공통 스타일
-export const primaryButton = 'w-full rounded-xl bg-black py-4 font-semibold text-white disabled:bg-gray-200 disabled:text-gray-400'
+export const primaryButton = 'w-full rounded-xl bg-ink py-4 font-semibold text-white disabled:bg-line disabled:text-sub'
 
 // I3
 export const ADVICE = '질환이 있거나 식사 제한이 필요하면 전문가와 상담하세요.'
@@ -21,3 +21,7 @@ export function hatStroke(size: number): [body: number, band: number] {
   if (size > 24) return [1.9, 2.4]
   return [2.2, 2.8]
 }
+
+// I8 떠 있는 하단 메뉴 자리. 화면 아래 여백과, 하단 고정 버튼을 메뉴 바로 위에 쌓는 위치
+export const NAV_SPACE = 'pb-[calc(96px+env(safe-area-inset-bottom))]'
+export const ABOVE_NAV = 'bottom-[calc(74px+env(safe-area-inset-bottom))]'

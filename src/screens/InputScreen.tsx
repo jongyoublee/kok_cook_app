@@ -1,10 +1,10 @@
 // 이번 식단 조건 화면 (와이어프레임 1-1). 처음 설정 이후에는 이 화면에서 모든 조건을 바로 고친다:
-// A2·A3 먹을 날짜, A1 인원, A8 단백질, A10 탄수화물, A9 양념.
+// A12 집에 있는 재료(맨 위, 매주 고친다), A2·A3 먹을 날짜, A1 인원, A8 단백질, A10 탄수화물, A9 양념.
 // A4 메뉴 개수는 메뉴 화면에서 추가·삭제로 조절한다. A7 예산은 버전 A일 때만 여기서 받는다.
 // I8 두 곳에서 쓴다: 다음 주 탭(날짜와 '메뉴 만들기')과 내 설정 탭(onChange가 있으면 날짜 없이 바로 저장)
 import { useState, type ReactNode } from 'react'
 import CalendarSheet from '../components/CalendarSheet'
-import { BudgetField, CarbField, PantryField, PeopleField, ProteinField } from '../components/fields'
+import { BudgetField, CarbField, OwnedField, PantryField, PeopleField, ProteinField } from '../components/fields'
 import { budgetVersion } from '../lib/budget'
 import { mealCount, type Conditions } from '../conditions'
 import { cookDay, formatDay, nextWeek, type ISODate } from '../lib/dates'
@@ -55,6 +55,10 @@ export default function InputScreen({ header, today, initial, onSubmit, onChange
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 bg-surface px-5 pt-6">
       {header}
       <h1 className="text-[26px] font-bold">{settings ? '내 설정' : '다음 주 식단 조건'}</h1>
+
+      <Section title="집에 있는 재료">
+        <OwnedField c={c} set={set} suggest />
+      </Section>
 
       {!settings && (
         <Section title="먹을 날짜">

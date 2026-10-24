@@ -1,7 +1,7 @@
 // A1~A6, A8~A10, A12 입력 조건과 I2 기기 저장.
 // 내 설정(인원, 먹고 싶은 단백질·탄수화물, 집에 있는 양념)은 처음 한 번 묻고, 날짜와 집에 있는 재료(A12)는 매주 묻는다
 import { config } from './config'
-import { CORNERS, ingredients, type IngredientId } from './data/ingredients'
+import { ingredients, type Corner, type IngredientId } from './data/ingredients'
 import { recipes, type CarbBase, type ProteinSource } from './data/recipes'
 import { nextWeek, type ISODate } from './lib/dates'
 
@@ -54,8 +54,9 @@ export const PANTRY_GROUPS: { title: string; ids: IngredientId[] }[] = [
   { title: '양식 양념', ids: ['oliveOil', 'butter', 'ketchup', 'mayonnaise', 'mustard', 'balsamic', 'honey', 'basil', 'oregano', 'paprikaPowder', 'chickenStock'] },
 ]
 
-// A12 집에 있는지 묻는 재료: 양념을 뺀 모든 코너. 코너별로 묶어 보여준다
-export const OWNED_GROUPS: { title: string; ids: IngredientId[] }[] = CORNERS.filter((corner) => corner !== '양념').map((corner) => ({
+// A12 집에 있는지 묻는 재료: 양념을 뺀 모든 코너. 주재료(고기·생선·두부) 코너를 먼저, 코너별로 묶어 보여준다
+const OWNED_CORNERS: Corner[] = ['육류·달걀', '수산', '두부·콩', '채소', '곡류']
+export const OWNED_GROUPS: { title: string; ids: IngredientId[] }[] = OWNED_CORNERS.map((corner) => ({
   title: corner,
   ids: (Object.keys(ingredients) as IngredientId[]).filter((id) => ingredients[id].corner === corner),
 }))

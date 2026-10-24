@@ -84,7 +84,8 @@ describe('집에 있는 재료 (A12)', () => {
   it('양념을 뺀 재료를 코너별로 묻는다', () => {
     expect(OWNED_OPTIONS.some((id) => PANTRY_OPTIONS.includes(id))).toBe(false)
     expect(OWNED_OPTIONS).toContain('porkShoulder')
-    expect(OWNED_GROUPS[0].title).toBe('채소')
+    expect(OWNED_GROUPS[0].title).toBe('육류·달걀')
+    expect(OWNED_GROUPS.flatMap((g) => g.ids)).toHaveLength(OWNED_OPTIONS.length)
   })
 
   it('저장 후 불러오면 같고, 양념이나 없는 재료는 버린다', () => {

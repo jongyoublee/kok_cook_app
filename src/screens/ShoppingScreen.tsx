@@ -2,7 +2,7 @@
 // I8 하단 메뉴의 장보기 탭. 보관 방법은 보관 탭으로 옮겼다. D11 위쪽 요약 카드(하단 고정 합계 대신)
 import { useState, type ReactNode } from 'react'
 import { BudgetField, CheckCircle, CostBar } from '../components/fields'
-import type { Conditions } from '../conditions'
+import { homeOf, type Conditions } from '../conditions'
 import { CORNERS, ingredients, type IngredientId } from '../data/ingredients'
 import { priceOf } from '../data/prices'
 import type { Recipe } from '../data/recipes'
@@ -29,14 +29,17 @@ type Props = {
   onApplySwap?: (menu: Recipe[]) => void // 먹기 시작한 계획(이번 주)은 메뉴를 바꾸지 않아 없다
   extras: Extra[] // D9 직접 추가한 항목
   onExtrasChange: (extras: Extra[]) => void
+  onBuyOwned: (id: IngredientId) => void // A12 집에 있다고 고른 재료를 다시 살 목록에 넣는다
 }
 
 export default function ShoppingScreen(props: Props) {
-  const { top, today, period, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, extras, onExtrasChange } = props
+  const { top, today, period, conditions: c, cookDate, onCookDateChange, menu, checked, onToggle, onOpenRecipe, onBudgetChange, onApplySwap, extras, onExtrasChange, onBuyOwned } = props
   const [keep, setKeep] = useState(false) // F2 "그대로 진행"을 누르면 교체 제안을 닫는다
   const [draftExtra, setDraftExtra] = useState('') // D9 입력 중인 항목
   const [shared, setShared] = useState('') // D10 공유 결과 안내
-  const list = buildShoppingList(menu, servingsOf(menu, c), c.pantry, priceOf)
+  const list = buildShoppingList(menu, servingsOf(menu, c), homeOf(c), priceOf)
+  const ownedHere = list.inPantry.filter((id) => c.owned.includes(id))
+  const seasoningsHere = list.inPantry.filter((id) => !c.owned.includes(id))
   const left = list.items.filter((it) => !checked.includes(it.id)).length
   const seasoningCost = list.items.filter((it) => it.corner === '양념').reduce((s, it) => s + (it.price ?? 0), 0)
   const versionB = budgetVersion() === 'B'
@@ -243,10 +246,27 @@ export default function ShoppingScreen(props: Props) {
         </form>
       </section>
 
-      {list.inPantry.length > 0 && (
+      {/* A12 집에 있는 재료는 펼쳐 두고, 모자라면 다시 살 목록에 넣는다 */}
+      {ownedHere.length > 0 && (
+        <section className="rounded-xl border border-line px-4 py-3">
+          <h2 className="text-sm font-semibold">집에 있는 재료라 뺐어요</h2>
+          <ul className="mt-1 divide-y divide-line">
+            {ownedHere.map((id) => (
+              <li key={id} className="flex items-center justify-between py-2 text-sm">
+                <span>{ingredients[id].name}</span>
+                <button type="button" onClick={() => onBuyOwned(id)} className="rounded-full border border-line px-3 py-1 text-xs font-semibold">
+                  모자라요, 살게요
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {seasoningsHere.length > 0 && (
         <details className="rounded-xl border border-line px-4 py-3">
-          <summary className="cursor-pointer text-sm">집에 있어서 뺀 양념 {list.inPantry.length}개</summary>
-          <p className="mt-2 text-sm text-sub">{list.inPantry.map((id) => ingredients[id].name).join(', ')}</p>
+          <summary className="cursor-pointer text-sm">집에 있어서 뺀 양념 {seasoningsHere.length}개</summary>
+          <p className="mt-2 text-sm text-sub">{seasoningsHere.map((id) => ingredients[id].name).join(', ')}</p>
         </details>
       )}
 

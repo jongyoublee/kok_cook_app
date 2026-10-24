@@ -2,7 +2,7 @@
 // 예상 금액 막대는 버전 A면 예산과 비교한다
 import { useMemo, useState, type ReactNode } from 'react'
 import { config } from '../config'
-import { mealCount, type Conditions } from '../conditions'
+import { homeOf, mealCount, type Conditions } from '../conditions'
 import { ingredients } from '../data/ingredients'
 import { cookDay, dayLabel, formatDay } from '../lib/dates'
 import { FLAVOR_LABEL, METHOD_LABEL, type Recipe } from '../data/recipes'
@@ -29,7 +29,9 @@ type Props = {
 
 const sameMenu = (a: Recipe[], b: Recipe[]) => a.map((r) => r.id).sort().join() === b.map((r) => r.id).sort().join()
 const optionDesc = (o: MenuOption) =>
-  o.kind === 'cheap'
+  o.kind === 'owned'
+    ? `집 재료 ${o.owned}가지`
+    : o.kind === 'cheap'
     ? `약 ${won(o.cost)}`
     : o.kind === 'pantry'
       ? o.missing
@@ -66,7 +68,7 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
   const kcal = summarizeMenu(menu, servingsOf(menu, c).map((n) => n / c.people))
 
   const swap = (i: number) => {
-    const r = swapMenu(menu, i, candidates, shown[i] ?? [], c.pantry, Math.random, menuSpread(c.proteins, menu.length))
+    const r = swapMenu(menu, i, candidates, shown[i] ?? [], homeOf(c), Math.random, menuSpread(c.proteins, menu.length))
     setMenu(r.menu)
     setShown((s) => Object.assign([...s], { [i]: r.shown }))
   }
@@ -75,7 +77,7 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
   const hide = (i: number) => {
     const r = menu[i]
     const rest = candidates.filter((x) => x !== r)
-    const next = swapMenu(menu, i, rest, shown[i] ?? [], c.pantry, Math.random, menuSpread(c.proteins, menu.length))
+    const next = swapMenu(menu, i, rest, shown[i] ?? [], homeOf(c), Math.random, menuSpread(c.proteins, menu.length))
     if (next.menu !== menu) setMenu(next.menu)
     else if (menu.length > config.menuCount.min) remove(i)
     onHide(r.id)
@@ -157,7 +159,7 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
                   </p>
                   <p className="line-clamp-2 text-[15px] font-bold">{r.name}</p>
                   <p className="text-xs text-sub">
-                    1인분 약 {won(perServingCost(r, c.pantry, priceOf))} · 단백질 {r.nutrition.proteinG}g · {r.nutrition.kcal}kcal
+                    1인분 약 {won(perServingCost(r, homeOf(c), priceOf))} · 단백질 {r.nutrition.proteinG}g · {r.nutrition.kcal}kcal
                   </p>
                   <p className="mt-1 flex flex-wrap gap-1">
                     <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-sub">
@@ -218,7 +220,7 @@ export default function MenuScreen({ header, conditions: c, menu, options, onCha
 
       <button
         type="button"
-        onClick={() => setMenu(addMenu(menu, candidates, c.pantry, Math.random, menuSpread(c.proteins, menu.length + 1)))}
+        onClick={() => setMenu(addMenu(menu, candidates, homeOf(c), Math.random, menuSpread(c.proteins, menu.length + 1)))}
         disabled={menu.length >= limit}
         className="rounded-xl border border-dashed border-line py-3 text-sm disabled:opacity-40"
       >

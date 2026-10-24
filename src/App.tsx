@@ -195,6 +195,7 @@ export default function App() {
           }
           extras={p.extras}
           onExtrasChange={(extras) => replacePlan(p, { ...p, extras })}
+          onBuyOwned={(id) => replacePlan(p, { ...p, owned: p.owned.filter((x) => x !== id) })}
         />
       )
   } else if (view === 'this') page = <ThisWeekScreen header={header} plan={current} onOpenRecipe={current ? openRecipe(current.menu, planConditions(current, conditions)) : () => {}} onPlanNext={() => setView('next')} />
@@ -221,7 +222,11 @@ export default function App() {
           if (!okToDrop(d.menu, d.c)) return
           // A4 사용자가 추가·삭제로 개수를 바꿨을 때만 다음에 그 개수로 시작한다(끼니 수 상한으로 줄어든 경우 제외)
           const start = Math.min(d.c.menuCount, maxMenus(d.c, filterCandidates(d.c)))
-          if (d.menu.length !== start) save({ ...conditions, menuCount: d.menu.length })
+          // A12 이 메뉴에 쓰는 집에 있는 재료는 다 쓴다고 보고, 다음 주 조건에서 뺀다(안 쓰는 재료는 남긴다)
+          const used = new Set(d.menu.flatMap((r) => r.ingredients.map((i) => i.id)))
+          const owned = conditions.owned.filter((id) => !used.has(id))
+          if (d.menu.length !== start || owned.length !== conditions.owned.length)
+            save({ ...conditions, owned, menuCount: d.menu.length !== start ? d.menu.length : conditions.menuCount })
           // 날짜·인원이 그대로면 조리일과 새 메뉴가 쓰는 재료의 구매 체크를 이어 쓰고, 바뀌었으면 비운다
           updatePlans(storePlan(live, confirmPlan(planOverlapping(live, d.c), d.menu, d.c), today))
           setShopView('next')

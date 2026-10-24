@@ -2,7 +2,7 @@
 // 아이콘은 나중에 단색 아이콘으로 넣는다
 import { useState } from 'react'
 import { budgetOf, budgetRange } from '../lib/budget'
-import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, PANTRY_GROUPS, PROTEIN_OPTIONS, type Conditions } from '../conditions'
+import { ALL_CARBS, ALL_PROTEINS, CARB_OPTIONS, OWNED_GROUPS, PANTRY_GROUPS, PROTEIN_OPTIONS, proteinsFromOwned, type Conditions } from '../conditions'
 import { ingredients, type IngredientId } from '../data/ingredients'
 import { ALLERGY_NOTE, toggle, won } from '../ui'
 
@@ -115,6 +115,35 @@ export function PantryField({ c, set }: FieldProps) {
   )
 }
 
+// A12 집에 있는 재료(양념 제외). 코너별로 모두 펼쳐 보여주고, 고르지 않아도 넘어갈 수 있다.
+// suggest면 고른 고기·생선·두부 중 먹고 싶은 단백질에 없는 것을 넣자고 안내한다(조건 화면)
+export function OwnedField({ c, set, suggest = false }: FieldProps & { suggest?: boolean }) {
+  const add = proteinsFromOwned(c.owned).filter((p) => !c.proteins.includes(p))
+  const labels = PROTEIN_OPTIONS.filter((o) => o.sources.some((s) => add.includes(s))).map((o) => o.label)
+  return (
+    <div className="flex flex-col gap-4">
+      {OWNED_GROUPS.map((g) => (
+        <div key={g.title} className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold text-sub">{g.title}</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {g.ids.map((id) => (
+              <Tile key={id} on={c.owned.includes(id)} onClick={() => set({ owned: toggle(c.owned, id) })} label={ingredients[id].name} />
+            ))}
+          </div>
+        </div>
+      ))}
+      <p className="text-sm text-sub">{c.owned.length}개 선택</p>
+      {suggest && labels.length > 0 && (
+        <p className="text-sm text-ink">
+          먹고 싶은 단백질에 없는 재료가 있어요({labels.join(', ')}). 메뉴에 쓰려면{' '}
+          <button type="button" onClick={() => set({ proteins: [...c.proteins, ...add] })} className="font-semibold underline underline-offset-4">
+            단백질에 넣기
+          </button>
+        </p>
+      )}
+    </div>
+  )
+}
 
 // A7 예산 슬라이더와 F1 "가장 싸게 구성". 버전 B는 cheapest 없이 슬라이더만 쓴다
 // 범위는 조건에 따라 바뀐다(budgetRange). 아직 정하지 않았으면 범위 중간을 보여준다
